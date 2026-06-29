@@ -1,0 +1,349 @@
+<?php
+
+namespace Database\Seeders;
+
+use App\Models\Applicant;
+use App\Models\ApprovalLevel;
+use App\Models\BusinessDetails;
+use App\Models\Council;
+use App\Models\District;
+use App\Models\DraftLoan;
+use App\Models\Gurantor;
+use App\Models\Loan;
+use App\Models\LoanGroup;
+use App\Models\LoanPayment;
+use App\Models\Region;
+use App\Models\Street;
+use App\Models\User;
+use App\Models\Ward;
+use Illuminate\Database\Seeder;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Hash;
+
+class DummyDataSeeder extends Seeder
+{
+    protected Region $region;
+
+    protected District $district;
+
+    protected Council $council;
+
+    protected Ward $ward;
+
+    protected Street $street;
+
+    protected array $staff = [];
+
+    protected array $applicants = [];
+
+    public function run(): void
+    {
+        $this->loadGeography();
+        $this->loadStaff();
+
+        DB::transaction(function () {
+            $this->seedApplicants();
+            $this->seedLoanGroups();
+            $this->seedWorkflowLoans();
+            $this->seedDraftLoans();
+        });
+
+        $this->command?->info('Dummy data seeded: applicants, groups, loans (steps 1-9), repayments.');
+    }
+
+    protected function loadGeography(): void
+    {
+        $this->region = Region::where('name', 'Dodoma')->firstOrFail();
+        $this->district = District::where('region_id', $this->region->id)->where('name', 'Dodoma Mjini')->firstOrFail();
+        $this->council = Council::where('district_id', $this->district->id)->where('name', 'Dodoma Jiji')->firstOrFail();
+        $this->ward = Ward::where('council_id', $this->council->id)->where('name', 'Tambukareli')->firstOrFail();
+        $this->street = Street::where('ward_id', $this->ward->id)->where('name', 'Uhuru')->firstOrFail();
+    }
+
+    protected function loadStaff(): void
+    {
+        $this->staff = [
+            'ward' => User::where('email', 'ward.cdo@wdf.go.tz')->first(),
+            'ministry' => User::where('email', 'ministry@wdf.go.tz')->first(),
+            'ass_dir' => User::where('email', 'assdir@wdf.go.tz')->first(),
+            'director' => User::where('email', 'director@wdf.go.tz')->first(),
+            'km' => User::where('email', 'km@wdf.go.tz')->first(),
+            'chief' => User::where('email', 'chief@wdf.go.tz')->first(),
+            'accountant' => User::where('email', 'accountant1@wdf.go.tz')->first(),
+        ];
+    }
+
+    protected function seedApplicants(): void
+    {
+        $profiles = [
+            ['email' => 'test@example.com', 'name' => 'Test Applicant', 'first' => 'Neema', 'middle' => 'Juma', 'last' => 'Mrosso', 'nin' => '19900515123450000001', 'phone' => '255712200001'],
+            ['email' => 'applicant2@wdf.go.tz', 'name' => 'Fatuma Saidi', 'first' => 'Fatuma', 'middle' => 'Hassan', 'last' => 'Saidi', 'nin' => '19910220123450000002', 'phone' => '255712200002'],
+            ['email' => 'applicant3@wdf.go.tz', 'name' => 'Asha Mwakyusa', 'first' => 'Asha', 'middle' => 'Peter', 'last' => 'Mwakyusa', 'nin' => '19880303123450000003', 'phone' => '255712200003'],
+            ['email' => 'applicant4@wdf.go.tz', 'name' => 'Rehema Kavishe', 'first' => 'Rehema', 'middle' => 'Joseph', 'last' => 'Kavishe', 'nin' => '19920707123450000004', 'phone' => '255712200004'],
+            ['email' => 'applicant5@wdf.go.tz', 'name' => 'Zainabu Omary', 'first' => 'Zainabu', 'middle' => 'Omary', 'last' => 'Rajabu', 'nin' => '19941111123450000005', 'phone' => '255712200005'],
+        ];
+
+        foreach ($profiles as $p) {
+            $user = User::updateOrCreate(
+                ['email' => $p['email']],
+                [
+                    'name' => $p['name'],
+                    'phone' => $p['phone'],
+                    'password' => Hash::make('password'),
+                    'is_active' => true,
+                ]
+            );
+            $user->syncRoles(['applicant']);
+
+            $fullName = trim("{$p['first']} {$p['middle']} {$p['last']}");
+
+            $applicant = Applicant::updateOrCreate(
+                ['nin' => $p['nin']],
+                [
+                    'user_id' => $user->id,
+                    'first_name' => $p['first'],
+                    'middle_name' => $p['middle'],
+                    'last_name' => $p['last'],
+                    'full_name' => $fullName,
+                    'dob' => '1990-05-15',
+                    'sex' => 'Female',
+                    'marital_status' => 'Married',
+                    'nationality' => 'Tanzanian',
+                    'phone' => $p['phone'],
+                    'email' => $p['email'],
+                    'location_id' => $this->street->id,
+                    'nida_verified' => true,
+                    'nida_verified_at' => now(),
+                ]
+            );
+
+            $this->applicants[] = $applicant;
+        }
+    }
+
+    protected function seedLoanGroups(): void
+    {
+        $group1 = LoanGroup::firstOrCreate(
+            ['name' => 'Tambukareli Women Entrepreneurs'],
+            [
+                'registration_number' => 'WDF-GROUP-001',
+                'phone' => '255712300001',
+                'email' => 'tambukareli.women@wdf.go.tz',
+            ]
+        );
+
+        $group2 = LoanGroup::firstOrCreate(
+            ['name' => 'Uhuru Street VICOBA'],
+            [
+                'registration_number' => 'WDF-GROUP-002',
+                'phone' => '255712300002',
+                'email' => 'uhuru.vicoba@wdf.go.tz',
+            ]
+        );
+
+        $group1->applicants()->syncWithoutDetaching([
+            $this->applicants[0]->id,
+            $this->applicants[1]->id,
+            $this->applicants[2]->id,
+        ]);
+
+        $group2->applicants()->syncWithoutDetaching([
+            $this->applicants[3]->id,
+            $this->applicants[4]->id,
+        ]);
+    }
+
+    protected function seedWorkflowLoans(): void
+    {
+        $scenarios = [
+            // Step 1 — submitted, pending ward
+            ['track' => 'WL000001', 'step' => 1, 'status' => 'pending', 'acceptance' => 'pending', 'requested' => 5000000, 'proposed' => 0, 'disbursed' => 0, 'applicant' => 0, 'history' => []],
+            // Step 1 — received by ward
+            ['track' => 'WL000002', 'step' => 1, 'status' => 'received', 'acceptance' => 'pending', 'requested' => 3500000, 'proposed' => 0, 'disbursed' => 0, 'applicant' => 1, 'history' => [
+                ['step' => 1, 'action' => 'received', 'user' => 'ward', 'comments' => 'Application received at ward office.'],
+            ]],
+            // Step 2 — ministry review
+            ['track' => 'WL000003', 'step' => 2, 'status' => 'in_review', 'acceptance' => 'pending', 'requested' => 8000000, 'proposed' => 0, 'disbursed' => 0, 'applicant' => 2, 'history' => [
+                ['step' => 1, 'action' => 'received', 'user' => 'ward', 'comments' => 'Received.'],
+                ['step' => 1, 'action' => 'forwarded_to_ministry', 'user' => 'ward', 'comments' => 'Forwarded to ministry for review.'],
+            ]],
+            // Step 3 — awaiting applicant confirmation
+            ['track' => 'WL000004', 'step' => 3, 'status' => 'awaiting_applicant', 'acceptance' => 'pending', 'requested' => 6000000, 'proposed' => 5500000, 'disbursed' => 0, 'applicant' => 3, 'history' => [
+                ['step' => 1, 'action' => 'received', 'user' => 'ward'],
+                ['step' => 1, 'action' => 'forwarded_to_ministry', 'user' => 'ward'],
+                ['step' => 2, 'action' => 'proposed_amount', 'user' => 'ministry', 'comments' => 'Proposed TZS 5,500,000', 'amount' => 5500000],
+            ]],
+            // Step 4 — ministry after applicant accepted
+            ['track' => 'WL000005', 'step' => 4, 'status' => 'in_review', 'acceptance' => 'accepted', 'requested' => 4500000, 'proposed' => 4000000, 'disbursed' => 0, 'applicant' => 4, 'history' => [
+                ['step' => 1, 'action' => 'received', 'user' => 'ward'],
+                ['step' => 1, 'action' => 'forwarded_to_ministry', 'user' => 'ward'],
+                ['step' => 2, 'action' => 'proposed_amount', 'user' => 'ministry', 'amount' => 4000000],
+                ['step' => 3, 'action' => 'accepted', 'user' => 'applicant', 'comments' => 'Applicant accepted proposed amount.'],
+            ]],
+            // Step 5 — assistant director
+            ['track' => 'WL000006', 'step' => 5, 'status' => 'in_review', 'acceptance' => 'accepted', 'requested' => 7000000, 'proposed' => 6500000, 'disbursed' => 0, 'applicant' => 0, 'history' => [
+                ['step' => 1, 'action' => 'received', 'user' => 'ward'],
+                ['step' => 1, 'action' => 'forwarded_to_ministry', 'user' => 'ward'],
+                ['step' => 2, 'action' => 'proposed_amount', 'user' => 'ministry', 'amount' => 6500000],
+                ['step' => 3, 'action' => 'accepted', 'user' => 'applicant'],
+                ['step' => 4, 'action' => 'forwarded_to_ass_dir', 'user' => 'ministry', 'comments' => 'Sent to Assistant Director.'],
+            ]],
+            // Step 6 — director
+            ['track' => 'WL000007', 'step' => 6, 'status' => 'in_review', 'acceptance' => 'accepted', 'requested' => 9000000, 'proposed' => 8500000, 'disbursed' => 0, 'applicant' => 1, 'history' => [
+                ['step' => 5, 'action' => 'forwarded_to_director', 'user' => 'ass_dir', 'comments' => 'Recommended for director review.'],
+            ]],
+            // Step 7 — KM
+            ['track' => 'WL000008', 'step' => 7, 'status' => 'in_review', 'acceptance' => 'accepted', 'requested' => 10000000, 'proposed' => 9500000, 'disbursed' => 0, 'applicant' => 2, 'history' => [
+                ['step' => 6, 'action' => 'forwarded_to_km', 'user' => 'director', 'comments' => 'Director endorsed. Forward to KM.'],
+            ]],
+            // Step 8 — chief assigns accountant
+            ['track' => 'WL000009', 'step' => 8, 'status' => 'approved', 'acceptance' => 'accepted', 'requested' => 5500000, 'proposed' => 5000000, 'disbursed' => 0, 'applicant' => 3, 'approved_by' => 'Prof. Neema Kapinga', 'history' => [
+                ['step' => 7, 'action' => 'approved', 'user' => 'km', 'comments' => 'Final approval granted by KM.'],
+            ]],
+            // Step 9 — ready for disbursement
+            ['track' => 'WL000010', 'step' => 9, 'status' => 'ready_for_disbursement', 'acceptance' => 'accepted', 'requested' => 4000000, 'proposed' => 3800000, 'disbursed' => 0, 'applicant' => 4, 'officer' => 'accountant', 'history' => [
+                ['step' => 8, 'action' => 'assigned_accountant', 'user' => 'chief', 'comments' => 'Assigned to accountant for disbursement.'],
+            ]],
+            // Step 9 — disbursed with repayment
+            ['track' => 'WL000011', 'step' => 9, 'status' => 'disbursed', 'acceptance' => 'accepted', 'requested' => 3000000, 'proposed' => 2800000, 'disbursed' => 2800000, 'applicant' => 0, 'officer' => 'accountant', 'with_payment' => true, 'history' => [
+                ['step' => 9, 'action' => 'disbursed', 'user' => 'accountant', 'comments' => 'Funds disbursed to applicant bank account.'],
+            ]],
+        ];
+
+        $group = LoanGroup::where('name', 'Tambukareli Women Entrepreneurs')->first();
+
+        foreach ($scenarios as $i => $s) {
+            $applicant = $this->applicants[$s['applicant']];
+
+            $loan = Loan::withoutEvents(function () use ($s, $applicant, $group, $i) {
+                return Loan::updateOrCreate(
+                    ['loan_track_id' => $s['track']],
+                    [
+                        'user_id' => $applicant->user_id,
+                        'applicant_id' => $applicant->id,
+                        'loan_group_id' => $group?->id,
+                        'loan_type' => $i % 2 === 0 ? 'individual' : 'group',
+                        'requested_amount' => $s['requested'],
+                        'proposed_amount' => $s['proposed'],
+                        'disbursed_amount' => $s['disbursed'],
+                        'status' => $s['status'],
+                        'current_step' => $s['step'],
+                        'applicant_acceptance' => $s['acceptance'],
+                        'approved_by' => $s['approved_by'] ?? null,
+                        'officer_id' => isset($s['officer']) ? $this->staff[$s['officer']]?->id : null,
+                        'bank_name' => 'CRDB Bank',
+                        'bank_number' => '01' . str_pad((string) ($i + 1), 8, '0', STR_PAD_LEFT),
+                        'date_issued' => $s['status'] === 'disbursed' ? now()->subDays(30)->toDateString() : null,
+                        'approval_history' => collect($s['history'])->map(fn ($h) => [
+                            'step' => $h['step'],
+                            'action' => $h['action'],
+                            'user' => $this->staff[$h['user'] ?? 'ward']?->name ?? $applicant->full_name,
+                            'at' => now()->subDays(20 - $h['step'])->toIso8601String(),
+                            'comments' => $h['comments'] ?? null,
+                        ])->toArray(),
+                    ]
+                );
+            });
+
+            BusinessDetails::updateOrCreate(
+                ['loan_id' => $loan->id],
+                [
+                    'region_id' => $this->region->id,
+                    'district_id' => $this->district->id,
+                    'council_id' => $this->council->id,
+                    'ward_id' => $this->ward->id,
+                    'street_id' => $this->street->id,
+                    'business_name' => $applicant->first_name . ' ' . ['Shop', 'Salon', 'Tailoring', 'Food Stall', 'Agribusiness'][$i % 5],
+                    'business_phone' => $applicant->phone,
+                    'business_email' => $applicant->email,
+                    'business_sector' => ['Trade', 'Services', 'Agriculture', 'Manufacturing', 'Food'][$i % 5],
+                    'business_type' => 'Sole Proprietor',
+                    'tin_number' => '100' . str_pad((string) ($i + 1), 7, '0', STR_PAD_LEFT),
+                ]
+            );
+
+            Gurantor::updateOrCreate(
+                ['loan_id' => $loan->id, 'id_number' => '1985010112345000' . str_pad((string) ($i + 1), 4, '0', STR_PAD_LEFT)],
+                [
+                    'applicant_id' => $applicant->id,
+                    'name' => 'Guarantor ' . ($i + 1),
+                    'phone' => '255713' . str_pad((string) ($i + 1), 6, '0', STR_PAD_LEFT),
+                    'relationship' => 'Spouse',
+                    'occupation' => 'Business Owner',
+                    'guarantor_region_id' => $this->region->id,
+                    'guarantor_district_id' => $this->district->id,
+                    'guarantor_council_id' => $this->council->id,
+                    'guarantor_ward_id' => $this->ward->id,
+                    'guarantor_street_id' => $this->street->id,
+                ]
+            );
+
+            foreach ($s['history'] as $h) {
+                $actor = $h['user'] === 'applicant'
+                    ? User::find($applicant->user_id)
+                    : ($this->staff[$h['user']] ?? null);
+
+                if ($actor) {
+                    ApprovalLevel::updateOrCreate(
+                        [
+                            'loan_id' => $loan->id,
+                            'step_number' => $h['step'],
+                            'action_taken' => $h['action'],
+                        ],
+                        [
+                            'user_id' => $actor->id,
+                            'proposed_amount' => $h['amount'] ?? 0,
+                            'comments' => $h['comments'] ?? null,
+                        ]
+                    );
+                }
+            }
+
+            if (! empty($s['with_payment'])) {
+                $disbursed = (float) $s['disbursed'];
+                $interest = $disbursed * 0.16;
+                LoanPayment::updateOrCreate(
+                    ['loan_id' => $loan->id],
+                    [
+                        'amount_requested' => $s['requested'],
+                        'amount_disbursed' => $disbursed,
+                        'interest_amount' => $interest,
+                        'amount_paid' => $disbursed * 0.25,
+                        'outstanding_debt' => $disbursed + $interest - ($disbursed * 0.25),
+                        'grace_period_days' => 30,
+                        'start_date' => now()->subDays(30),
+                        'end_date' => now()->addMonths(12),
+                        'payment_interval' => 'monthly',
+                        'notes' => 'Sample repayment schedule — 16% interest applied.',
+                        'payment_history' => [
+                            ['date' => now()->subDays(15)->toDateString(), 'amount' => $disbursed * 0.15, 'method' => 'Bank'],
+                            ['date' => now()->subDays(5)->toDateString(), 'amount' => $disbursed * 0.10, 'method' => 'Mobile Money'],
+                        ],
+                    ]
+                );
+            }
+        }
+    }
+
+    protected function seedDraftLoans(): void
+    {
+        $user = User::where('email', 'applicant2@wdf.go.tz')->first();
+
+        if ($user) {
+            DraftLoan::updateOrCreate(
+                ['track_id' => 'WL000099'],
+                [
+                    'user_id' => $user->id,
+                    'form_data' => [
+                        'loan_type' => 'individual',
+                        'requested_amount' => 2500000,
+                        'business_name' => 'Fatuma Catering Services',
+                        'region_id' => $this->region->id,
+                        'ward_id' => $this->ward->id,
+                        'step' => 3,
+                    ],
+                ]
+            );
+        }
+    }
+}

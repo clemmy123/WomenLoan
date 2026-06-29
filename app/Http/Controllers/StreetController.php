@@ -2,12 +2,14 @@
 
 namespace App\Http\Controllers;
 
-use App\Http\Controllers\Controller;
 use App\Models\Street;
+use App\Models\Ward;
+use App\Services\GeoHierarchyService;
 use Illuminate\Http\Request;
 
 class StreetController extends Controller
 {
+    public function __construct(private GeoHierarchyService $geo) {}
     /**
      * Display a listing of all streets.
      *
@@ -38,7 +40,7 @@ class StreetController extends Controller
      */
     public function getStreets(int $wardId)
     {
-        return $this->byWard($wardId);
+        return response()->json($this->geo->streetsFor(Ward::findOrFail($wardId)));
     }
 
     /**

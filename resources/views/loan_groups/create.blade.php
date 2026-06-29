@@ -1,28 +1,30 @@
 @extends('layouts.app')
 
+@section('title', __('groups.create_title'))
+
 @section('content')
 <div class="max-w-4xl mx-auto">
     <div class="mb-8">
-        <h2 class="text-2xl font-bold text-slate-900">Register New Loan Group</h2>
-        <p class="text-sm text-slate-500">Fill in the group details and assign members.</p>
+        <h2 class="text-2xl font-bold text-slate-900">{{ __('groups.create_title') }}</h2>
+        <p class="text-sm text-slate-500">{{ __('groups.create_subtitle') }}</p>
     </div>
 
-    <form action="{{ route('loan-groups.store') }}" method="POST" class="bg-white p-8 rounded-2xl border border-slate-200/60 shadow-sm space-y-8">
+    <form action="{{ route('loan-groups.store') }}" method="POST" class="bg-white p-8 rounded-2xl border border-slate-200/60  space-y-8">
         @csrf
 
         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
-                <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Group Name</label>
+                <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{{ __('groups.group_name') }}</label>
                 <input type="text" name="name" class="w-full mt-1 p-3 rounded-xl border border-slate-200 focus:ring-2 focus:ring-indigo-500 outline-none text-sm" required>
             </div>
             <div>
-                <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Registration Number</label>
+                <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{{ __('groups.reg_number') }}</label>
                 <input type="text" name="registration_number" class="w-full mt-1 p-3 rounded-xl border border-slate-200 focus:ring-2 focus:ring-indigo-500 outline-none text-sm">
             </div>
         </div>
 
         <div>
-            <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Select Members</label>
+            <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{{ __('groups.select_members') }}</label>
             <div class="mt-2 h-64 overflow-y-auto border border-slate-200 rounded-xl p-4 bg-slate-50">
                 @foreach($applicants as $applicant)
                 <label class="flex items-center gap-3 p-3 hover:bg-white rounded-lg cursor-pointer transition-colors border-b border-slate-100 last:border-0">
@@ -35,8 +37,8 @@
         </div>
 
         <div class="flex justify-end pt-4">
-            <button type="submit" class="bg-indigo-600 text-white px-8 py-3 rounded-xl font-bold hover:bg-indigo-700 transition-all shadow-lg shadow-indigo-200">
-                Save Loan Group
+            <button type="submit" class="bg-indigo-600 text-white px-8 py-3 rounded-xl font-bold hover:bg-indigo-700 transition-all ">
+                {{ __('groups.save_group') }}
             </button>
         </div>
     </form>

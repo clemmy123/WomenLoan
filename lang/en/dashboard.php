@@ -1,0 +1,28 @@
+<?php
+
+return [
+    'overview' => 'Overview',
+    'total_applications' => 'Total Applications',
+    'pending_review' => 'Pending Review',
+    'approved' => 'Approved',
+    'disbursed' => 'Disbursed',
+    'total_disbursed' => 'Total Disbursed',
+    'applications_trend' => 'Applications Trend',
+    'pipeline_status' => 'Approval Pipeline',
+    'recent_applications' => 'Recent Applications',
+    'status_breakdown' => 'Status Breakdown',
+    'by_region' => 'Applications by Region',
+    'monthly_disbursements' => 'Monthly Disbursements',
+    'all_loans' => 'All Loan Records',
+    'step' => 'Step',
+    'track_id' => 'Track ID',
+    'applicant' => 'Applicant',
+    'amount' => 'Amount',
+    'status' => 'Status',
+    'date' => 'Date',
+    'view_all' => 'View all',
+    'no_data' => 'No data yet',
+    'complete_profile' => 'Complete your applicant profile to apply for a loan.',
+    'this_month' => 'this month',
+    'live' => 'Live',
+];

@@ -2,22 +2,27 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Model;
+use App\Models\Concerns\HasHashid;
+use App\Models\Concerns\HasDisplayName;
+use App\Models\Concerns\Searchable;
+use App\Models\Scopes\ApplicantAccess;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Casts\Attribute;
-use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use Illuminate\Database\Eloquent\Relations\HasMany;
-use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Applicant extends Model
 {
-    use HasFactory;
+    use HasDisplayName, HasFactory, HasHashid, Searchable;
 
     protected $fillable = [
         'nin', 'first_name', 'middle_name', 'last_name', 'full_name',
         'dob', 'sex', 'marital_status', 'nationality', 'phone', 'email',
         'photo_path', 'signature_path', 'nida_verified', 'nida_verified_at',
-        'issuer_date', 'location_id', 'attachment', 'user_id'
+        'issuer_date', 'location_id', 'attachment', 'user_id',
     ];
 
     protected $casts = [
@@ -27,17 +32,11 @@ class Applicant extends Model
         'nida_verified_at' => 'datetime',
     ];
 
-    // =========================================================================
-    // HELPERS & ACCESSORS
-    // =========================================================================
-
-    /**
-     * Helper to get the Region ID from the associated Street/Location.
-     * This is essential for your regional filtering requirements.
-     */
     public function getRegionIdAttribute(): ?int
     {
-        return $this->location ? $this->location->region_id : null;
+        $this->loadMissing('location.ward.council.district');
+
+        return $this->location?->ward?->council?->district?->region_id;
     }
 
     protected function phone(): Attribute
@@ -47,18 +46,16 @@ class Applicant extends Model
         );
     }
 
-    // =========================================================================
-    // RELATIONSHIPS
-    // =========================================================================
+    public function scopeInRegion(Builder $query, int $regionId): Builder
+    {
+        return $query->whereHas('location.ward.council.district', fn (Builder $q) => $q->where('region_id', $regionId));
+    }
 
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
     }
 
-    /**
-     * Pointing to Street. Ensure your Street model belongsTo(Region::class)
-     */
     public function location(): BelongsTo
     {
         return $this->belongsTo(Street::class, 'location_id');
@@ -69,12 +66,13 @@ class Applicant extends Model
         return $this->hasMany(Loan::class, 'applicant_id');
     }
 
-    /**
-     * Many-to-Many relationship with LoanGroups.
-     * We use this to verify if an applicant is already assigned to a group.
-     */
     public function groups(): BelongsToMany
     {
         return $this->belongsToMany(LoanGroup::class, 'applicant_loan_group', 'applicant_id', 'loan_group_id');
+    }
+
+    protected static function booted(): void
+    {
+        static::addGlobalScope(new ApplicantAccess);
     }
 }

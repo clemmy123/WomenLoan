@@ -6,6 +6,11 @@
         "build": "vite build",
         "dev": "vite"
     },
+    "dependencies": {
+        "@fontsource/inter": "^5.2.5",
+        "alpinejs": "^3.14.9",
+        "chart.js": "^4.4.8"
+    },
     "devDependencies": {
         "@tailwindcss/vite": "^4.0.0",
         "axios": "^1.11.0",
