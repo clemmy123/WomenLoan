@@ -3,7 +3,7 @@
 @section('title', __('groups.edit_title'))
 
 @section('content')
-<div class="max-w-3xl mx-auto">
+<div class="page page-narrow">
     <div class="mb-8">
         <h2 class="text-xl font-bold text-slate-900">{{ __('groups.edit_title') }}</h2>
         <p class="text-sm text-slate-500">{{ __('groups.edit_subtitle', ['name' => $loanGroup->name]) }}</p>

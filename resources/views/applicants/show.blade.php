@@ -3,7 +3,7 @@
 @section('title', __('applicants.show_title'))
 
 @section('content')
-<div class="max-w-4xl mx-auto space-y-6">
+<div class="page page-medium">
     <div class="flex items-center justify-between">
         <a href="{{ route('applicants.index') }}" class="text-sm font-semibold text-gray-500 hover:text-gray-900 transition-colors">&larr; {{ __('applicants.back_to_registry') }}</a>
         <a href="{{ route('applicants.edit', $applicant) }}" class="rounded-xl bg-amber-600 px-4 py-2 text-sm font-semibold text-white  hover:bg-amber-500 transition-all">{{ __('applicants.edit_profile') }}</a>

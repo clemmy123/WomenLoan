@@ -31,7 +31,8 @@
             "app/Helpers/CurrencyHelper.php",
             "app/Helpers/LocaleHelper.php",
             "app/Helpers/HashidHelper.php",
-            "app/Helpers/BadgeHelper.php"
+            "app/Helpers/BadgeHelper.php",
+            "app/Helpers/WorkflowHelper.php"
         ]
     },
     "autoload-dev": {

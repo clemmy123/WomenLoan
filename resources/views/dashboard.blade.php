@@ -3,12 +3,12 @@
 @section('title', __('nav.dashboard'))
 
 @section('content')
-<div class="space-y-8">
+<div class="page">
     {{-- Header --}}
-    <div class="flex flex-wrap items-end justify-between gap-4">
+    <div class="page-header">
         <div>
-            <h1 class="text-2xl lg:text-3xl font-bold text-slate-900 dark:text-white">{{ __('dashboard.overview') }}</h1>
-            <p class="text-sm text-slate-500 dark:text-zinc-400 mt-1 capitalize">
+            <h1 class="page-title lg:text-3xl">{{ __('dashboard.overview') }}</h1>
+            <p class="page-subtitle capitalize">
                 {{ str_replace('_', ' ', $user->displayRole()) }} · {{ now()->format('l, d M Y') }}
             </p>
         </div>
@@ -128,22 +128,18 @@
                         <th>{{ __('dashboard.amount') }}</th>
                         <th>{{ __('dashboard.step') }}</th>
                         <th>{{ __('dashboard.status') }}</th>
-                        <th></th>
                     </tr>
                 </thead>
                 <tbody>
                     @foreach($recentLoans as $loan)
                     <tr>
-                        <td class="font-mono text-xs font-semibold text-indigo-600">{{ $loan->loan_track_id }}</td>
-                        <td class="text-slate-700">{{ $loan->applicant?->full_name ?? '—' }}</td>
+                        <td>
+                            <a href="{{ route('loan-applications.show', $loan) }}" class="app-table-link">{{ $loan->loan_track_id }}</a>
+                        </td>
+                        <td class="text-slate-700 dark:text-zinc-300">{{ $loan->applicant?->full_name ?? '—' }}</td>
                         <td class="font-medium">{{ format_tzs($loan->requested_amount) }}</td>
                         <td>@include('partials.badge', ['variant' => 'secondary', 'text' => $loan->current_step.'/9'])</td>
                         <td>@include('partials.loan-status-badge', ['status' => $loan->status])</td>
-                        <td class="text-right">
-                            <div class="inline-flex items-center justify-end">
-                                @include('partials.table-icon', ['action' => 'view', 'href' => route('loan-applications.show', $loan), 'label' => __('common.view')])
-                            </div>
-                        </td>
                     </tr>
                     @endforeach
                 </tbody>

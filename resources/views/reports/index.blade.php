@@ -3,11 +3,11 @@
 @section('title', __('nav.reports'))
 
 @section('content')
-<div class="space-y-8">
-    <div class="flex flex-wrap items-end justify-between gap-4">
+<div class="page">
+    <div class="page-header">
         <div>
-            <h1 class="text-2xl lg:text-3xl font-bold text-slate-900 dark:text-white">{{ __('nav.reports') }}</h1>
-            <p class="text-sm text-slate-500 dark:text-zinc-400 mt-1">{{ __('dashboard.overview') }} · {{ now()->format('F Y') }}</p>
+            <h1 class="page-title lg:text-3xl">{{ __('nav.reports') }}</h1>
+            <p class="page-subtitle">{{ __('dashboard.overview') }} · {{ now()->format('F Y') }}</p>
         </div>
         <a href="{{ route('dashboard') }}" class="text-sm font-semibold text-indigo-600 dark:text-indigo-400 hover:underline">← {{ __('nav.dashboard') }}</a>
     </div>

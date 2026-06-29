@@ -14,6 +14,7 @@ return [
     'filter' => 'Filter',
     'clear' => 'Clear',
     'actions' => 'Actions',
+    'attachment' => 'Attachment',
     'active' => 'Active',
     'inactive' => 'Inactive',
     'yes' => 'Yes',

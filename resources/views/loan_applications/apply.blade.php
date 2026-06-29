@@ -73,7 +73,7 @@
         if (selectedCouncil) loadWards(selectedCouncil);
         if (selectedWard) loadStreets(selectedWard);
     "
-    class="max-w-4xl mx-auto space-y-6">
+    class="page page-medium">
 
     <div class="bg-white p-6 rounded-2xl border border-slate-200">
         <h2 class="text-xl font-bold text-slate-900">{{ __('loans.apply_title') }}</h2>

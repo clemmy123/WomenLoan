@@ -14,6 +14,7 @@ return [
     'filter' => 'Chuja',
     'clear' => 'Futa',
     'actions' => 'Vitendo',
+    'attachment' => 'Kiambatisho',
     'active' => 'Hai',
     'inactive' => 'Haifanyi kazi',
     'yes' => 'Ndiyo',

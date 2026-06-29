@@ -3,17 +3,14 @@
 @section('title', __('nav.roles'))
 
 @section('content')
-<div class="mb-8 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-    <div>
-        <h1 class="text-2xl font-bold text-slate-900 dark:text-white">{{ __('nav.roles') }}</h1>
-        <p class="text-sm text-slate-500 dark:text-zinc-400 mt-1">{{ __('admin.roles_index_subtitle') }}</p>
-    </div>
-    <a href="{{ route('admin.roles.create') }}" class="inline-flex items-center justify-center bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-semibold px-5 py-2.5 rounded-xl">
-        + {{ __('admin.create_role') }}
-    </a>
-</div>
+<div class="page">
+    @include('partials.page-header', [
+        'title' => __('nav.roles'),
+        'subtitle' => __('admin.roles_index_subtitle'),
+        'actions' => '<a href="'.e(route('admin.roles.create')).'" class="app-btn app-btn-primary">+ '.e(__('admin.create_role')).'</a>',
+    ])
 
-<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
     @foreach($roles as $role)
     <div class="bg-white dark:dark-surface rounded-2xl border border-slate-200 dark:border-white/[0.08] p-5 transition">
         <div class="flex justify-between items-start mb-3">

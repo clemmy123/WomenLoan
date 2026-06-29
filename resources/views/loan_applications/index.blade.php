@@ -3,15 +3,22 @@
 @section('title', __('loans.my_applications'))
 
 @section('content')
-<div class="max-w-5xl mx-auto space-y-6">
-    <div class="app-card app-card-padded">
-        <h2 class="text-xl font-bold text-slate-900">{{ __('loans.title') }}</h2>
-        <p class="text-slate-500 mt-1">{{ __('loans.apply_subtitle') }}</p>
+<div class="page">
+    <div class="page-header">
+        <div>
+            <h1 class="page-title">{{ __('loans.title') }}</h1>
+            <p class="page-subtitle">{{ __('loans.apply_subtitle') }}</p>
+        </div>
+        @can('create loan application')
+        <div class="page-actions">
+            <a href="{{ route('loan-applications.create') }}" class="app-btn app-btn-success">{{ __('loans.start_new') }}</a>
+        </div>
+        @endcan
     </div>
 
     <div class="app-card overflow-hidden">
         <div class="app-card-header">
-            <h3 class="font-bold text-slate-900">{{ __('loans.submitted') }}</h3>
+            <h3 class="font-bold text-slate-900 dark:text-white">{{ __('loans.submitted') }}</h3>
         </div>
         @if($loans->count())
         <div class="overflow-x-auto">
@@ -23,13 +30,14 @@
                         <th>{{ __('dashboard.amount') }}</th>
                         <th>{{ __('dashboard.status') }}</th>
                         <th>{{ __('common.submitted') }}</th>
-                        <th class="text-right">{{ __('common.actions') }}</th>
                     </tr>
                 </thead>
                 <tbody>
                     @foreach($loans as $loan)
                         <tr>
-                            <td class="font-mono text-xs font-semibold text-indigo-600">{{ $loan->loan_track_id }}</td>
+                            <td>
+                                <a href="{{ route('loan-applications.show', $loan) }}" class="app-table-link">{{ $loan->loan_track_id }}</a>
+                            </td>
                             <td>{{ loan_type_label($loan->loan_type) }}</td>
                             <td>{{ format_tzs($loan->requested_amount) }}</td>
                             <td>
@@ -39,11 +47,6 @@
                                 </div>
                             </td>
                             <td>{{ $loan->created_at->translatedFormat('d M Y') }}</td>
-                            <td class="text-right">
-                                <div class="inline-flex items-center justify-end">
-                                    @include('partials.table-icon', ['action' => 'view', 'href' => route('loan-applications.show', $loan), 'label' => __('common.view')])
-                                </div>
-                            </td>
                         </tr>
                     @endforeach
                 </tbody>
@@ -55,33 +58,24 @@
         @endif
     </div>
 
+    @if($drafts->count())
     <div class="app-card app-card-padded">
-        <h3 class="font-bold text-lg mb-4">{{ __('loans.drafts') }}</h3>
-        @if($drafts->count())
-            <ul class="space-y-3">
-                @foreach($drafts as $draft)
-                    <li class="flex justify-between items-center border p-3 rounded-xl">
-                        <div>
-                            <p class="font-bold text-slate-800">{{ __('dashboard.track_id') }}: {{ $draft->track_id }}</p>
-                            <p class="text-slate-500 text-sm">{{ __('loans.saved_on', ['date' => $draft->updated_at->translatedFormat('d M Y, H:i')]) }}</p>
-                        </div>
-                        <a href="{{ route('loan-applications.create', ['resume_track_id' => $draft->track_id]) }}"
-                           class="px-4 py-2 bg-indigo-600 text-white rounded-xl hover:bg-indigo-700 text-sm font-bold">
-                            {{ __('loans.resume') }}
-                        </a>
-                    </li>
-                @endforeach
-            </ul>
-        @else
-            <p class="text-slate-500">{{ __('loans.no_drafts') }}</p>
-        @endif
+        <h3 class="font-bold text-lg mb-4 text-slate-900 dark:text-white">{{ __('loans.drafts') }}</h3>
+        <ul class="space-y-3">
+            @foreach($drafts as $draft)
+                <li class="flex flex-wrap justify-between items-center gap-3 border border-slate-200 dark:border-white/10 p-3 rounded-xl">
+                    <div>
+                        <p class="font-bold text-slate-800 dark:text-white">{{ __('dashboard.track_id') }}: {{ $draft->track_id }}</p>
+                        <p class="text-slate-500 dark:text-zinc-400 text-sm">{{ __('loans.saved_on', ['date' => $draft->updated_at->translatedFormat('d M Y, H:i')]) }}</p>
+                    </div>
+                    <a href="{{ route('loan-applications.create', ['resume_track_id' => $draft->track_id]) }}"
+                       class="app-btn app-btn-primary">
+                        {{ __('loans.resume') }}
+                    </a>
+                </li>
+            @endforeach
+        </ul>
     </div>
-
-    <div class="text-center">
-        <a href="{{ route('loan-applications.create') }}"
-           class="px-6 py-3 bg-emerald-600 text-white rounded-xl font-bold hover:bg-emerald-700">
-            {{ __('loans.start_new') }}
-        </a>
-    </div>
+    @endif
 </div>
 @endsection

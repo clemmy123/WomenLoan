@@ -3,9 +3,8 @@
 @section('title', __('nav.repayments'))
 
 @section('content')
-<div class="mb-8">
-    <h1 class="text-2xl font-bold text-slate-900">{{ __('nav.repayments') }}</h1>
-</div>
+<div class="page">
+    @include('partials.page-header', ['title' => __('nav.repayments')])
 <div class="app-card overflow-hidden">
     <table class="app-table">
         <thead>

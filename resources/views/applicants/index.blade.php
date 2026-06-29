@@ -3,18 +3,12 @@
 @section('title', __('applicants.title'))
 
 @section('content')
-<div class="space-y-6">
-    <div class="sm:flex sm:items-center sm:justify-between">
-        <div>
-            <h1 class="text-2xl font-bold tracking-tight text-gray-900">{{ __('applicants.registry') }}</h1>
-            <p class="mt-2 text-sm text-gray-600">{{ __('applicants.registry_subtitle') }}</p>
-        </div>
-        <div class="mt-4 sm:mt-0">
-            <a href="{{ route('applicants.create') }}" class="inline-flex items-center justify-center rounded-xl bg-indigo-600 px-4 py-2.5 text-sm font-semibold text-white  hover:bg-indigo-500 transition-all">
-                {{ __('applicants.add_new') }}
-            </a>
-        </div>
-    </div>
+<div class="page">
+    @include('partials.page-header', [
+        'title' => __('applicants.registry'),
+        'subtitle' => __('applicants.registry_subtitle'),
+        'actions' => '<a href="'.e(route('applicants.create')).'" class="app-btn app-btn-primary">'.e(__('applicants.add_new')).'</a>',
+    ])
 
     <div class="app-card app-card-padded">
         <form action="{{ route('applicants.index') }}" method="GET" class="flex flex-col sm:flex-row gap-3">
