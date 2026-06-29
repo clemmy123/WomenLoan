@@ -1,0 +1,28 @@
+<?php
+
+return [
+    'overview' => 'Muhtasari',
+    'total_applications' => 'Jumla ya Maombi',
+    'pending_review' => 'Inasubiri Ukaguzi',
+    'approved' => 'Imekubaliwa',
+    'disbursed' => 'Imetolewa',
+    'total_disbursed' => 'Jumla Iliyotolewa',
+    'applications_trend' => 'Mwenendo wa Maombi',
+    'pipeline_status' => 'Hatua za Uidhinishaji',
+    'recent_applications' => 'Maombi ya Hivi Karibuni',
+    'status_breakdown' => 'Mgawanyo wa Hali',
+    'by_region' => 'Maombi kwa Mkoa',
+    'monthly_disbursements' => 'Utoaji wa Kila Mwezi',
+    'all_loans' => 'Rekodi Zote za Mikopo',
+    'step' => 'Hatua',
+    'track_id' => 'Nambari ya Ufuatiliaji',
+    'applicant' => 'Mwombaji',
+    'amount' => 'Kiasi',
+    'status' => 'Hali',
+    'date' => 'Tarehe',
+    'view_all' => 'Angalia zote',
+    'no_data' => 'Hakuna data bado',
+    'complete_profile' => 'Kamilisha wasifu wako wa mwombaji ili kuomba mkopo.',
+    'this_month' => 'mwezi huu',
+    'live' => 'Moja kwa moja',
+];

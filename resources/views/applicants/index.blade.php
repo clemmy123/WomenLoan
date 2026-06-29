@@ -1,91 +1,91 @@
 @extends('layouts.app')
 
+@section('title', __('applicants.title'))
+
 @section('content')
 <div class="space-y-6">
     <div class="sm:flex sm:items-center sm:justify-between">
         <div>
-            <h1 class="text-2xl font-bold tracking-tight text-gray-900">Applicants Registry</h1>
-            <p class="mt-2 text-sm text-gray-600">A unified overview list of all profiles migrated directly into core manual system models.</p>
+            <h1 class="text-2xl font-bold tracking-tight text-gray-900">{{ __('applicants.registry') }}</h1>
+            <p class="mt-2 text-sm text-gray-600">{{ __('applicants.registry_subtitle') }}</p>
         </div>
         <div class="mt-4 sm:mt-0">
-            <a href="{{ route('applicants.create') }}" class="inline-flex items-center justify-center rounded-xl bg-indigo-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 transition-all">
-                Add New Applicant
+            <a href="{{ route('applicants.create') }}" class="inline-flex items-center justify-center rounded-xl bg-indigo-600 px-4 py-2.5 text-sm font-semibold text-white  hover:bg-indigo-500 transition-all">
+                {{ __('applicants.add_new') }}
             </a>
         </div>
     </div>
 
-    <div class="bg-white p-4 rounded-xl border border-gray-200 shadow-sm">
+    <div class="app-card app-card-padded">
         <form action="{{ route('applicants.index') }}" method="GET" class="flex flex-col sm:flex-row gap-3">
             <div class="relative flex-grow">
-                <input type="text" name="search" value="{{ request('search') }}" placeholder="Search by Full Name, NIN, Phone or Email..." class="w-full bg-gray-50 border border-gray-300 rounded-lg px-4 py-2 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500">
+                <input type="text" name="search" value="{{ request('search') }}" placeholder="{{ __('applicants.search_placeholder') }}" class="app-input">
             </div>
             <div class="flex gap-2">
-                <button type="submit" class="bg-gray-900 text-white rounded-lg px-4 py-2 text-sm font-medium hover:bg-gray-800 transition-all">Filter</button>
+                <button type="submit" class="bg-gray-900 text-white rounded-lg px-4 py-2 text-sm font-medium hover:bg-gray-800 transition-all">{{ __('common.filter') }}</button>
                 @if(request('search'))
-                    <a href="{{ route('applicants.index') }}" class="bg-gray-100 text-gray-700 border border-gray-300 rounded-lg px-4 py-2 text-sm font-medium hover:bg-gray-200 transition-all flex items-center">Clear</a>
+                    <a href="{{ route('applicants.index') }}" class="bg-gray-100 text-gray-700 border border-gray-300 rounded-lg px-4 py-2 text-sm font-medium hover:bg-gray-200 transition-all flex items-center">{{ __('common.clear') }}</a>
                 @endif
             </div>
         </form>
     </div>
 
-    <div class="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
+    <div class="app-card overflow-hidden">
         <div class="overflow-x-auto">
-            <table class="w-full text-left border-collapse">
+            <table class="app-table">
                 <thead>
-                    <tr class="bg-gray-50 border-b border-gray-200 text-xs font-semibold text-gray-600 tracking-wider uppercase">
-                        <th class="px-6 py-4">Full Name</th>
-                        <th class="px-6 py-4">NIN</th>
-                        <th class="px-6 py-4">Contact Info</th>
-                        <th class="px-6 py-4">Metrics</th>
-                        <th class="px-6 py-4 text-right">Actions</th>
+                    <tr>
+                        <th>{{ __('common.full_name') }}</th>
+                        <th>{{ __('applicants.nin') }}</th>
+                        <th>{{ __('common.contact_info') }}</th>
+                        <th>{{ __('common.metrics') }}</th>
+                        <th class="text-right">{{ __('common.actions') }}</th>
                     </tr>
                 </thead>
-                <tbody class="divide-y divide-gray-200 text-sm text-gray-700">
+                <tbody>
                     @forelse($applicants as $applicant)
-                        <tr class="hover:bg-gray-50/70 transition-colors">
-                            <td class="px-6 py-4">
+                        <tr>
+                            <td>
                                 <div class="font-semibold text-gray-900">{{ $applicant->full_name }}</div>
-                                <div class="text-xs text-gray-500 mt-0.5">{{ $applicant->sex ?? 'Unspecified' }} &bull; {{ $applicant->marital_status ?? 'N/A' }}</div>
+                                <div class="text-xs text-gray-500 mt-0.5">{{ $applicant->sex ?? __('common.unspecified') }} &bull; {{ $applicant->marital_status ?? __('common.na') }}</div>
                             </td>
-                            <td class="px-6 py-4 font-mono text-xs text-gray-600 tracking-wider">
+                            <td class="font-mono text-xs text-gray-600 tracking-wider">
                                 {{ $applicant->nin }}
                             </td>
-                            <td class="px-6 py-4 space-y-0.5">
+                            <td class="space-y-0.5">
                                 <div class="text-gray-900 font-medium">{{ $applicant->phone }}</div>
                                 <div class="text-xs text-gray-500">{{ $applicant->email }}</div>
                             </td>
-                            <td class="px-6 py-4 space-x-2">
-                                <span class="inline-flex items-center rounded-md bg-indigo-50 px-2 py-1 text-xs font-medium text-indigo-700 ring-1 ring-inset ring-indigo-700/10">
-                                    {{ $applicant->loans_count }} Loans
-                                </span>
-                                <span class="inline-flex items-center rounded-md bg-blue-50 px-2 py-1 text-xs font-medium text-blue-700 ring-1 ring-inset ring-blue-700/10">
-                                    {{ $applicant->groups_count }} Groups
-                                </span>
+                            <td class="space-x-2">
+                                @include('partials.badge', ['variant' => 'primary', 'text' => __('common.loans_count', ['count' => $applicant->loans_count])])
+                                @include('partials.badge', ['variant' => 'info', 'text' => __('common.groups_count', ['count' => $applicant->groups_count])])
                             </td>
-                            <td class="px-6 py-4 text-right text-xs space-x-2 whitespace-nowrap">
-                                <a href="{{ route('applicants.show', $applicant) }}" class="text-indigo-600 hover:text-indigo-900 font-semibold">View</a>
-                                <a href="{{ route('applicants.edit', $applicant) }}" class="text-amber-600 hover:text-amber-900 font-semibold">Edit</a>
-                                <form action="{{ route('applicants.destroy', $applicant) }}" method="POST" class="inline-block" onsubmit="return confirm('Are you sure you want to drop this structural record row?');">
-                                    @csrf
-                                    @method('DELETE')
-                                    <button type="submit" class="text-red-600 hover:text-red-900 font-semibold">Delete</button>
-                                </form>
+                            <td class="text-right whitespace-nowrap">
+                                <div class="inline-flex items-center justify-end gap-1">
+                                    @include('partials.table-icon', ['action' => 'view', 'href' => route('applicants.show', $applicant), 'label' => __('common.view')])
+                                    @include('partials.table-icon', ['action' => 'edit', 'href' => route('applicants.edit', $applicant), 'label' => __('common.edit')])
+                                    <form action="{{ route('applicants.destroy', $applicant) }}" method="POST" class="inline-flex" onsubmit="return confirm(@json(__('applicants.delete_confirm')));">
+                                        @csrf
+                                        @method('DELETE')
+                                        @include('partials.table-icon', ['action' => 'delete', 'label' => __('common.delete')])
+                                    </form>
+                                </div>
                             </td>
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="5" class="px-6 py-12 text-center text-gray-500">
-                                <div class="text-base font-medium">No system registry matches found.</div>
-                                <div class="text-xs text-gray-400 mt-1">Try modifying your query tags or create an applicant payload row profile above.</div>
+                            <td colspan="5" class="app-table-empty">
+                                <div class="text-base font-medium">{{ __('applicants.no_matches') }}</div>
+                                <div class="text-xs mt-1 opacity-70">{{ __('applicants.no_matches_hint') }}</div>
                             </td>
                         </tr>
                     @endforelse
                 </tbody>
             </table>
         </div>
-        
+
         @if($applicants->hasPages())
-            <div class="bg-white border-t border-gray-200 px-6 py-4">
+            <div class="app-card-footer">
                 {{ $applicants->links() }}
             </div>
         @endif

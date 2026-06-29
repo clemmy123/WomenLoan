@@ -2,12 +2,14 @@
 
 namespace App\Http\Controllers;
 
-use App\Http\Controllers\Controller;
+use App\Models\District;
 use App\Models\Region;
+use App\Services\GeoHierarchyService;
 use Illuminate\Http\Request;
 
 class RegionController extends Controller
 {
+    public function __construct(private GeoHierarchyService $geo) {}
     /**
      * Display a listing of regions.
      *
@@ -93,39 +95,22 @@ class RegionController extends Controller
     public function getDistricts(int $regionId)
     {
         $region = Region::findOrFail($regionId);
-        return response()->json($region->districts);
+
+        return response()->json($this->geo->districtsFor($region));
     }
 
-    /**
-     * Get councils by district ID.
-     *
-     * @param int $districtId
-     * @return \Illuminate\Http\JsonResponse
-     */
     public function getCouncils(int $districtId)
     {
-        return response()->json(\App\Models\District::findOrFail($districtId)->councils);
+        return response()->json($this->geo->councilsFor(District::findOrFail($districtId)));
     }
 
-    /**
-     * Get wards by council ID.
-     *
-     * @param int $councilId
-     * @return \Illuminate\Http\JsonResponse
-     */
     public function getWards(int $councilId)
     {
-        return response()->json(\App\Models\Council::findOrFail($councilId)->wards);
+        return response()->json($this->geo->wardsFor(\App\Models\Council::findOrFail($councilId)));
     }
 
-    /**
-     * Get streets by ward ID.
-     *
-     * @param int $wardId
-     * @return \Illuminate\Http\JsonResponse
-     */
     public function getStreets(int $wardId)
     {
-        return response()->json(\App\Models\Ward::findOrFail($wardId)->streets);
+        return response()->json($this->geo->streetsFor(\App\Models\Ward::findOrFail($wardId)));
     }
 }

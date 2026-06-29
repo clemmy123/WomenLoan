@@ -1,94 +1,53 @@
 @extends('layouts.app')
 
-@section('title', 'Application Details')
+@section('title', __('loans.show_title', ['track' => $loan->loan_track_id]))
 
 @section('content')
-<div class="container-fluid py-4">
-    <div class="row">
-        <div class="col-md-8 offset-md-2">
-            
-            <div class="card shadow-sm border-0">
-                <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center py-3">
-                    <h5 class="mb-0">
-                        <i class="fas fa-file-alt me-2"></i> Application Details
-                    </h5>
-                    <span class="badge bg-light text-primary fs-6">{{ $loan->loan_track_id }}</span>
-                </div>
-                
-                <div class="card-body p-4">
-                    {{-- Basic Information --}}
-                    <div class="row mb-4">
-                        <div class="col-sm-6 mb-3">
-                            <h6 class="text-muted text-uppercase small fw-bold">Loan Type</h6>
-                            <p class="fw-bold text-dark fs-5">{{ ucfirst($loan->loan_type) }}</p>
-                        </div>
-                        <div class="col-sm-6 mb-3">
-                            <h6 class="text-muted text-uppercase small fw-bold">Current Status</h6>
-                            <p>
-                                @php
-                                    $statusColors = [
-                                        'pending' => 'warning',
-                                        'approved' => 'success',
-                                        'active' => 'primary',
-                                        'rejected' => 'danger'
-                                    ];
-                                @endphp
-                                <span class="badge bg-{{ $statusColors[$loan->status] ?? 'secondary' }} fs-6">
-                                    {{ ucfirst($loan->status) }}
-                                </span>
-                            </p>
-                        </div>
-                    </div>
+<div class="space-y-6">
+    <div class="flex flex-wrap justify-between items-start gap-4">
+        <div>
+            <h1 class="text-2xl font-bold text-slate-900">{{ $loan->loan_track_id }}</h1>
+            <p class="text-sm text-slate-500">{{ loan_type_label($loan->loan_type) }} — {{ __('common.step_n_of', ['step' => $loan->current_step, 'total' => 9]) }}</p>
+        </div>
+        @include('partials.loan-status-badge', ['status' => $loan->status])
+    </div>
 
-                    <div class="row mb-4">
-                        <div class="col-sm-6 mb-3">
-                            <h6 class="text-muted text-uppercase small fw-bold">Requested Amount</h6>
-                            <p class="fw-bold h4 text-primary">TZS {{ number_format($loan->requested_amount, 2) }}</p>
-                        </div>
-                        <div class="col-sm-6 mb-3">
-                            <h6 class="text-muted text-uppercase small fw-bold">Submission Date</h6>
-                            <p class="fw-bold text-dark">{{ $loan->created_at->format('d M Y, H:i') }}</p>
-                        </div>
-                    </div>
-
-                    <hr class="my-4">
-
-                    {{-- Documents Section --}}
-                    <div class="mt-4">
-                        <h6 class="text-muted text-uppercase small fw-bold mb-3">Supporting Documents</h6>
-                        @if($loan->business_registration_attachment || $loan->business_proposal_document)
-                            <div class="list-group">
-                                @if($loan->business_registration_attachment)
-                                    <a href="{{ asset('storage/'.$loan->business_registration_attachment) }}" target="_blank" class="list-group-item list-group-item-action">
-                                        <i class="fas fa-file-pdf text-danger me-2"></i> Business Registration Document
-                                    </a>
-                                @endif
-                                @if($loan->business_proposal_document)
-                                    <a href="{{ asset('storage/'.$loan->business_proposal_document) }}" target="_blank" class="list-group-item list-group-item-action">
-                                        <i class="fas fa-file-word text-primary me-2"></i> Business Proposal Document
-                                    </a>
-                                @endif
-                            </div>
-                        @else
-                            <div class="alert alert-light border border-dashed text-center">
-                                <small class="text-muted">No documents uploaded for this application.</small>
-                            </div>
-                        @endif
-                    </div>
-                </div>
-
-                <div class="card-footer bg-light p-3 d-flex justify-content-between">
-                    <a href="{{ route('loan-applications.index') }}" class="btn btn-secondary">
-                        <i class="fas fa-arrow-left me-1"></i> Back to List
-                    </a>
-                    
-                    {{-- Edit/Action Placeholder --}}
-                    @if($loan->status == 'pending')
-                        <button class="btn btn-outline-warning">Edit Application</button>
-                    @endif
-                </div>
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div class="lg:col-span-2 space-y-6">
+            <div class="bg-white rounded-2xl border border-slate-200 p-6">
+                <h3 class="font-bold text-slate-900 mb-4">{{ __('loans.details') }}</h3>
+                <dl class="grid grid-cols-2 gap-4 text-sm">
+                    <div><dt class="text-slate-500">{{ __('common.requested') }}</dt><dd class="font-semibold">{{ format_tzs($loan->requested_amount) }}</dd></div>
+                    <div><dt class="text-slate-500">{{ __('common.proposed') }}</dt><dd class="font-semibold">{{ $loan->proposed_amount ? format_tzs($loan->proposed_amount) : '—' }}</dd></div>
+                    <div><dt class="text-slate-500">{{ __('dashboard.disbursed') }}</dt><dd class="font-semibold">{{ $loan->disbursed_amount ? format_tzs($loan->disbursed_amount) : '—' }}</dd></div>
+                    <div><dt class="text-slate-500">{{ __('dashboard.applicant') }}</dt><dd class="font-semibold">{{ $loan->applicant?->full_name ?? __('common.na') }}</dd></div>
+                    <div><dt class="text-slate-500">{{ __('common.business') }}</dt><dd class="font-semibold">{{ $loan->businessDetails?->business_name ?? __('common.na') }}</dd></div>
+                    <div><dt class="text-slate-500">{{ __('common.submitted') }}</dt><dd class="font-semibold">{{ $loan->created_at->translatedFormat('d M Y, H:i') }}</dd></div>
+                </dl>
             </div>
 
+            @if($loan->approvalLevels->count())
+            <div class="bg-white rounded-2xl border border-slate-200 p-6">
+                <h3 class="font-bold text-slate-900 mb-4">{{ __('loans.approval_history') }}</h3>
+                <div class="space-y-3">
+                    @foreach($loan->approvalLevels as $level)
+                    <div class="flex gap-3 p-3 rounded-xl bg-slate-50 text-sm">
+                        <div class="h-8 w-8 rounded-full bg-indigo-100 text-indigo-700 flex items-center justify-center font-bold text-xs">{{ $level->step_number }}</div>
+                        <div>
+                            <p class="font-semibold">{{ workflow_action_label($level->action_taken) }}</p>
+                            <p class="text-slate-500 text-xs">{{ $level->user?->name }} — {{ $level->created_at->translatedFormat('d M Y H:i') }}</p>
+                            @if($level->comments)<p class="text-slate-600 mt-1">{{ $level->comments }}</p>@endif
+                        </div>
+                    </div>
+                    @endforeach
+                </div>
+            </div>
+            @endif
+        </div>
+
+        <div class="space-y-4">
+            @include('loan_applications._workflow_actions', ['loan' => $loan, 'accountants' => $accountants])
+            <a href="{{ route('loan-applications.index') }}" class="block text-center text-sm text-slate-600 hover:text-indigo-600">← {{ __('common.back_to_list') }}</a>
         </div>
     </div>
 </div>

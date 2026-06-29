@@ -2,27 +2,26 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Model;
+use App\Models\Concerns\HasHashid;
+use App\Models\Scopes\ApprovalLevelScope;
+use App\Services\LoanTrackIdGenerator;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
+use Illuminate\Support\Facades\Auth;
 
-/**
- * Class Loan
- * Represents a financial loan application within the system.
- */
 class Loan extends Model
 {
-    use HasFactory;
+    use HasFactory, HasHashid;
 
-    /**
-     * The attributes that are mass assignable.
-     */
     protected $fillable = [
         'loan_track_id',
         'applicant_id',
         'loan_group_id',
+        'user_id',
         'loan_type',
         'requested_amount',
         'proposed_amount',
@@ -33,24 +32,21 @@ class Loan extends Model
         'status',
         'current_step',
         'applicant_acceptance',
+        'approval_history',
         'approved_by',
         'comments',
         'officer_id',
     ];
 
-    /**
-     * The attributes that should be cast to native types.
-     */
     protected $casts = [
         'requested_amount' => 'decimal:2',
-        'proposed_amount'  => 'decimal:2',
+        'proposed_amount' => 'decimal:2',
         'disbursed_amount' => 'decimal:2',
-        'date_issued'      => 'date',
+        'date_issued' => 'date',
+        'approval_history' => 'array',
     ];
 
-    // =========================================================================
-    // RELATIONSHIPS
-    // =========================================================================
+    public const TERMINAL_STATUSES = ['disbursed', 'declined_by_applicant', 'rejected'];
 
     public function applicant(): BelongsTo
     {
@@ -77,31 +73,44 @@ class Loan extends Model
         return $this->hasMany(Gurantor::class);
     }
 
+    public function user(): BelongsTo
+    {
+        return $this->belongsTo(User::class);
+    }
+
+    public function officer(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'officer_id');
+    }
+
     public function businessDetails(): HasOne
     {
         return $this->hasOne(BusinessDetails::class);
     }
 
-    // =========================================================================
-    // BOOT INITIALIZATION
-    // =========================================================================
-    
+    public function scopeActive(Builder $query): Builder
+    {
+        return $query->whereNotIn('status', self::TERMINAL_STATUSES);
+    }
+
+    public function scopeForUser(Builder $query, ?int $userId = null): Builder
+    {
+        $userId ??= Auth::id();
+
+        return $query->where('user_id', $userId);
+    }
+
     protected static function booted(): void
     {
+        static::addGlobalScope(new ApprovalLevelScope);
+
         static::creating(function (Loan $loan) {
-            // Set default status and steps
             $loan->current_step = $loan->current_step ?? 1;
             $loan->status = $loan->status ?? 'pending';
 
-            // Auto-generate WL + 6 digit tracking ID (e.g., WL000001)
-            $latestLoan = Loan::latest('id')->first();
-            
-            $nextNumber = 1;
-            if ($latestLoan && preg_match('/WL(\d+)/', $latestLoan->loan_track_id, $matches)) {
-                $nextNumber = (int)$matches[1] + 1;
+            if (empty($loan->loan_track_id)) {
+                $loan->loan_track_id = app(LoanTrackIdGenerator::class)->next();
             }
-
-            $loan->loan_track_id = 'WL' . str_pad($nextNumber, 6, '0', STR_PAD_LEFT);
         });
     }
 }

@@ -2,12 +2,14 @@
 
 namespace App\Http\Controllers;
 
-use App\Http\Controllers\Controller;
 use App\Models\Council;
+use App\Models\District;
+use App\Services\GeoHierarchyService;
 use Illuminate\Http\Request;
 
 class CouncilController extends Controller
 {
+    public function __construct(private GeoHierarchyService $geo) {}
     /**
      * Display a listing of all councils.
      *
@@ -38,8 +40,7 @@ class CouncilController extends Controller
      */
     public function getCouncils(int $districtId)
     {
-        $councils = Council::where('district_id', $districtId)->get();
-        return response()->json($councils);
+        return response()->json($this->geo->councilsFor(District::findOrFail($districtId)));
     }
 
     /**

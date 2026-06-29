@@ -2,102 +2,115 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\{Loan, DraftLoan, BusinessDetails, Gurantor, Region, District, Council, Ward, Street, LoanGroup};
+use App\Http\Requests\Loan\StoreLoanApplicationRequest;
+use App\Models\DraftLoan;
+use App\Models\Loan;
+use App\Models\LoanGroup;
+use App\Services\GeoHierarchyService;
+use App\Services\LoanApplicationService;
+use App\Services\LoanQueryService;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\{DB, Auth, Validator};
+use Illuminate\Support\Facades\Auth;
 
 class LoanApplicationController extends Controller
 {
-    private function getUserId() { return Auth::id() ?? 1; }
+    public function __construct(
+        private LoanApplicationService $applications,
+        private LoanQueryService $loans,
+        private GeoHierarchyService $geo,
+    ) {}
+
+    public function index()
+    {
+        $loans = $this->loans->paginatedIndex();
+        $drafts = DraftLoan::where('user_id', Auth::id())->latest()->get();
+
+        return view('loan_applications.index', compact('loans', 'drafts'));
+    }
 
     public function create(Request $request)
     {
-        $regions = Region::orderBy('name')->get();
-        $groups = LoanGroup::orderBy('name')->get();
-        $trackId = $request->query('resume_track_id');
+        $this->authorize('create loan application');
 
-        return view('loan_applications.apply', compact('regions', 'groups', 'trackId'));
+        $user = Auth::user();
+
+        if ($this->loans->userHasActiveLoan($user)) {
+            return redirect()->route('loan-applications.index')
+                ->withErrors(['error' => __('messages.already_has_application')]);
+        }
+
+        $regions = $this->geo->regions();
+        $groups = LoanGroup::query()->orderBy('name')->get(['id', 'name']);
+        $trackId = $request->query('resume_track_id');
+        $applicant = $user->applicant;
+
+        return view('loan_applications.apply', compact('regions', 'groups', 'trackId', 'applicant'));
     }
 
     public function store(Request $request)
     {
+        $this->authorize('create loan application');
+
         $action = $request->input('form_action');
-        $trackId = $request->input('track_id') ?? $this->generateTrackId();
+        $trackId = $request->input('track_id') ?? $this->applications->nextTrackId();
+        $user = Auth::user();
 
         if ($action === 'save_draft') {
-            DraftLoan::updateOrCreate(
-                ['track_id' => $trackId, 'user_id' => $this->getUserId()],
-                ['form_data' => $request->except(['_token', 'form_action'])]
-            );
-            return redirect()->back()->with('success', 'Draft saved!')->with('track_id', $trackId);
+            $this->applications->saveDraft($request, $user->id, $trackId);
+
+            return redirect()->back()
+                ->with('success', __('messages.draft_saved'))
+                ->with('track_id', $trackId);
         }
 
-        // Validation - Kuhakikisha field zote muhimu zipo
-        $validator = Validator::make($request->all(), [
-            'loan_type'        => 'required',
-            'requested_amount' => 'required|numeric',
-            'business_name'    => 'required',
-            'business_phone'   => 'required',
-            'business_email'   => 'required|email',
-            'business_proposal_document' => 'required|file|mimes:pdf,docx,doc|max:5120',
-        ]);
+        $formRequest = StoreLoanApplicationRequest::createFrom($request);
+        $formRequest->setContainer(app())->setRedirector(app('redirect'));
+        $formRequest->validateResolved();
 
-        if ($validator->fails()) {
-            return redirect()->back()->withErrors($validator)->withInput();
-        }
-
-        DB::transaction(function () use ($request, $trackId) {
-            // 1. Create Loan
-            $loan = Loan::create([
-                'loan_track_id'    => $trackId,
-                'loan_type'        => $request->loan_type,
-                'requested_amount' => $request->requested_amount,
-                'bank_name'        => $request->bank_name,
-                'bank_number'      => $request->bank_number,
-                'user_id'          => $this->getUserId(),
-                'status'           => 'pending',
-                'current_step'     => 1,
-            ]);
-
-            // 2. Create Business Details - Hapa ndipo nilipoongeza field zote
-            $loan->businessDetails()->create([
-                'region_id'        => $request->region_id,
-                'district_id'      => $request->district_id,
-                'council_id'       => $request->council_id,
-                'ward_id'          => $request->ward_id,
-                'street_id'        => $request->street_id,
-                'business_name'    => $request->business_name,
-                'business_phone'   => $request->business_phone,
-                'business_email'   => $request->business_email,
-                'business_sector'  => $request->business_sector,
-                'business_type'    => $request->business_type,
-                'tin_number'       => $request->tin_number,
-                'business_proposal_document'       => $request->file('business_proposal_document')?->store('proposals', 'public'),
-                'business_registration_attachment' => $request->file('business_registration_attachment')?->store('registrations', 'public'),
-            ]);
-
-            // 3. Create Guarantor
-            if ($request->has('guarantor_name')) {
-                $loan->guarantors()->create([
-                    'name'  => $request->guarantor_name,
-                    'phone' => $request->guarantor_phone,
-                    'nin'   => $request->guarantor_nin,
-                ]);
+        try {
+            $this->applications->submit($formRequest, $user, $trackId);
+        } catch (\RuntimeException $e) {
+            if ($e->getMessage() === 'applicant_profile_required') {
+                return redirect()->route('applicants.create')
+                    ->withErrors(['error' => __('messages.complete_applicant_profile')]);
             }
 
-            DraftLoan::where('track_id', $trackId)->delete();
-        });
+            throw $e;
+        }
 
-        return redirect()->route('loan-applications.index')->with('success', 'Application submitted successfully!');
+        return redirect()->route('loan-applications.index')
+            ->with('success', __('messages.application_submitted'));
     }
 
-    private function generateTrackId() {
-        $maxNum = DB::table('loans')->selectRaw('CAST(SUBSTR(loan_track_id, 3) AS UNSIGNED) as num')->orderByDesc('num')->first();
-        return 'WL' . str_pad(($maxNum ? (int) $maxNum->num : 0) + 1, 7, '0', STR_PAD_LEFT);
+    public function show(Loan $loan)
+    {
+        $loan = $this->loans->loadForShow($loan);
+        $accountants = $this->loans->accountants();
+
+        return view('loan_applications.show', compact('loan', 'accountants'));
     }
 
-    public function getDistricts($id) { return response()->json(District::where('region_id', $id)->get(['id', 'name'])); }
-    public function getCouncils($id) { return response()->json(Council::where('district_id', $id)->get(['id', 'name'])); }
-    public function getWards($id) { return response()->json(Ward::where('council_id', $id)->get(['id', 'name'])); }
-    public function getStreets($id) { return response()->json(Street::where('ward_id', $id)->get(['id', 'name'])); }
+    public function saveDraft(Request $request, $id = null)
+    {
+        $trackId = $this->applications->saveDraft($request, Auth::id(), $request->input('track_id'));
+
+        return response()->json(['success' => true, 'track_id' => $trackId]);
+    }
+
+    public function finalizeApplication(Loan $loan)
+    {
+        return redirect()->route('loan-applications.show', $loan);
+    }
+
+    public function getApplicantByNin($nin)
+    {
+        return response()->json($this->applications->findApplicantByNin($nin));
+    }
+
+    public function getGroupMembers(string $groupId)
+    {
+        $group = LoanGroup::findByHashidOrFail($groupId);
+
+        return response()->json($this->applications->groupMembers($group->id)->applicants);
+    }
 }

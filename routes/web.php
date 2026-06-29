@@ -1,88 +1,85 @@
 <?php
 
-use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\ReportController;
 use App\Http\Controllers\ApplicantController;
-use App\Http\Controllers\LoanGroupController;
-use App\Http\Controllers\LoanApplicationController;
-use App\Http\Controllers\RegionController;
-use App\Http\Controllers\DistrictController;
+use App\Http\Controllers\Auth\AuthController;
 use App\Http\Controllers\CouncilController;
-use App\Http\Controllers\WardController;
+use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\DistrictController;
+use App\Http\Controllers\LoanApplicationController;
+use App\Http\Controllers\LoanGroupController;
+use App\Http\Controllers\LoanPaymentController;
+use App\Http\Controllers\LocaleController;
+use App\Http\Controllers\RegionController;
+use App\Http\Controllers\RoleController;
 use App\Http\Controllers\StreetController;
-use App\Http\Controllers\DashboardController;                       
+use App\Http\Controllers\UserController;
+use App\Http\Controllers\WardController;
+use App\Http\Controllers\WorkflowController;
+use Illuminate\Support\Facades\Route;
 
+Route::get('/locale/{locale}', [LocaleController::class, 'switch'])->name('locale.switch');
 
-/*
-|--------------------------------------------------------------------------
-| ROOT REDIRECT
-|--------------------------------------------------------------------------
-*/
+Route::middleware('guest')->group(function () {
+    Route::get('/login', [AuthController::class, 'showLogin'])->name('login');
+    Route::post('/login', [AuthController::class, 'login']);
+    Route::get('/register', [AuthController::class, 'showRegister'])->name('register');
+    Route::post('/register', [AuthController::class, 'register']);
+});
+
+Route::post('/logout', [AuthController::class, 'logout'])->name('logout')->middleware('auth');
+
 Route::get('/', function () {
-    return redirect()->route('applicants.index');
+    return auth()->check() ? redirect()->route('dashboard') : redirect()->route('login');
 });
 
-Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
+Route::middleware(['auth'])->group(function () {
+    Route::get('/dashboard', [DashboardController::class, 'index'])
+        ->middleware('can:view dashboard')
+        ->name('dashboard');
 
-/*
-|--------------------------------------------------------------------------
-| APPLICANTS MODULE
-|--------------------------------------------------------------------------
-*/
-Route::resource('applicants', ApplicantController::class);
+    Route::get('/track', [WorkflowController::class, 'track'])
+        ->middleware('can:view loan by track id')
+        ->name('loans.track');
+    Route::post('/loans/{loan}/workflow', [WorkflowController::class, 'action'])->name('loans.workflow');
 
-Route::post('applicants/{applicant}/attach-group', [ApplicantController::class, 'attachGroup'])
-    ->name('applicants.attach-group');
+    Route::resource('applicants', ApplicantController::class);
+    Route::post('applicants/{applicant}/attach-group', [ApplicantController::class, 'attachGroup'])->name('applicants.attach-group');
+    Route::delete('applicants/{applicant}/detach-group/{group}', [ApplicantController::class, 'detachGroup'])->name('applicants.detach-group');
 
-Route::delete('applicants/{applicant}/detach-group/{group}', [ApplicantController::class, 'detachGroup'])
-    ->name('applicants.detach-group');
+    Route::resource('loan-groups', LoanGroupController::class)
+        ->middleware('can:manage loan groups');
 
-/*
-|--------------------------------------------------------------------------
-| LOAN GROUPS MODULE
-|--------------------------------------------------------------------------
-*/
-Route::resource('loan-groups', LoanGroupController::class);
+    Route::prefix('loan-applications')->name('loan-applications.')->group(function () {
+        Route::get('/', [LoanApplicationController::class, 'index'])->name('index');
+        Route::get('/apply', [LoanApplicationController::class, 'create'])->name('create');
+        Route::post('/store', [LoanApplicationController::class, 'store'])->name('store');
+        Route::get('/{loan}', [LoanApplicationController::class, 'show'])->name('show');
+        Route::post('/save-draft/{id?}', [LoanApplicationController::class, 'saveDraft'])->name('save-draft');
+        Route::post('/finalize/{loan}', [LoanApplicationController::class, 'finalizeApplication'])->name('finalize');
+    });
 
-/*
-|--------------------------------------------------------------------------
-| LOAN APPLICATION MODULE (WIZARD SYSTEM)
-|--------------------------------------------------------------------------
-*/
-// Middleware removed to allow development without a login system
-Route::prefix('loan-applications')->name('loan-applications.')->group(function () {
-    
-    // Index: List of applications and drafts
-    Route::get('/', [LoanApplicationController::class, 'index'])->name('index');
+    Route::get('/repayments', [LoanPaymentController::class, 'index'])
+        ->middleware('can:view repayments')
+        ->name('repayments.index');
+    Route::get('/reports', [ReportController::class, 'index'])
+        ->middleware('can:view reports')
+        ->name('reports.index');
 
-    // Create: The Wizard Form
-    Route::get('/apply', [LoanApplicationController::class, 'create'])->name('create');
+    Route::prefix('admin')->name('admin.')->middleware('can:manage users')->group(function () {
+        Route::resource('users', UserController::class)->except(['show']);
+    });
 
-    // Store: Handle form submission and drafting
-    Route::post('/store', [LoanApplicationController::class, 'store'])->name('store');
-    
+    Route::prefix('admin')->name('admin.')->middleware('can:manage roles')->group(function () {
+        Route::resource('roles', RoleController::class)->except(['show']);
+    });
 
-    // Show: View individual application
-    Route::get('/{id}', [LoanApplicationController::class, 'show'])->name('show');
-    Route::post('/save-draft/{id?}', [LoanApplicationController::class, 'saveDraft'])->name('save-draft');
-    Route::post('/finalize/{id}', [LoanApplicationController::class, 'finalizeApplication'])->name('finalize');
-});
-
-/*
-|--------------------------------------------------------------------------
-| LOAN AJAX API (DYNAMIC DROPDOWNS)
-|--------------------------------------------------------------------------
-*/
-// Middleware removed to allow AJAX calls to work during development
-Route::prefix('api/loans')->name('loans.api.')->group(function () {
-    
-    // Location cascading dropdowns
-    Route::get('/districts/{regionId}', [RegionController::class, 'getDistricts'])->name('districts');
-
-    Route::get('/councils/{districtId}', [CouncilController::class, 'getCouncils'])->name('councils');
-    Route::get('/wards/{councilId}', [WardController::class, 'getWards'])->name('wards');
-    Route::get('/streets/{wardId}', [StreetController::class, 'getStreets'])->name('streets');
-
-    // Lookups
-    Route::get('/applicant/{nin}', [LoanApplicationController::class, 'getApplicantByNin'])->name('applicant');
-    Route::get('/group/{groupId}/members', [LoanApplicationController::class, 'getGroupMembers'])->name('group-members');
+    Route::prefix('api/loans')->name('loans.api.')->group(function () {
+        Route::get('/districts/{regionId}', [RegionController::class, 'getDistricts'])->name('districts');
+        Route::get('/councils/{districtId}', [CouncilController::class, 'getCouncils'])->name('councils');
+        Route::get('/wards/{councilId}', [WardController::class, 'getWards'])->name('wards');
+        Route::get('/streets/{wardId}', [StreetController::class, 'getStreets'])->name('streets');
+        Route::get('/applicant/{nin}', [LoanApplicationController::class, 'getApplicantByNin'])->name('applicant');
+        Route::get('/group/{groupId}/members', [LoanApplicationController::class, 'getGroupMembers'])->name('group-members');
+    });
 });

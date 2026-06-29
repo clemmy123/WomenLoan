@@ -2,12 +2,14 @@
 
 namespace App\Http\Controllers;
 
-use App\Http\Controllers\Controller;
+use App\Models\Council;
 use App\Models\Ward;
+use App\Services\GeoHierarchyService;
 use Illuminate\Http\Request;
 
 class WardController extends Controller
 {
+    public function __construct(private GeoHierarchyService $geo) {}
     /**
      * Display a listing of all wards.
      *
@@ -38,7 +40,7 @@ class WardController extends Controller
      */
     public function getWards(int $councilId)
     {
-        return $this->byCouncil($councilId);
+        return response()->json($this->geo->wardsFor(Council::findOrFail($councilId)));
     }
 
     /**
