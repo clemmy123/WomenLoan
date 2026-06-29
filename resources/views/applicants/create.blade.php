@@ -3,7 +3,7 @@
 @section('title', __('applicants.title'))
 
 @section('content')
-<div class="max-w-3xl mx-auto space-y-6">
+<div class="page page-narrow">
     <div class="flex items-center space-x-4">
         <a href="{{ route('applicants.index') }}" class="text-sm font-medium text-gray-500 hover:text-gray-900 transition-colors">&larr; {{ __('common.back_to_list') }}</a>
     </div>

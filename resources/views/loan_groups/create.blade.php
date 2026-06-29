@@ -3,7 +3,7 @@
 @section('title', __('groups.create_title'))
 
 @section('content')
-<div class="max-w-4xl mx-auto">
+<div class="page page-medium">
     <div class="mb-8">
         <h2 class="text-2xl font-bold text-slate-900">{{ __('groups.create_title') }}</h2>
         <p class="text-sm text-slate-500">{{ __('groups.create_subtitle') }}</p>

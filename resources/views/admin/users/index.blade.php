@@ -3,13 +3,12 @@
 @section('title', __('nav.users'))
 
 @section('content')
-<div class="flex justify-between items-center mb-8">
-    <div>
-        <h1 class="text-2xl font-bold text-slate-900">{{ __('nav.users') }}</h1>
-        <p class="text-sm text-slate-500 mt-1">{{ __('admin.users_subtitle') }}</p>
-    </div>
-    <a href="{{ route('admin.users.create') }}" class="bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-semibold px-5 py-2.5 rounded-xl">+ {{ __('admin.new_user') }}</a>
-</div>
+<div class="page">
+    @include('partials.page-header', [
+        'title' => __('nav.users'),
+        'subtitle' => __('admin.users_subtitle'),
+        'actions' => '<a href="'.e(route('admin.users.create')).'" class="app-btn app-btn-primary">+ '.e(__('admin.new_user')).'</a>',
+    ])
 
 <div class="app-card overflow-hidden">
     <table class="app-table">

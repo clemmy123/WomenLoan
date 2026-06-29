@@ -1,125 +1,141 @@
-@php $user = auth()->user(); $step = $loan->current_step; @endphp
+@php
+    $user = auth()->user();
+    $step = $loan->current_step;
 
-<div class="bg-white rounded-2xl border border-slate-200 p-5 space-y-4">
-    <h3 class="font-bold text-slate-900">{{ __('workflow.title') }}</h3>
+    $canReceive = $user->can('receive application') && $step === 1 && $loan->status === 'pending';
+    $canForwardMinistry = $user->can('forward to ministry') && $step === 1 && $loan->status === 'received';
+    $canProposeAmount = $user->can('propose loan amount') && in_array($step, [2, 4], true);
+    $canApplicantRespond = $user->hasRole('applicant') && $step === 3;
+    $canForwardAssDir = $user->can('forward to assistant director') && $step === 4;
+    $canForwardDirector = $user->can('forward to director') && $step === 5;
+    $canForwardKm = $user->can('forward to km') && $step === 6;
+    $canApproveKm = $user->can('approve as km') && $step === 7;
+    $canAssignAccountant = $user->can('assign accountant') && $step === 8;
+    $canDisburse = $user->can('disburse loan') && $step === 9 && $loan->officer_id === $user->id;
+@endphp
 
-    @if($user->can('receive application') && $step === 1 && $loan->status === 'pending')
-    <form method="POST" action="{{ route('loans.workflow', $loan) }}" class="space-y-2">
-        @csrf
-        <input type="hidden" name="action" value="receive">
-        <textarea name="comments" rows="2" placeholder="{{ __('workflow.comments_optional') }}" class="w-full text-sm rounded-xl border border-slate-200 px-3 py-2"></textarea>
-        <button type="submit" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-semibold py-2 rounded-xl">{{ __('workflow.buttons.receive') }}</button>
-    </form>
-    @endif
+@if(loan_has_workflow_actions($loan, $user))
+<div class="app-card app-card-padded" x-data="{ modal: null }">
+    <h3 class="font-bold text-slate-900 dark:text-white mb-4">{{ __('workflow.title') }}</h3>
 
-    @if($user->can('forward to ministry') && $step === 1 && $loan->status === 'received')
-    <form method="POST" action="{{ route('loans.workflow', $loan) }}" enctype="multipart/form-data" class="space-y-2">
-        @csrf
-        <input type="hidden" name="action" value="forward_ministry">
-        <textarea name="comments" rows="2" placeholder="{{ __('workflow.review_comments') }}" class="w-full text-sm rounded-xl border border-slate-200 px-3 py-2"></textarea>
-        <input type="file" name="attachment" class="w-full text-xs">
-        <button type="submit" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-semibold py-2 rounded-xl">{{ __('workflow.buttons.forward_ministry') }}</button>
-    </form>
-    @endif
-
-    @if($user->can('propose loan amount') && in_array($step, [2, 4]))
-    <form method="POST" action="{{ route('loans.workflow', $loan) }}" class="space-y-2">
-        @csrf
-        <input type="hidden" name="action" value="propose_amount">
-        <input type="number" name="proposed_amount" placeholder="{{ __('workflow.proposed_amount_placeholder') }}" required class="w-full text-sm rounded-xl border border-slate-200 px-3 py-2">
-        <textarea name="comments" rows="2" placeholder="{{ __('workflow.comments') }}" class="w-full text-sm rounded-xl border border-slate-200 px-3 py-2"></textarea>
-        <button type="submit" class="w-full bg-violet-600 hover:bg-violet-700 text-white text-sm font-semibold py-2 rounded-xl">{{ __('workflow.buttons.propose_amount') }}</button>
-    </form>
-    @endif
-
-    @if($user->hasRole('applicant') && $step === 3)
     <div class="space-y-2">
-        <p class="text-sm text-slate-600">{!! __('workflow.proposed_amount', ['amount' => '<strong>'.e(format_tzs($loan->proposed_amount)).'</strong>']) !!}</p>
-        <form method="POST" action="{{ route('loans.workflow', $loan) }}">
-            @csrf
-            <input type="hidden" name="action" value="accept_amount">
-            <button type="submit" class="w-full bg-emerald-600 text-white text-sm font-semibold py-2 rounded-xl mb-2">{{ __('workflow.buttons.accept_amount') }}</button>
-        </form>
-        <form method="POST" action="{{ route('loans.workflow', $loan) }}">
-            @csrf
-            <input type="hidden" name="action" value="decline_amount">
-            <textarea name="comments" rows="2" placeholder="{{ __('workflow.decline_reason') }}" class="w-full text-sm rounded-xl border border-slate-200 px-3 py-2 mb-2"></textarea>
-            <button type="submit" class="w-full bg-red-600 text-white text-sm font-semibold py-2 rounded-xl">{{ __('workflow.buttons.decline_amount') }}</button>
-        </form>
+        @if($canReceive)
+            <button type="button" @click="modal = 'receive'" class="app-btn app-btn-success app-btn-block">{{ __('workflow.buttons.receive') }}</button>
+        @endif
+        @if($canForwardMinistry)
+            <button type="button" @click="modal = 'forward_ministry'" class="app-btn app-btn-primary app-btn-block">{{ __('workflow.buttons.forward_ministry') }}</button>
+        @endif
+        @if($canProposeAmount)
+            <button type="button" @click="modal = 'propose_amount'" class="app-btn app-btn-primary app-btn-block">{{ __('workflow.buttons.propose_amount') }}</button>
+        @endif
+        @if($canApplicantRespond)
+            <p class="text-sm text-slate-600 dark:text-zinc-400 mb-2">{!! __('workflow.proposed_amount', ['amount' => '<strong>'.e(format_tzs($loan->proposed_amount)).'</strong>']) !!}</p>
+            <button type="button" @click="modal = 'accept_amount'" class="app-btn app-btn-success app-btn-block">{{ __('workflow.buttons.accept_amount') }}</button>
+            <button type="button" @click="modal = 'decline_amount'" class="app-btn app-btn-danger app-btn-block">{{ __('workflow.buttons.decline_amount') }}</button>
+        @endif
+        @if($canForwardAssDir)
+            <button type="button" @click="modal = 'forward_ass_dir'" class="app-btn app-btn-primary app-btn-block">{{ __('workflow.buttons.forward_ass_dir') }}</button>
+        @endif
+        @if($canForwardDirector)
+            <button type="button" @click="modal = 'forward_director'" class="app-btn app-btn-primary app-btn-block">{{ __('workflow.buttons.forward_director') }}</button>
+        @endif
+        @if($canForwardKm)
+            <button type="button" @click="modal = 'forward_km'" class="app-btn app-btn-primary app-btn-block">{{ __('workflow.buttons.forward_km') }}</button>
+        @endif
+        @if($canApproveKm)
+            <button type="button" @click="modal = 'approve_km'" class="app-btn app-btn-success app-btn-block">{{ __('workflow.buttons.approve_km') }}</button>
+        @endif
+        @if($canAssignAccountant)
+            <button type="button" @click="modal = 'assign_accountant'" class="app-btn app-btn-primary app-btn-block">{{ __('workflow.buttons.assign_accountant') }}</button>
+        @endif
+        @if($canDisburse)
+            <button type="button" @click="modal = 'disburse'" class="app-btn app-btn-success app-btn-block">{{ __('workflow.buttons.disburse', ['amount' => format_tzs($loan->proposed_amount)]) }}</button>
+        @endif
     </div>
+
+    @if($canReceive)
+        @include('partials.modal', [
+            'name' => 'receive',
+            'title' => __('workflow.buttons.receive'),
+            'body' => view('loan_applications._workflow_forms.receive', compact('loan'))->render(),
+        ])
     @endif
 
-    @if($user->can('forward to assistant director') && $step === 4)
-    <form method="POST" action="{{ route('loans.workflow', $loan) }}" enctype="multipart/form-data" class="space-y-2">
-        @csrf
-        <input type="hidden" name="action" value="forward_ass_dir">
-        <textarea name="comments" rows="2" class="w-full text-sm rounded-xl border border-slate-200 px-3 py-2"></textarea>
-        <input type="file" name="attachment" class="w-full text-xs">
-        <button type="submit" class="w-full bg-indigo-600 text-white text-sm font-semibold py-2 rounded-xl">{{ __('workflow.buttons.forward_ass_dir') }}</button>
-    </form>
+    @if($canForwardMinistry)
+        @include('partials.modal', [
+            'name' => 'forward_ministry',
+            'title' => __('workflow.buttons.forward_ministry'),
+            'body' => view('loan_applications._workflow_forms.forward_ministry', compact('loan'))->render(),
+        ])
     @endif
 
-    @if($user->can('forward to director') && $step === 5)
-    <form method="POST" action="{{ route('loans.workflow', $loan) }}">
-        @csrf
-        <input type="hidden" name="action" value="forward_director">
-        <textarea name="comments" rows="2" placeholder="{{ __('workflow.your_comment') }}" required class="w-full text-sm rounded-xl border border-slate-200 px-3 py-2 mb-2"></textarea>
-        <button type="submit" class="w-full bg-indigo-600 text-white text-sm font-semibold py-2 rounded-xl">{{ __('workflow.buttons.forward_director') }}</button>
-    </form>
+    @if($canProposeAmount)
+        @include('partials.modal', [
+            'name' => 'propose_amount',
+            'title' => __('workflow.buttons.propose_amount'),
+            'body' => view('loan_applications._workflow_forms.propose_amount', compact('loan'))->render(),
+        ])
     @endif
 
-    @if($user->can('forward to km') && $step === 6)
-    <form method="POST" action="{{ route('loans.workflow', $loan) }}">
-        @csrf
-        <input type="hidden" name="action" value="forward_km">
-        <textarea name="comments" rows="2" placeholder="{{ __('workflow.director_comment') }}" required class="w-full text-sm rounded-xl border border-slate-200 px-3 py-2 mb-2"></textarea>
-        <button type="submit" class="w-full bg-indigo-600 text-white text-sm font-semibold py-2 rounded-xl">{{ __('workflow.buttons.forward_km') }}</button>
-    </form>
+    @if($canApplicantRespond)
+        @include('partials.modal', [
+            'name' => 'accept_amount',
+            'title' => __('workflow.buttons.accept_amount'),
+            'body' => view('loan_applications._workflow_forms.accept_amount', compact('loan'))->render(),
+        ])
+        @include('partials.modal', [
+            'name' => 'decline_amount',
+            'title' => __('workflow.buttons.decline_amount'),
+            'body' => view('loan_applications._workflow_forms.decline_amount', compact('loan'))->render(),
+        ])
     @endif
 
-    @if($user->can('approve as km') && $step === 7)
-    <form method="POST" action="{{ route('loans.workflow', $loan) }}">
-        @csrf
-        <input type="hidden" name="action" value="approve_km">
-        <textarea name="comments" rows="2" class="w-full text-sm rounded-xl border border-slate-200 px-3 py-2 mb-2"></textarea>
-        <button type="submit" class="w-full bg-emerald-600 text-white text-sm font-semibold py-2 rounded-xl">{{ __('workflow.buttons.approve_km') }}</button>
-    </form>
+    @if($canForwardAssDir)
+        @include('partials.modal', [
+            'name' => 'forward_ass_dir',
+            'title' => __('workflow.buttons.forward_ass_dir'),
+            'body' => view('loan_applications._workflow_forms.forward_ass_dir', compact('loan'))->render(),
+        ])
     @endif
 
-    @if($user->can('assign accountant') && $step === 8)
-    <form method="POST" action="{{ route('loans.workflow', $loan) }}" class="space-y-2">
-        @csrf
-        <input type="hidden" name="action" value="assign_accountant">
-        <select name="accountant_id" required class="w-full text-sm rounded-xl border border-slate-200 px-3 py-2">
-            <option value="">{{ __('workflow.select_accountant') }}</option>
-            @foreach($accountants as $acc)
-                <option value="{{ $acc->id }}">{{ $acc->name }}</option>
-            @endforeach
-        </select>
-        <button type="submit" class="w-full bg-indigo-600 text-white text-sm font-semibold py-2 rounded-xl">{{ __('workflow.buttons.assign_accountant') }}</button>
-    </form>
+    @if($canForwardDirector)
+        @include('partials.modal', [
+            'name' => 'forward_director',
+            'title' => __('workflow.buttons.forward_director'),
+            'body' => view('loan_applications._workflow_forms.forward_director', compact('loan'))->render(),
+        ])
     @endif
 
-    @if($user->can('disburse loan') && $step === 9 && $loan->officer_id === $user->id)
-    <form method="POST" action="{{ route('loans.workflow', $loan) }}" class="space-y-2">
-        @csrf
-        <input type="hidden" name="action" value="disburse">
-        <input type="number" name="disbursed_amount" value="{{ $loan->proposed_amount }}" required class="w-full text-sm rounded-xl border border-slate-200 px-3 py-2">
-        <button type="submit" class="w-full bg-emerald-600 text-white text-sm font-semibold py-2 rounded-xl">{{ __('workflow.buttons.disburse', ['amount' => format_tzs($loan->proposed_amount)]) }}</button>
-    </form>
+    @if($canForwardKm)
+        @include('partials.modal', [
+            'name' => 'forward_km',
+            'title' => __('workflow.buttons.forward_km'),
+            'body' => view('loan_applications._workflow_forms.forward_km', compact('loan'))->render(),
+        ])
     @endif
 
-    @if(!$user->hasAnyRole(['admin','super_admin']) && !(
-        ($user->can('receive application') && $step === 1) ||
-        ($user->can('propose loan amount') && in_array($step, [2,4])) ||
-        ($user->hasRole('applicant') && $step === 3) ||
-        ($user->can('forward to assistant director') && $step === 4) ||
-        ($user->can('forward to director') && $step === 5) ||
-        ($user->can('forward to km') && $step === 6) ||
-        ($user->can('approve as km') && $step === 7) ||
-        ($user->can('assign accountant') && $step === 8) ||
-        ($user->can('disburse loan') && $step === 9 && $loan->officer_id === $user->id)
-    ))
-        <p class="text-xs text-slate-500">{{ __('workflow.no_actions') }}</p>
+    @if($canApproveKm)
+        @include('partials.modal', [
+            'name' => 'approve_km',
+            'title' => __('workflow.buttons.approve_km'),
+            'body' => view('loan_applications._workflow_forms.approve_km', compact('loan'))->render(),
+        ])
+    @endif
+
+    @if($canAssignAccountant)
+        @include('partials.modal', [
+            'name' => 'assign_accountant',
+            'title' => __('workflow.buttons.assign_accountant'),
+            'body' => view('loan_applications._workflow_forms.assign_accountant', compact('loan', 'accountants'))->render(),
+        ])
+    @endif
+
+    @if($canDisburse)
+        @include('partials.modal', [
+            'name' => 'disburse',
+            'title' => __('workflow.buttons.disburse', ['amount' => format_tzs($loan->proposed_amount)]),
+            'body' => view('loan_applications._workflow_forms.disburse', compact('loan'))->render(),
+        ])
     @endif
 </div>
+@endif
