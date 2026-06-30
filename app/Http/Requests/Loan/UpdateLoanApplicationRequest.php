@@ -4,11 +4,13 @@ namespace App\Http\Requests\Loan;
 
 use Illuminate\Foundation\Http\FormRequest;
 
-class StoreLoanApplicationRequest extends FormRequest
+class UpdateLoanApplicationRequest extends FormRequest
 {
     public function authorize(): bool
     {
-        return $this->user()->can('create loan application');
+        $loan = $this->route('loan');
+
+        return $loan && $loan->isEditableByApplicant($this->user());
     }
 
     public function rules(): array
@@ -19,7 +21,7 @@ class StoreLoanApplicationRequest extends FormRequest
             'business_name' => 'required',
             'business_phone' => 'required',
             'business_email' => 'required|email',
-            'business_proposal_document' => 'required|file|mimes:pdf,docx,doc|max:5120',
+            'business_proposal_document' => 'nullable|file|mimes:pdf,docx,doc|max:5120',
             'business_registration_attachment' => 'nullable|file|mimes:pdf,docx,doc|max:5120',
             'region_id' => 'nullable|exists:regions,id',
             'district_id' => 'nullable|exists:districts,id',
@@ -36,6 +38,7 @@ class StoreLoanApplicationRequest extends FormRequest
             'guarantor_occupation' => 'nullable|string|max:255',
             'bank_name' => 'nullable|string|max:255',
             'bank_number' => 'nullable|string|max:255',
+            'declaration' => 'accepted',
         ];
     }
 }

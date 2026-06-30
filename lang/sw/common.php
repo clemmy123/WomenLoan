@@ -26,6 +26,7 @@ return [
     'optional' => 'si lazima',
     'required' => 'lazima',
     'errors_below' => 'Tafadhali rekebisha makosa yafuatayo:',
+    'success' => 'Imefanikiwa',
     'check_errors' => 'Angalia makosa hapa chini:',
     'no_records' => 'Hakuna rekodi.',
     'members' => 'Wanachama',

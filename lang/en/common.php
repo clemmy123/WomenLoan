@@ -26,6 +26,7 @@ return [
     'optional' => 'optional',
     'required' => 'required',
     'errors_below' => 'Please correct the errors below:',
+    'success' => 'Success',
     'check_errors' => 'Check the errors below:',
     'no_records' => 'No records found.',
     'members' => 'Members',

@@ -24,7 +24,7 @@
                     <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-width="2" d="M4 6h16M4 12h16m-7 6h7"/></svg>
                 </button>
                 <div class="flex items-center gap-3">
-                    <div class="h-9 w-9 bg-gradient-to-tr from-indigo-600 to-violet-500 rounded-2xl flex items-center justify-center text-white font-bold ">W</div>
+                    @include('partials.brand-logo', ['size' => 'header'])
                     <div>
                         <h1 class="text-sm font-bold text-slate-900 dark:text-white">{{ __('nav.welcome') }}</h1>
                         <p class="text-[10px] text-slate-400 dark:text-zinc-500 uppercase tracking-widest">{{ __('nav.platform') }}</p>
@@ -75,7 +75,7 @@
         </div>
 
         <main class="flex-1 p-6 lg:p-10 overflow-y-auto dark-app-main">
-            <div class="max-w-7xl mx-auto">
+            <div class="max-w-7xl mx-auto app-content-shell">
                 @include('partials.flash-messages')
                 @yield('content')
             </div>

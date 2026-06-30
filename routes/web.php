@@ -54,6 +54,8 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/', [LoanApplicationController::class, 'index'])->name('index');
         Route::get('/apply', [LoanApplicationController::class, 'create'])->name('create');
         Route::post('/store', [LoanApplicationController::class, 'store'])->name('store');
+        Route::get('/{loan}/edit', [LoanApplicationController::class, 'edit'])->name('edit');
+        Route::put('/{loan}', [LoanApplicationController::class, 'update'])->name('update');
         Route::get('/{loan}', [LoanApplicationController::class, 'show'])->name('show');
         Route::post('/save-draft/{id?}', [LoanApplicationController::class, 'saveDraft'])->name('save-draft');
         Route::post('/finalize/{loan}', [LoanApplicationController::class, 'finalizeApplication'])->name('finalize');

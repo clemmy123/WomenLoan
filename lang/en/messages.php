@@ -14,6 +14,8 @@ return [
     'cannot_delete_self' => 'You cannot delete your own account.',
     'cannot_edit_super_admin' => 'Super admin role cannot be modified.',
     'application_submitted' => 'Application submitted successfully.',
+    'application_updated' => 'Application updated successfully.',
+    'application_not_editable' => 'This application can no longer be edited because processing has started.',
     'already_has_application' => 'You already have an active loan application.',
     'draft_saved' => 'Draft saved successfully.',
     'complete_applicant_profile' => 'Please complete your applicant profile first.',

@@ -10,9 +10,11 @@
             <p class="page-subtitle">{{ __('loans.apply_subtitle') }}</p>
         </div>
         @can('create loan application')
+        @if($canStartNew ?? true)
         <div class="page-actions">
             <a href="{{ route('loan-applications.create') }}" class="app-btn app-btn-success">{{ __('loans.start_new') }}</a>
         </div>
+        @endif
         @endcan
     </div>
 
@@ -30,6 +32,7 @@
                         <th>{{ __('dashboard.amount') }}</th>
                         <th>{{ __('dashboard.status') }}</th>
                         <th>{{ __('common.submitted') }}</th>
+                        <th class="w-28">{{ __('common.actions') }}</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -47,6 +50,13 @@
                                 </div>
                             </td>
                             <td>{{ $loan->created_at->translatedFormat('d M Y') }}</td>
+                            <td>
+                                @if($loan->isEditableByApplicant())
+                                    <a href="{{ route('loan-applications.edit', $loan) }}" class="text-sm font-semibold text-indigo-600 hover:text-indigo-500 dark:text-indigo-400">{{ __('common.edit') }}</a>
+                                @else
+                                    <span class="text-slate-400 dark:text-zinc-500 text-sm">—</span>
+                                @endif
+                            </td>
                         </tr>
                     @endforeach
                 </tbody>

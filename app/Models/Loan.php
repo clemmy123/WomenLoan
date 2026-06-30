@@ -48,6 +48,21 @@ class Loan extends Model
 
     public const TERMINAL_STATUSES = ['disbursed', 'declined_by_applicant', 'rejected'];
 
+    /** Statuses where the applicant may still revise the application (ward step only). */
+    public const APPLICANT_EDITABLE_STATUSES = ['pending', 'received'];
+
+    public function isEditableByApplicant(?User $user = null): bool
+    {
+        $user ??= Auth::user();
+
+        if (! $user || $this->user_id !== $user->id) {
+            return false;
+        }
+
+        return $this->current_step === 1
+            && in_array($this->status, self::APPLICANT_EDITABLE_STATUSES, true);
+    }
+
     public function applicant(): BelongsTo
     {
         return $this->belongsTo(Applicant::class, 'applicant_id');

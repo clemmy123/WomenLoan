@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests\Applicant;
 
+use App\Models\Applicant;
 use App\Rules\TanzaniaPhone;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
@@ -24,7 +25,7 @@ class StoreApplicantRequest extends FormRequest
             'email' => ['required', 'email', 'max:255', Rule::unique('applicants', 'email')],
             'phone' => ['required', 'string', new TanzaniaPhone, Rule::unique('applicants', 'phone')],
             'sex' => ['required', 'string', 'in:Male,Female'],
-            'marital_status' => ['nullable', 'string', 'max:20'],
+            'marital_status' => ['nullable', 'string', Rule::in(Applicant::MARITAL_STATUSES)],
             'nationality' => ['nullable', 'string', 'max:255'],
             'location_id' => ['required', 'integer', 'exists:streets,id'],
         ];

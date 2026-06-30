@@ -14,6 +14,8 @@ return [
     'cannot_delete_self' => 'Huwezi kufuta akaunti yako mwenyewe.',
     'cannot_edit_super_admin' => 'Jukumu la super admin haliwezi kubadilishwa.',
     'application_submitted' => 'Ombi limewasilishwa.',
+    'application_updated' => 'Ombi limesasishwa.',
+    'application_not_editable' => 'Ombi hili haliwezi kuhaririwa tena kwa sababu uchakataji umeanza.',
     'already_has_application' => 'Tayari una ombi la mkopo linaloendelea.',
     'draft_saved' => 'Rasimu imehifadhiwa.',
     'complete_applicant_profile' => 'Tafadhali kamilisha wasifu wako wa mwombaji kwanza.',

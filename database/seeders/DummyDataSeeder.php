@@ -81,6 +81,16 @@ class DummyDataSeeder extends Seeder
             ['email' => 'applicant3@wdf.go.tz', 'name' => 'Asha Mwakyusa', 'first' => 'Asha', 'middle' => 'Peter', 'last' => 'Mwakyusa', 'nin' => '19880303123450000003', 'phone' => '255712200003'],
             ['email' => 'applicant4@wdf.go.tz', 'name' => 'Rehema Kavishe', 'first' => 'Rehema', 'middle' => 'Joseph', 'last' => 'Kavishe', 'nin' => '19920707123450000004', 'phone' => '255712200004'],
             ['email' => 'applicant5@wdf.go.tz', 'name' => 'Zainabu Omary', 'first' => 'Zainabu', 'middle' => 'Omary', 'last' => 'Rajabu', 'nin' => '19941111123450000005', 'phone' => '255712200005'],
+            ['email' => 'applicant6@wdf.go.tz', 'name' => 'Mariam Juma', 'first' => 'Mariam', 'middle' => 'Juma', 'last' => 'Hassan', 'nin' => '19950101123450000006', 'phone' => '255712200006'],
+            ['email' => 'applicant7@wdf.go.tz', 'name' => 'Halima Mbwana', 'first' => 'Halima', 'middle' => 'Ali', 'last' => 'Mbwana', 'nin' => '19960202123450000007', 'phone' => '255712200007'],
+            ['email' => 'applicant8@wdf.go.tz', 'name' => 'Grace Mushi', 'first' => 'Grace', 'middle' => 'Paul', 'last' => 'Mushi', 'nin' => '19970303123450000008', 'phone' => '255712200008'],
+            ['email' => 'applicant9@wdf.go.tz', 'name' => 'Salma Kassim', 'first' => 'Salma', 'middle' => 'Kassim', 'last' => 'Omar', 'nin' => '19980404123450000009', 'phone' => '255712200009'],
+            ['email' => 'applicant10@wdf.go.tz', 'name' => 'Amina Yusuf', 'first' => 'Amina', 'middle' => 'Yusuf', 'last' => 'Bakari', 'nin' => '19990505123450000010', 'phone' => '255712200010'],
+            ['email' => 'applicant11@wdf.go.tz', 'name' => 'Hawa Mgeni', 'first' => 'Hawa', 'middle' => 'Mgeni', 'last' => 'Said', 'nin' => '19900606123450000011', 'phone' => '255712200011'],
+            ['email' => 'applicant12@wdf.go.tz', 'name' => 'Pendo Mcharo', 'first' => 'Pendo', 'middle' => 'Joseph', 'last' => 'Mcharo', 'nin' => '19910707123450000012', 'phone' => '255712200012'],
+            ['email' => 'applicant13@wdf.go.tz', 'name' => 'Neema Kileo', 'first' => 'Neema', 'middle' => 'Peter', 'last' => 'Kileo', 'nin' => '19920808123450000013', 'phone' => '255712200013'],
+            ['email' => 'applicant14@wdf.go.tz', 'name' => 'Tabia Mwanga', 'first' => 'Tabia', 'middle' => 'Hassan', 'last' => 'Mwanga', 'nin' => '19930909123450000014', 'phone' => '255712200014'],
+            ['email' => 'applicant15@wdf.go.tz', 'name' => 'Rukia Ally', 'first' => 'Rukia', 'middle' => 'Ally', 'last' => 'Hamisi', 'nin' => '19941010123450000015', 'phone' => '255712200015'],
         ];
 
         foreach ($profiles as $p) {
@@ -98,9 +108,9 @@ class DummyDataSeeder extends Seeder
             $fullName = trim("{$p['first']} {$p['middle']} {$p['last']}");
 
             $applicant = Applicant::updateOrCreate(
-                ['nin' => $p['nin']],
+                ['user_id' => $user->id],
                 [
-                    'user_id' => $user->id,
+                    'nin' => $p['nin'],
                     'first_name' => $p['first'],
                     'middle_name' => $p['middle'],
                     'last_name' => $p['last'],
@@ -156,32 +166,32 @@ class DummyDataSeeder extends Seeder
     protected function seedWorkflowLoans(): void
     {
         $scenarios = [
-            // Step 1 — submitted, pending ward
-            ['track' => 'WL000001', 'step' => 1, 'status' => 'pending', 'acceptance' => 'pending', 'requested' => 5000000, 'proposed' => 0, 'disbursed' => 0, 'applicant' => 0, 'history' => []],
+            // Step 1 — submitted, pending ward (demo applicant, not login test accounts)
+            ['track' => 'WL000001', 'step' => 1, 'status' => 'pending', 'acceptance' => 'pending', 'requested' => 5000000, 'proposed' => 0, 'disbursed' => 0, 'applicant' => 5, 'history' => []],
             // Step 1 — received by ward
-            ['track' => 'WL000002', 'step' => 1, 'status' => 'received', 'acceptance' => 'pending', 'requested' => 3500000, 'proposed' => 0, 'disbursed' => 0, 'applicant' => 1, 'history' => [
+            ['track' => 'WL000002', 'step' => 1, 'status' => 'received', 'acceptance' => 'pending', 'requested' => 3500000, 'proposed' => 0, 'disbursed' => 0, 'applicant' => 6, 'history' => [
                 ['step' => 1, 'action' => 'received', 'user' => 'ward', 'comments' => 'Application received at ward office.'],
             ]],
             // Step 2 — ministry review
-            ['track' => 'WL000003', 'step' => 2, 'status' => 'in_review', 'acceptance' => 'pending', 'requested' => 8000000, 'proposed' => 0, 'disbursed' => 0, 'applicant' => 2, 'history' => [
+            ['track' => 'WL000003', 'step' => 2, 'status' => 'in_review', 'acceptance' => 'pending', 'requested' => 8000000, 'proposed' => 0, 'disbursed' => 0, 'applicant' => 7, 'history' => [
                 ['step' => 1, 'action' => 'received', 'user' => 'ward', 'comments' => 'Received.'],
                 ['step' => 1, 'action' => 'forwarded_to_ministry', 'user' => 'ward', 'comments' => 'Forwarded to ministry for review.'],
             ]],
             // Step 3 — awaiting applicant confirmation
-            ['track' => 'WL000004', 'step' => 3, 'status' => 'awaiting_applicant', 'acceptance' => 'pending', 'requested' => 6000000, 'proposed' => 5500000, 'disbursed' => 0, 'applicant' => 3, 'history' => [
+            ['track' => 'WL000004', 'step' => 3, 'status' => 'awaiting_applicant', 'acceptance' => 'pending', 'requested' => 6000000, 'proposed' => 5500000, 'disbursed' => 0, 'applicant' => 8, 'history' => [
                 ['step' => 1, 'action' => 'received', 'user' => 'ward'],
                 ['step' => 1, 'action' => 'forwarded_to_ministry', 'user' => 'ward'],
                 ['step' => 2, 'action' => 'proposed_amount', 'user' => 'ministry', 'comments' => 'Proposed TZS 5,500,000', 'amount' => 5500000],
             ]],
             // Step 4 — ministry after applicant accepted
-            ['track' => 'WL000005', 'step' => 4, 'status' => 'in_review', 'acceptance' => 'accepted', 'requested' => 4500000, 'proposed' => 4000000, 'disbursed' => 0, 'applicant' => 4, 'history' => [
+            ['track' => 'WL000005', 'step' => 4, 'status' => 'in_review', 'acceptance' => 'accepted', 'requested' => 4500000, 'proposed' => 4000000, 'disbursed' => 0, 'applicant' => 9, 'history' => [
                 ['step' => 1, 'action' => 'received', 'user' => 'ward'],
                 ['step' => 1, 'action' => 'forwarded_to_ministry', 'user' => 'ward'],
                 ['step' => 2, 'action' => 'proposed_amount', 'user' => 'ministry', 'amount' => 4000000],
                 ['step' => 3, 'action' => 'accepted', 'user' => 'applicant', 'comments' => 'Applicant accepted proposed amount.'],
             ]],
             // Step 5 — assistant director
-            ['track' => 'WL000006', 'step' => 5, 'status' => 'in_review', 'acceptance' => 'accepted', 'requested' => 7000000, 'proposed' => 6500000, 'disbursed' => 0, 'applicant' => 0, 'history' => [
+            ['track' => 'WL000006', 'step' => 5, 'status' => 'in_review', 'acceptance' => 'accepted', 'requested' => 7000000, 'proposed' => 6500000, 'disbursed' => 0, 'applicant' => 10, 'history' => [
                 ['step' => 1, 'action' => 'received', 'user' => 'ward'],
                 ['step' => 1, 'action' => 'forwarded_to_ministry', 'user' => 'ward'],
                 ['step' => 2, 'action' => 'proposed_amount', 'user' => 'ministry', 'amount' => 6500000],
@@ -189,22 +199,22 @@ class DummyDataSeeder extends Seeder
                 ['step' => 4, 'action' => 'forwarded_to_ass_dir', 'user' => 'ministry', 'comments' => 'Sent to Assistant Director.'],
             ]],
             // Step 6 — director
-            ['track' => 'WL000007', 'step' => 6, 'status' => 'in_review', 'acceptance' => 'accepted', 'requested' => 9000000, 'proposed' => 8500000, 'disbursed' => 0, 'applicant' => 1, 'history' => [
+            ['track' => 'WL000007', 'step' => 6, 'status' => 'in_review', 'acceptance' => 'accepted', 'requested' => 9000000, 'proposed' => 8500000, 'disbursed' => 0, 'applicant' => 11, 'history' => [
                 ['step' => 5, 'action' => 'forwarded_to_director', 'user' => 'ass_dir', 'comments' => 'Recommended for director review.'],
             ]],
             // Step 7 — KM
-            ['track' => 'WL000008', 'step' => 7, 'status' => 'in_review', 'acceptance' => 'accepted', 'requested' => 10000000, 'proposed' => 9500000, 'disbursed' => 0, 'applicant' => 2, 'history' => [
+            ['track' => 'WL000008', 'step' => 7, 'status' => 'in_review', 'acceptance' => 'accepted', 'requested' => 10000000, 'proposed' => 9500000, 'disbursed' => 0, 'applicant' => 12, 'history' => [
                 ['step' => 6, 'action' => 'forwarded_to_km', 'user' => 'director', 'comments' => 'Director endorsed. Forward to KM.'],
             ]],
             // Step 8 — chief assigns accountant
-            ['track' => 'WL000009', 'step' => 8, 'status' => 'approved', 'acceptance' => 'accepted', 'requested' => 5500000, 'proposed' => 5000000, 'disbursed' => 0, 'applicant' => 3, 'approved_by' => 'Prof. Neema Kapinga', 'history' => [
+            ['track' => 'WL000009', 'step' => 8, 'status' => 'approved', 'acceptance' => 'accepted', 'requested' => 5500000, 'proposed' => 5000000, 'disbursed' => 0, 'applicant' => 13, 'approved_by' => 'Prof. Neema Kapinga', 'history' => [
                 ['step' => 7, 'action' => 'approved', 'user' => 'km', 'comments' => 'Final approval granted by KM.'],
             ]],
             // Step 9 — ready for disbursement
-            ['track' => 'WL000010', 'step' => 9, 'status' => 'ready_for_disbursement', 'acceptance' => 'accepted', 'requested' => 4000000, 'proposed' => 3800000, 'disbursed' => 0, 'applicant' => 4, 'officer' => 'accountant', 'history' => [
+            ['track' => 'WL000010', 'step' => 9, 'status' => 'ready_for_disbursement', 'acceptance' => 'accepted', 'requested' => 4000000, 'proposed' => 3800000, 'disbursed' => 0, 'applicant' => 14, 'officer' => 'accountant', 'history' => [
                 ['step' => 8, 'action' => 'assigned_accountant', 'user' => 'chief', 'comments' => 'Assigned to accountant for disbursement.'],
             ]],
-            // Step 9 — disbursed with repayment
+            // Step 9 — disbursed with repayment (terminal history on test account)
             ['track' => 'WL000011', 'step' => 9, 'status' => 'disbursed', 'acceptance' => 'accepted', 'requested' => 3000000, 'proposed' => 2800000, 'disbursed' => 2800000, 'applicant' => 0, 'officer' => 'accountant', 'with_payment' => true, 'history' => [
                 ['step' => 9, 'action' => 'disbursed', 'user' => 'accountant', 'comments' => 'Funds disbursed to applicant bank account.'],
             ]],

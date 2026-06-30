@@ -38,10 +38,23 @@ class DashboardAndAccessTest extends TestCase
         $user = \App\Models\User::where('email', 'test@example.com')->firstOrFail();
         $loan->update(['user_id' => $user->id, 'applicant_id' => $user->applicant?->id]);
 
+        $loan->businessDetails()->update([
+            'business_proposal_document' => 'proposals/sample.pdf',
+            'business_registration_attachment' => 'registrations/sample.pdf',
+        ]);
+
         $response = $this->actingAs($user)
             ->get(route('loan-applications.show', $loan->hashid));
 
         $response->assertOk();
+        $response->assertSee(__('loans.applicant_information'), false);
+        $response->assertSee(__('loans.supporting_documents'), false);
+        $response->assertSee(__('loans.guarantor_information'), false);
+        $response->assertSee(__('loans.bank_details'), false);
+        $response->assertSee('sample.pdf');
+        $response->assertSee($loan->businessDetails->business_name);
+        $response->assertSee('Guarantor 1');
+        $response->assertSee('CRDB Bank');
     }
 
     public function test_ministry_can_view_reports(): void
@@ -58,7 +71,7 @@ class DashboardAndAccessTest extends TestCase
 
     public function test_track_loan_by_track_id(): void
     {
-        $this->actingAsRole('applicant4@wdf.go.tz')
+        $this->actingAsRole('applicant9@wdf.go.tz')
             ->get(route('loans.track', ['track_id' => 'WL000004']))
             ->assertOk()
             ->assertSee('WL000004');
