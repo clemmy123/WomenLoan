@@ -47,7 +47,7 @@ class LoanWorkflowService
             'user_id' => $user->id,
             'step_number' => $step,
             'action_taken' => $action,
-            'proposed_amount' => $data['proposed_amount'] ?? null,
+            'proposed_amount' => $data['proposed_amount'] ?? $loan->proposed_amount ?? 0,
             'attachment_path' => $data['attachment_path'] ?? null,
             'comments' => $data['comments'] ?? null,
         ]);

@@ -3,6 +3,7 @@
 namespace App\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
 
 class WorkflowActionRequest extends FormRequest
 {
@@ -13,12 +14,33 @@ class WorkflowActionRequest extends FormRequest
 
     public function rules(): array
     {
+        $action = $this->input('action');
+
         return [
             'action' => 'required|string',
-            'comments' => 'nullable|string|max:2000',
-            'proposed_amount' => 'nullable|numeric|min:0',
-            'disbursed_amount' => 'nullable|numeric|min:0',
-            'accountant_id' => 'nullable|exists:users,id',
+            'comments' => [
+                Rule::requiredIf(in_array($action, ['forward_director', 'forward_km', 'decline_amount'], true)),
+                'nullable',
+                'string',
+                'max:2000',
+            ],
+            'proposed_amount' => [
+                Rule::requiredIf($action === 'propose_amount'),
+                'nullable',
+                'numeric',
+                'min:1',
+            ],
+            'disbursed_amount' => [
+                Rule::requiredIf($action === 'disburse'),
+                'nullable',
+                'numeric',
+                'min:1',
+            ],
+            'accountant_id' => [
+                Rule::requiredIf($action === 'assign_accountant'),
+                'nullable',
+                'exists:users,id',
+            ],
             'attachment' => 'nullable|file|max:5120',
         ];
     }

@@ -6,6 +6,7 @@ use App\Http\Requests\WorkflowActionRequest;
 use App\Models\Loan;
 use App\Services\LoanWorkflowService;
 use App\Services\WorkflowAuthorizationService;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
@@ -16,9 +17,10 @@ class WorkflowController extends Controller
         private WorkflowAuthorizationService $authorization,
     ) {}
 
-    public function action(WorkflowActionRequest $request, Loan $loan)
+    public function action(WorkflowActionRequest $request, string $loan): RedirectResponse
     {
         $user = Auth::user();
+        $loan = Loan::findByHashidUnscopedOrFail($loan);
         $action = $request->input('action');
 
         $this->authorization->authorizeOrAbort($user, $loan, $action);
@@ -31,7 +33,7 @@ class WorkflowController extends Controller
 
         $this->workflow->process($loan, $action, $data);
 
-        return back()->with('success', __('messages.workflow_action_success'));
+        return $this->redirectAfterWorkflow($user, $loan->fresh());
     }
 
     public function track(Request $request)
@@ -41,5 +43,24 @@ class WorkflowController extends Controller
         $loan = Loan::where('loan_track_id', $request->track_id)->firstOrFail();
 
         return view('loan_applications.track', compact('loan'));
+    }
+
+    protected function redirectAfterWorkflow($user, Loan $loan): RedirectResponse
+    {
+        if (Loan::whereKey($loan->id)->exists()) {
+            return redirect()
+                ->route('loan-applications.show', $loan)
+                ->with('success', __('messages.workflow_action_success'));
+        }
+
+        if ($user->hasRole('applicant')) {
+            return redirect()
+                ->route('loan-applications.index')
+                ->with('success', __('messages.workflow_action_success'));
+        }
+
+        return redirect()
+            ->route('dashboard')
+            ->with('success', __('messages.workflow_action_success'));
     }
 }

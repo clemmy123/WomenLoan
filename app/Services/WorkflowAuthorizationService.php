@@ -14,10 +14,12 @@ class WorkflowAuthorizationService
         }
 
         $step = $loan->current_step;
+        $status = $loan->status;
 
         return match ($action) {
-            'receive', 'forward_ministry' => $user->can('receive application') && $step === 1,
-            'propose_amount', 'send_to_applicant' => $user->can('propose loan amount') && in_array($step, [2, 4]),
+            'receive' => $user->can('receive application') && $step === 1 && $status === 'pending',
+            'forward_ministry' => $user->can('forward to ministry') && $step === 1 && $status === 'received',
+            'propose_amount', 'send_to_applicant' => $user->can('propose loan amount') && in_array($step, [2, 4], true),
             'accept_amount', 'decline_amount' => $user->hasRole('applicant') && $step === 3,
             'forward_ass_dir' => $user->can('forward to assistant director') && $step === 4,
             'forward_director' => $user->can('forward to director') && $step === 5,

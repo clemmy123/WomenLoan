@@ -100,6 +100,22 @@ class Loan extends Model
         return $query->where('user_id', $userId);
     }
 
+    public static function findByHashidUnscoped(string $hash): ?static
+    {
+        $id = app(\App\Services\HashidService::class)->decode($hash);
+
+        if ($id === null) {
+            return null;
+        }
+
+        return static::withoutGlobalScope(ApprovalLevelScope::class)->find($id);
+    }
+
+    public static function findByHashidUnscopedOrFail(string $hash): static
+    {
+        return static::findByHashidUnscoped($hash) ?? abort(404);
+    }
+
     protected static function booted(): void
     {
         static::addGlobalScope(new ApprovalLevelScope);
