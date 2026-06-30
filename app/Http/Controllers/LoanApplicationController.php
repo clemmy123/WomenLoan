@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Http\Requests\Loan\StoreLoanApplicationRequest;
+use App\Http\Requests\Loan\UpdateLoanApplicationRequest;
 use App\Models\DraftLoan;
 use App\Models\Loan;
 use App\Models\LoanGroup;
@@ -24,8 +25,10 @@ class LoanApplicationController extends Controller
     {
         $loans = $this->loans->paginatedIndex();
         $drafts = DraftLoan::where('user_id', Auth::id())->latest()->get();
+        $canStartNew = Auth::user()->can('create loan application')
+            && ! $this->loans->userHasActiveLoan(Auth::user());
 
-        return view('loan_applications.index', compact('loans', 'drafts'));
+        return view('loan_applications.index', compact('loans', 'drafts', 'canStartNew'));
     }
 
     public function create(Request $request)
@@ -39,12 +42,25 @@ class LoanApplicationController extends Controller
                 ->withErrors(['error' => __('messages.already_has_application')]);
         }
 
-        $regions = $this->geo->regions();
-        $groups = LoanGroup::query()->orderBy('name')->get(['id', 'name']);
-        $trackId = $request->query('resume_track_id');
-        $applicant = $user->applicant;
+        $trackId = $request->query('resume_track_id') ?? old('track_id');
+        $draft = $trackId
+            ? DraftLoan::where('user_id', $user->id)->where('track_id', $trackId)->first()
+            : null;
 
-        return view('loan_applications.apply', compact('regions', 'groups', 'trackId', 'applicant'));
+        return view('loan_applications.apply', $this->wizardViewData(
+            formData: $draft?->form_data ?? [],
+            trackId: $trackId ?? $this->applications->nextTrackId(),
+        ));
+    }
+
+    public function edit(Loan $loan)
+    {
+        $this->authorize('create loan application');
+        $this->authorizeEditableLoan($loan);
+
+        return view('loan_applications.apply', $this->wizardViewData(
+            editingLoan: $loan,
+        ));
     }
 
     public function store(Request $request)
@@ -58,14 +74,24 @@ class LoanApplicationController extends Controller
         if ($action === 'save_draft') {
             $this->applications->saveDraft($request, $user->id, $trackId);
 
-            return redirect()->back()
+            return redirect()
+                ->route('loan-applications.create', ['resume_track_id' => $trackId])
                 ->with('success', __('messages.draft_saved'))
-                ->with('track_id', $trackId);
+                ->withInput($request->except([
+                    'business_proposal_document',
+                    'business_registration_attachment',
+                    '_token',
+                ]));
         }
 
         $formRequest = StoreLoanApplicationRequest::createFrom($request);
         $formRequest->setContainer(app())->setRedirector(app('redirect'));
         $formRequest->validateResolved();
+
+        if ($this->loans->userHasActiveLoan($user)) {
+            return redirect()->route('loan-applications.index')
+                ->withErrors(['error' => __('messages.already_has_application')]);
+        }
 
         try {
             $this->applications->submit($formRequest, $user, $trackId);
@@ -80,6 +106,21 @@ class LoanApplicationController extends Controller
 
         return redirect()->route('loan-applications.index')
             ->with('success', __('messages.application_submitted'));
+    }
+
+    public function update(Request $request, Loan $loan)
+    {
+        $this->authorize('create loan application');
+        $this->authorizeEditableLoan($loan);
+
+        $formRequest = UpdateLoanApplicationRequest::createFrom($request);
+        $formRequest->setContainer(app())->setRedirector(app('redirect'));
+        $formRequest->validateResolved();
+
+        $this->applications->update($formRequest, $loan);
+
+        return redirect()->route('loan-applications.show', $loan)
+            ->with('success', __('messages.application_updated'));
     }
 
     public function show(Loan $loan)
@@ -112,5 +153,49 @@ class LoanApplicationController extends Controller
         $group = LoanGroup::findByHashidOrFail($groupId);
 
         return response()->json($this->applications->groupMembers($group->id)->applicants);
+    }
+
+    private function authorizeEditableLoan(Loan $loan): void
+    {
+        if (! $loan->isEditableByApplicant(Auth::user())) {
+            abort(403, __('messages.application_not_editable'));
+        }
+    }
+
+    private function wizardViewData(
+        ?Loan $editingLoan = null,
+        ?string $trackId = null,
+        array $formData = [],
+    ): array {
+        $user = Auth::user();
+        $editing = $editingLoan !== null;
+
+        if ($editing) {
+            $trackId = $editingLoan->loan_track_id;
+            $formData = $this->applications->formDataFromLoan($editingLoan);
+        }
+
+        $regions = $this->geo->regions();
+        $groups = LoanGroup::query()->orderBy('name')->get(['id', 'name']);
+        $applicant = $user->applicant;
+
+        $wizardConfig = [
+            'step' => (int) old('step', $formData['step'] ?? 1),
+            'totalSteps' => 7,
+            'selectedRegion' => old('region_id', $formData['region_id'] ?? null),
+            'selectedDistrict' => old('district_id', $formData['district_id'] ?? null),
+            'selectedCouncil' => old('council_id', $formData['council_id'] ?? null),
+            'selectedWard' => old('ward_id', $formData['ward_id'] ?? null),
+            'selectedStreet' => old('street_id', $formData['street_id'] ?? null),
+            'geoApi' => GeoHierarchyService::apiUrls(),
+            'i18n' => [
+                'load_failed' => __('loans.load_failed'),
+                'loading' => __('loans.loading_data'),
+                'step' => __('common.step_n_of', ['step' => ':step', 'total' => 7]),
+                'step_required' => __('loans.step_required'),
+            ],
+        ];
+
+        return compact('regions', 'groups', 'trackId', 'applicant', 'wizardConfig', 'formData', 'editing', 'editingLoan');
     }
 }

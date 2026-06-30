@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use App\Http\Requests\Loan\StoreLoanApplicationRequest;
+use App\Http\Requests\Loan\UpdateLoanApplicationRequest;
 use App\Models\Applicant;
 use App\Models\Loan;
 use App\Models\LoanGroup;
@@ -69,9 +70,12 @@ class LoanApplicationService
 
             if ($request->filled('guarantor_name')) {
                 $loan->guarantors()->create([
+                    'applicant_id' => $applicant->id,
                     'name' => $request->guarantor_name,
                     'phone' => $request->guarantor_phone,
                     'id_number' => $request->guarantor_nin,
+                    'relationship' => $request->input('guarantor_relationship', 'Other'),
+                    'occupation' => $request->guarantor_occupation,
                 ]);
             }
 
@@ -80,6 +84,103 @@ class LoanApplicationService
             DashboardStatsService::flushForUser($user->id);
 
             return $loan;
+        });
+    }
+
+    public function formDataFromLoan(Loan $loan): array
+    {
+        $loan->loadMissing(['businessDetails', 'guarantors']);
+        $business = $loan->businessDetails;
+        $guarantor = $loan->guarantors->first();
+
+        return [
+            'loan_type' => $loan->loan_type,
+            'region_id' => $business?->region_id,
+            'district_id' => $business?->district_id,
+            'council_id' => $business?->council_id,
+            'ward_id' => $business?->ward_id,
+            'street_id' => $business?->street_id,
+            'business_name' => $business?->business_name,
+            'business_phone' => $business?->business_phone,
+            'business_email' => $business?->business_email,
+            'business_sector' => $business?->business_sector,
+            'business_type' => $business?->business_type,
+            'tin_number' => $business?->tin_number,
+            'guarantor_name' => $guarantor?->name,
+            'guarantor_phone' => $guarantor?->phone,
+            'guarantor_nin' => $guarantor?->id_number,
+            'guarantor_relationship' => $guarantor?->relationship,
+            'guarantor_occupation' => $guarantor?->occupation,
+            'requested_amount' => $loan->requested_amount,
+            'bank_name' => $loan->bank_name,
+            'bank_number' => $loan->bank_number,
+            'declaration' => true,
+        ];
+    }
+
+    public function update(UpdateLoanApplicationRequest $request, Loan $loan): Loan
+    {
+        return DB::transaction(function () use ($request, $loan) {
+            $loan->update([
+                'loan_type' => $request->loan_type,
+                'requested_amount' => $request->requested_amount,
+                'bank_name' => $request->bank_name,
+                'bank_number' => $request->bank_number,
+            ]);
+
+            $businessData = [
+                'region_id' => $request->region_id,
+                'district_id' => $request->district_id,
+                'council_id' => $request->council_id,
+                'ward_id' => $request->ward_id,
+                'street_id' => $request->street_id,
+                'business_name' => $request->business_name,
+                'business_phone' => $request->business_phone,
+                'business_email' => $request->business_email,
+                'business_sector' => $request->business_sector,
+                'business_type' => $request->business_type,
+                'tin_number' => $request->tin_number,
+            ];
+
+            if ($request->hasFile('business_proposal_document')) {
+                $businessData['business_proposal_document'] = $request->file('business_proposal_document')
+                    ->store('proposals', 'public');
+            }
+
+            if ($request->hasFile('business_registration_attachment')) {
+                $businessData['business_registration_attachment'] = $request->file('business_registration_attachment')
+                    ->store('registrations', 'public');
+            }
+
+            $loan->businessDetails()->updateOrCreate(
+                ['loan_id' => $loan->id],
+                $businessData,
+            );
+
+            if ($request->filled('guarantor_name')) {
+                $guarantorData = [
+                    'applicant_id' => $loan->applicant_id,
+                    'name' => $request->guarantor_name,
+                    'phone' => $request->guarantor_phone,
+                    'id_number' => $request->guarantor_nin,
+                    'relationship' => $request->input('guarantor_relationship', 'Other'),
+                    'occupation' => $request->guarantor_occupation,
+                ];
+
+                $existing = $loan->guarantors()->first();
+
+                if ($existing) {
+                    $existing->update($guarantorData);
+                } else {
+                    $loan->guarantors()->create($guarantorData);
+                }
+            } else {
+                $loan->guarantors()->delete();
+            }
+
+            DashboardStatsService::flushForUser($loan->user_id);
+
+            return $loan->fresh();
         });
     }
 

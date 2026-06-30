@@ -18,6 +18,8 @@ class Applicant extends Model
 {
     use HasDisplayName, HasFactory, HasHashid, Searchable;
 
+    public const MARITAL_STATUSES = ['Single', 'Married', 'Divorced', 'Widowed'];
+
     protected $fillable = [
         'nin', 'first_name', 'middle_name', 'last_name', 'full_name',
         'dob', 'sex', 'marital_status', 'nationality', 'phone', 'email',

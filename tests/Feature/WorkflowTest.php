@@ -77,7 +77,7 @@ class WorkflowTest extends TestCase
     {
         $loan = $this->loanByTrack('WL000004');
 
-        $response = $this->actingAsRole('applicant4@wdf.go.tz')
+        $response = $this->actingAsRole('applicant9@wdf.go.tz')
             ->post(route('loans.workflow', $loan->hashid), [
                 'action' => 'accept_amount',
             ]);

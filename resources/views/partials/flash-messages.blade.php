@@ -1,16 +1,31 @@
-@if(session('success'))
-    <div class="mb-6 w-fit max-w-full inline-flex items-center gap-2.5 rounded-xl border border-emerald-200 dark:border-emerald-500/30 bg-emerald-50 dark:bg-emerald-500/10 px-4 py-2.5 text-xs font-semibold text-emerald-800 dark:text-emerald-300">
-        <svg class="h-4 w-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-width="2" d="M5 13l4 4L19 7"/></svg>
-        <span>{{ session('success') }}</span>
-    </div>
-@endif
+@if(session('success') || $errors->any())
+<div class="app-flash-stack">
+    @if(session('success'))
+        <div class="app-alert app-alert-success" role="alert">
+            <svg class="app-alert-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+            </svg>
+            <div class="app-alert-body">
+                <p class="app-alert-title">{{ __('common.success') }}</p>
+                <p class="app-alert-message">{{ session('success') }}</p>
+            </div>
+        </div>
+    @endif
 
-@if($errors->any())
-    <div class="mb-6 w-fit max-w-full rounded-xl border border-red-200 dark:border-red-500/30 bg-red-50 dark:bg-red-500/10 px-4 py-2.5 text-xs text-red-700 dark:text-red-300">
-        <ul class="list-disc list-inside space-y-0.5">
-            @foreach($errors->all() as $e)
-                <li>{{ $e }}</li>
-            @endforeach
-        </ul>
-    </div>
+    @if($errors->any())
+        <div class="app-alert app-alert-error" role="alert">
+            <svg class="app-alert-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+            </svg>
+            <div class="app-alert-body">
+                <p class="app-alert-title">{{ __('common.errors_below') }}</p>
+                <ul class="app-alert-list">
+                    @foreach($errors->all() as $error)
+                        <li>{{ $error }}</li>
+                    @endforeach
+                </ul>
+            </div>
+        </div>
+    @endif
+</div>
 @endif

@@ -241,6 +241,26 @@
         background: linear-gradient(180deg, #0a0a0a 0%, #000000 100%);
     }
 
+    .app-brand-logo {
+        display: block;
+        object-fit: contain;
+        flex-shrink: 0;
+    }
+
+    .app-brand-logo-header {
+        height: 2.25rem;
+        width: 2.25rem;
+        max-height: 2.25rem;
+        max-width: 2.25rem;
+    }
+
+    .app-brand-logo-auth {
+        height: 4.5rem;
+        width: auto;
+        max-width: 5.5rem;
+        margin-inline: auto;
+    }
+
     .app-sidebar {
         background: #ffffff;
     }
@@ -460,6 +480,182 @@
         margin-left: auto;
         margin-right: auto;
         width: 100%;
+    }
+
+    .app-flash-stack {
+        display: flex;
+        flex-direction: column;
+        gap: 0.75rem;
+        width: 100%;
+        margin-bottom: 1.5rem;
+    }
+
+    /* Align alerts with centered page content below */
+    .app-content-shell:has(> .page-narrow) > .app-flash-stack {
+        max-width: 48rem;
+        margin-left: auto;
+        margin-right: auto;
+    }
+
+    .app-content-shell:has(> .page-medium) > .app-flash-stack {
+        max-width: 56rem;
+        margin-left: auto;
+        margin-right: auto;
+    }
+
+    .app-alert {
+        display: flex;
+        align-items: flex-start;
+        gap: 0.75rem;
+        width: 100%;
+        padding: 1rem 1.25rem;
+        border-radius: 0.75rem;
+        border-width: 1px;
+    }
+
+    .app-alert-icon {
+        width: 1.25rem;
+        height: 1.25rem;
+        flex-shrink: 0;
+        margin-top: 0.125rem;
+    }
+
+    .app-alert-body {
+        flex: 1;
+        min-width: 0;
+    }
+
+    .app-alert-title {
+        font-size: 0.75rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        margin-bottom: 0.25rem;
+    }
+
+    .app-alert-message {
+        font-size: 0.875rem;
+        font-weight: 500;
+        line-height: 1.5;
+    }
+
+    .app-alert-list {
+        margin-top: 0.25rem;
+        font-size: 0.875rem;
+        line-height: 1.5;
+        list-style: disc;
+        padding-left: 1.25rem;
+    }
+
+    .app-alert-success {
+        border-color: #a7f3d0;
+        background-color: #ecfdf5;
+        color: #065f46;
+    }
+
+    .dark .app-alert-success {
+        border-color: rgb(16 185 129 / 0.3);
+        background-color: rgb(16 185 129 / 0.1);
+        color: #6ee7b7;
+    }
+
+    .app-alert-error {
+        border-color: #fecaca;
+        background-color: #fef2f2;
+        color: #991b1b;
+    }
+
+    .dark .app-alert-error {
+        border-color: rgb(239 68 68 / 0.3);
+        background-color: rgb(239 68 68 / 0.1);
+        color: #fca5a5;
+    }
+
+    .detail-field-label {
+        display: block;
+        font-size: 0.75rem;
+        font-weight: 700;
+        color: #94a3b8;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        margin-bottom: 0.25rem;
+    }
+
+    .dark .detail-field-label {
+        color: #71717a;
+    }
+
+    .detail-field-value {
+        font-size: 1rem;
+        color: #0f172a;
+    }
+
+    .dark .detail-field-value {
+        color: #f4f4f5;
+    }
+
+    .detail-field-mono {
+        font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+        letter-spacing: 0.05em;
+    }
+
+    .detail-grid {
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: 1.5rem;
+    }
+
+    @media (min-width: 640px) {
+        .detail-grid {
+            grid-template-columns: repeat(2, 1fr);
+        }
+
+        .detail-grid-span-2 {
+            grid-column: span 2;
+        }
+    }
+
+    .wizard-panel {
+        display: flex;
+        flex-direction: column;
+        gap: 1.5rem;
+    }
+
+    .wizard-section {
+        display: flex;
+        flex-direction: column;
+        gap: 1rem;
+    }
+
+    .wizard-section-title {
+        font-size: 0.75rem;
+        font-weight: 700;
+        letter-spacing: 0.05em;
+        text-transform: uppercase;
+        color: #6366f1;
+        padding-bottom: 0.5rem;
+        border-bottom: 1px solid #f1f5f9;
+    }
+
+    .dark .wizard-section-title {
+        color: #a5b4fc;
+        border-bottom-color: rgba(255, 255, 255, 0.08);
+    }
+
+    .wizard-form-grid {
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: 1rem;
+    }
+
+    @media (min-width: 640px) {
+        .wizard-form-grid-2 {
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+        }
+    }
+
+    .wizard-form-grid-span-2 {
+        grid-column: 1 / -1;
     }
 
     .app-btn {

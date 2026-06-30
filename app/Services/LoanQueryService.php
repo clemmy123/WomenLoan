@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use App\Models\Loan;
+use App\Models\Scopes\ApprovalLevelScope;
 use App\Models\User;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Database\Eloquent\Collection;
@@ -14,7 +15,7 @@ class LoanQueryService
         return Loan::query()
             ->select([
                 'id', 'loan_track_id', 'loan_type', 'requested_amount',
-                'status', 'current_step', 'created_at',
+                'status', 'current_step', 'user_id', 'created_at',
             ])
             ->latest()
             ->paginate($perPage);
@@ -36,12 +37,20 @@ class LoanQueryService
     public function loadForShow(Loan $loan): Loan
     {
         return $loan->load([
-            'applicant',
+            'applicant.location.ward.council.district.region',
             'businessDetails.region',
+            'businessDetails.district',
+            'businessDetails.council',
             'businessDetails.ward',
+            'businessDetails.street',
             'approvalLevels.user',
-            'guarantors',
+            'guarantors.region',
+            'guarantors.district',
+            'guarantors.council',
+            'guarantors.ward',
+            'guarantors.street',
             'officer',
+            'group',
         ]);
     }
 
@@ -56,9 +65,17 @@ class LoanQueryService
             return false;
         }
 
-        return Loan::query()
-            ->where('user_id', $user->id)
+        $applicantId = $user->applicant?->id;
+
+        return Loan::withoutGlobalScope(ApprovalLevelScope::class)
             ->active()
+            ->where(function ($query) use ($user, $applicantId) {
+                $query->where('user_id', $user->id);
+
+                if ($applicantId) {
+                    $query->orWhere('applicant_id', $applicantId);
+                }
+            })
             ->exists();
     }
 }
