@@ -39,11 +39,12 @@ class DashboardStatsService
                 ->selectRaw("SUM(CASE WHEN status IN ('approved','ready_for_disbursement') THEN 1 ELSE 0 END) as approved")
                 ->selectRaw("SUM(CASE WHEN status = 'disbursed' THEN 1 ELSE 0 END) as disbursed")
                 ->selectRaw("SUM(CASE WHEN status = 'disbursed' THEN disbursed_amount ELSE 0 END) as total_amount")
-                ->selectRaw('SUM(CASE WHEN YEAR(created_at) = ? AND MONTH(created_at) = ? THEN 1 ELSE 0 END) as this_month', [
-                    now()->year,
-                    now()->month,
-                ])
                 ->first();
+
+            $thisMonth = (clone $query)
+                ->whereYear('created_at', now()->year)
+                ->whereMonth('created_at', now()->month)
+                ->count();
 
             return [
                 'total' => (int) ($row->total ?? 0),
@@ -52,7 +53,7 @@ class DashboardStatsService
                 'approved' => (int) ($row->approved ?? 0),
                 'disbursed' => (int) ($row->disbursed ?? 0),
                 'total_amount' => (float) ($row->total_amount ?? 0),
-                'this_month' => (int) ($row->this_month ?? 0),
+                'this_month' => $thisMonth,
             ];
         });
     }
@@ -102,8 +103,10 @@ class DashboardStatsService
             ? 'SUM(disbursed_amount)'
             : 'COUNT(*)';
 
+        $periodExpr = $this->monthPeriodExpression($dateColumn);
+
         $counts = $query
-            ->selectRaw("DATE_FORMAT({$dateColumn}, '%Y-%m') as period")
+            ->selectRaw("{$periodExpr} as period")
             ->selectRaw("{$aggregate} as total")
             ->groupBy('period')
             ->pluck('total', 'period');
@@ -202,5 +205,14 @@ class DashboardStatsService
     public function applicantsCount(): int
     {
         return Applicant::count();
+    }
+
+    protected function monthPeriodExpression(string $dateColumn): string
+    {
+        return match (DB::connection()->getDriverName()) {
+            'sqlite' => "strftime('%Y-%m', {$dateColumn})",
+            'pgsql' => "to_char({$dateColumn}, 'YYYY-MM')",
+            default => "DATE_FORMAT({$dateColumn}, '%Y-%m')",
+        };
     }
 }
