@@ -46,9 +46,17 @@ class LoanPayment extends Model
             $interestCalculated = $disbursed * 0.16;
             $totalPayableAmount = $disbursed + $interestCalculated;
 
-            $payment->interest_amount = (string) $interestCalculated;
-            $payment->outstanding_debt = (string) $totalPayableAmount;
-            $payment->amount_paid = '0';
+            if ($payment->interest_amount === null || $payment->interest_amount === '' || $payment->interest_amount === '0') {
+                $payment->interest_amount = (string) $interestCalculated;
+            }
+
+            if ($payment->outstanding_debt === null || $payment->outstanding_debt === '') {
+                $payment->outstanding_debt = (string) $totalPayableAmount;
+            }
+
+            if ($payment->amount_paid === null || $payment->amount_paid === '') {
+                $payment->amount_paid = '0';
+            }
         });
     }
 

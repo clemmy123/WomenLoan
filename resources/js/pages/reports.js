@@ -1,3 +1,5 @@
+import './reports-filters.js';
+
 document.addEventListener('DOMContentLoaded', async () => {
     const payloadEl = document.getElementById('reports-chart-data');
     if (!payloadEl) {
@@ -14,9 +16,11 @@ document.addEventListener('DOMContentLoaded', async () => {
     const barOpts = {
         responsive: true,
         maintainAspectRatio: false,
-        plugins: { legend: { display: false } },
+        plugins: {
+            legend: { position: 'top', labels: { boxWidth: 12, padding: 16 } },
+        },
         scales: {
-            y: { beginAtZero: true, ticks: { precision: 0 } },
+            y: { beginAtZero: true },
             x: { grid: { display: false } },
         },
     };
@@ -24,15 +28,77 @@ document.addEventListener('DOMContentLoaded', async () => {
     const doughnutOpts = {
         responsive: true,
         maintainAspectRatio: false,
-        plugins: { legend: { position: 'right', labels: { boxWidth: 12, padding: 12 } } },
+        plugins: { legend: { position: 'bottom', labels: { boxWidth: 12, padding: 12 } } },
     };
 
     const charts = [
-        { id: 'appsChart', type: 'bar', data: { labels: payload.monthly.labels, datasets: [{ data: payload.monthly.data, backgroundColor: '#6366f1', borderRadius: 6 }] }, options: barOpts },
-        { id: 'disbChart', type: 'line', data: { labels: payload.disbursements.labels, datasets: [{ data: payload.disbursements.data, borderColor: '#10b981', backgroundColor: 'rgba(16,185,129,0.1)', fill: true, tension: 0.4 }] }, options: barOpts },
-        { id: 'statusChart', type: 'doughnut', data: { labels: payload.status.labels, datasets: [{ data: payload.status.data, backgroundColor: ['#6366f1', '#f59e0b', '#10b981', '#8b5cf6', '#ef4444', '#06b6d4', '#f472b6'], borderWidth: 0 }] }, options: doughnutOpts },
-        { id: 'regionChart', type: 'bar', data: { labels: payload.region.labels, datasets: [{ data: payload.region.data, backgroundColor: '#8b5cf6', borderRadius: 6 }] }, options: { ...barOpts, indexAxis: 'y' } },
-        { id: 'pipelineChart', type: 'bar', data: { labels: payload.pipeline.labels, datasets: [{ data: payload.pipeline.data, backgroundColor: ['#6366f1', '#7c3aed', '#a78bfa', '#c4b5fd', '#818cf8', '#60a5fa', '#34d399', '#fbbf24', '#f472b6'], borderRadius: 6 }] }, options: barOpts },
+        {
+            id: 'financialTrendChart',
+            type: 'bar',
+            data: {
+                labels: payload.financial_trend.labels,
+                datasets: [
+                    {
+                        label: payload.financial_trend.legend_disbursed ?? 'Disbursed',
+                        data: payload.financial_trend.disbursed,
+                        backgroundColor: '#10b981',
+                        borderRadius: 6,
+                    },
+                    {
+                        label: payload.financial_trend.legend_paid ?? 'Paid',
+                        data: payload.financial_trend.paid,
+                        backgroundColor: '#6366f1',
+                        borderRadius: 6,
+                    },
+                ],
+            },
+            options: barOpts,
+        },
+        {
+            id: 'regionChart',
+            type: 'bar',
+            data: {
+                labels: payload.by_region.labels,
+                datasets: [{ data: payload.by_region.data, backgroundColor: '#8b5cf6', borderRadius: 6 }],
+            },
+            options: { ...barOpts, indexAxis: 'y', plugins: { legend: { display: false } } },
+        },
+        {
+            id: 'loanTypeChart',
+            type: 'doughnut',
+            data: {
+                labels: payload.loan_type.labels,
+                datasets: [{ data: payload.loan_type.data, backgroundColor: ['#6366f1', '#f59e0b'], borderWidth: 0 }],
+            },
+            options: doughnutOpts,
+        },
+        {
+            id: 'disabilityChart',
+            type: 'doughnut',
+            data: {
+                labels: payload.disability.labels,
+                datasets: [{ data: payload.disability.data, backgroundColor: ['#06b6d4', '#cbd5e1'], borderWidth: 0 }],
+            },
+            options: doughnutOpts,
+        },
+        {
+            id: 'widowedChart',
+            type: 'doughnut',
+            data: {
+                labels: payload.widowed.labels,
+                datasets: [{ data: payload.widowed.data, backgroundColor: ['#f472b6', '#e2e8f0'], borderWidth: 0 }],
+            },
+            options: doughnutOpts,
+        },
+        {
+            id: 'ageChart',
+            type: 'bar',
+            data: {
+                labels: payload.age_buckets.labels,
+                datasets: [{ data: payload.age_buckets.data, backgroundColor: '#0ea5e9', borderRadius: 6 }],
+            },
+            options: { ...barOpts, plugins: { legend: { display: false } } },
+        },
     ];
 
     for (const cfg of charts) {

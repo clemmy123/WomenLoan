@@ -41,6 +41,8 @@ class RolePermissionSeeder extends Seeder
             'approve as km',
             'assign accountant',
             'disburse loan',
+            'rollback workflow step',
+            'record repayment',
             'view repayments',
             'view reports',
             'manage users',
@@ -56,12 +58,14 @@ class RolePermissionSeeder extends Seeder
             'super_admin' => Permission::all()->pluck('name')->toArray(),
             'admin' => [
                 'view dashboard', 'manage applicants', 'register applicant', 'view all loans',
-                'view repayments', 'view reports', 'manage users', 'manage roles', 'manage loan groups',
+                'view repayments', 'record repayment', 'view reports', 'rollback workflow step',
+                'manage users', 'manage roles', 'manage loan groups',
                 'view loan by track id',
             ],
             'applicant' => [
                 'view dashboard', 'view own profile', 'create loan application', 'view own loans',
                 'edit pending loan', 'accept loan amount', 'view loan by track id', 'view repayments',
+                'record repayment',
             ],
             'cdo_ward' => [
                 'view dashboard', 'view ward loans', 'receive application', 'review ward application',
@@ -75,28 +79,28 @@ class RolePermissionSeeder extends Seeder
             ],
             'cdo_ministry' => [
                 'view dashboard', 'view all loans', 'review ministry application', 'propose loan amount',
-                'send to applicant confirmation', 'forward to assistant director', 'view loan by track id',
-                'view repayments', 'view reports',
+                'send to applicant confirmation', 'forward to assistant director', 'rollback workflow step',
+                'view loan by track id', 'view repayments', 'view reports',
             ],
             'assistant_director' => [
                 'view dashboard', 'view all loans', 'comment as assistant director', 'forward to director',
-                'view loan by track id', 'view repayments', 'view reports',
+                'rollback workflow step', 'view loan by track id', 'view repayments', 'view reports',
             ],
             'director' => [
                 'view dashboard', 'view all loans', 'comment as director', 'forward to km',
-                'view loan by track id', 'view repayments', 'view reports',
+                'rollback workflow step', 'view loan by track id', 'view repayments', 'view reports',
             ],
             'km' => [
-                'view dashboard', 'view all loans', 'approve as km', 'view loan by track id',
-                'view repayments', 'view reports',
+                'view dashboard', 'view all loans', 'approve as km', 'rollback workflow step',
+                'view loan by track id', 'view repayments', 'view reports',
             ],
             'chief' => [
-                'view dashboard', 'view all loans', 'assign accountant', 'view loan by track id',
-                'view repayments', 'view reports',
+                'view dashboard', 'view all loans', 'assign accountant', 'rollback workflow step',
+                'view loan by track id', 'view repayments', 'view reports',
             ],
             'accountant' => [
-                'view dashboard', 'view all loans', 'disburse loan', 'view loan by track id',
-                'view repayments', 'view reports',
+                'view dashboard', 'view all loans', 'disburse loan', 'record repayment',
+                'rollback workflow step', 'view loan by track id', 'view repayments', 'view reports',
             ],
         ];
 

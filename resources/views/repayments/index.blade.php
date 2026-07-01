@@ -13,12 +13,17 @@
                 <th>{{ __('repayments.disbursed_col') }}</th>
                 <th>{{ __('repayments.outstanding') }}</th>
                 <th>{{ __('repayments.progress') }}</th>
+                <th></th>
             </tr>
         </thead>
         <tbody>
             @forelse($payments as $payment)
             <tr>
-                <td class="font-mono text-xs text-indigo-600">{{ $payment->loan?->loan_track_id }}</td>
+                <td>
+                    <a href="{{ route('repayments.show', $payment) }}" class="font-mono text-xs font-semibold text-indigo-600 hover:underline">
+                        {{ $payment->loan?->loan_track_id }}
+                    </a>
+                </td>
                 <td>{{ format_tzs($payment->amount_disbursed) }}</td>
                 <td>{{ format_tzs($payment->outstanding_debt) }}</td>
                 <td>
@@ -29,9 +34,12 @@
                         <span class="text-xs font-semibold">{{ $payment->repayment_progress_percentage }}%</span>
                     </div>
                 </td>
+                <td>
+                    <a href="{{ route('repayments.show', $payment) }}" class="app-btn app-btn-secondary text-xs">{{ __('repayments.view_schedule') }}</a>
+                </td>
             </tr>
             @empty
-            <tr><td colspan="4" class="app-table-empty">{{ __('repayments.no_records') }}</td></tr>
+            <tr><td colspan="5" class="app-table-empty">{{ __('repayments.no_records') }}</td></tr>
             @endforelse
         </tbody>
     </table>

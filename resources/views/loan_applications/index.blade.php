@@ -10,11 +10,16 @@
             <p class="page-subtitle">{{ __('loans.apply_subtitle') }}</p>
         </div>
         @can('create loan application')
-        @if($canStartNew ?? true)
-        <div class="page-actions">
-            <a href="{{ route('loan-applications.create') }}" class="app-btn app-btn-success">{{ __('loans.start_new') }}</a>
+        <div class="page-actions flex flex-wrap gap-2">
+            @if($canSetupGroup ?? false)
+                <a href="{{ route('my-group.create') }}" class="app-btn app-btn-primary">{{ __('groups.setup_title') }}</a>
+            @elseif($userGroup ?? null)
+                <a href="{{ route('my-group.show') }}" class="app-btn app-btn-secondary">{{ __('groups.my_group') }}</a>
+            @endif
+            @if($canStartNew ?? true)
+                <a href="{{ route('loan-applications.create') }}" class="app-btn app-btn-success">{{ __('loans.start_new') }}</a>
+            @endif
         </div>
-        @endif
         @endcan
     </div>
 

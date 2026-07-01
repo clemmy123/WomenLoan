@@ -5,13 +5,15 @@ namespace App\Services;
 use App\Models\ApprovalLevel;
 use App\Models\Loan;
 use App\Models\User;
+use App\Support\WorkflowSteps;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
-use App\Support\WorkflowSteps;
 
 class LoanWorkflowService
 {
     public const STEPS = WorkflowSteps::ROLES;
+
+    public function __construct(private RepaymentScheduleService $repayments) {}
 
     public function process(Loan $loan, string $action, array $data = []): Loan
     {
@@ -31,12 +33,13 @@ class LoanWorkflowService
                 'approve_km' => $this->approveKm($loan, $user, $data),
                 'assign_accountant' => $this->assignAccountant($loan, $user, $data),
                 'disburse' => $this->disburse($loan, $user, $data),
+                'rollback_step' => $this->rollbackStep($loan, $user, $data),
                 default => throw new \InvalidArgumentException("Unknown action: {$action}"),
             };
 
             DashboardStatsService::flushForUser($user->id);
 
-            return $loan->fresh(['applicant', 'businessDetails', 'approvalLevels.user']);
+            return $loan->fresh(['applicant', 'businessDetails', 'approvalLevels.user', 'loanPayments']);
         });
     }
 
@@ -122,12 +125,63 @@ class LoanWorkflowService
 
     protected function disburse(Loan $loan, User $user, array $data): void
     {
+        $disbursedAmount = (float) ($data['disbursed_amount'] ?? $loan->proposed_amount);
+
         $this->logAction($loan, $user, 9, 'disbursed', $data);
         $loan->update([
-            'disbursed_amount' => $data['disbursed_amount'] ?? $loan->proposed_amount,
+            'disbursed_amount' => $disbursedAmount,
             'date_issued' => now()->toDateString(),
             'status' => 'disbursed',
             'current_step' => 9,
         ]);
+
+        if (! $loan->loanPayments()->exists()) {
+            $this->repayments->createForLoan($loan->fresh(), $disbursedAmount);
+        }
+    }
+
+    protected function rollbackStep(Loan $loan, User $user, array $data): void
+    {
+        if ($loan->status === 'disbursed') {
+            throw new \InvalidArgumentException('Cannot rollback a disbursed loan.');
+        }
+
+        [$previousStep, $status] = $this->rollbackTarget($loan);
+
+        $this->logAction($loan, $user, $loan->current_step, 'rolled_back', $data);
+
+        $updates = [
+            'current_step' => $previousStep,
+            'status' => $status,
+        ];
+
+        if ($loan->current_step === 8) {
+            $updates['officer_id'] = null;
+        }
+
+        if ($loan->current_step === 7) {
+            $updates['approved_by'] = null;
+        }
+
+        if ($loan->current_step === 3) {
+            $updates['applicant_acceptance'] = 'pending';
+        }
+
+        $loan->update($updates);
+    }
+
+    protected function rollbackTarget(Loan $loan): array
+    {
+        return match ($loan->current_step) {
+            2 => [1, 'received'],
+            3 => [2, 'in_review'],
+            4 => [3, 'awaiting_applicant'],
+            5 => [4, 'in_review'],
+            6 => [5, 'in_review'],
+            7 => [6, 'in_review'],
+            8 => [7, 'in_review'],
+            9 => [8, 'approved'],
+            default => throw new \InvalidArgumentException('This loan cannot be rolled back.'),
+        };
     }
 }

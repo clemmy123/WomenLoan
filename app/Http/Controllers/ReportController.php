@@ -2,31 +2,60 @@
 
 namespace App\Http\Controllers;
 
-use App\Services\DashboardStatsService;
-use App\Services\LoanQueryService;
+use App\Exports\ReportsExport;
+use App\Services\ReportService;
+use Barryvdh\DomPDF\Facade\Pdf;
+use Illuminate\Http\Request;
+use Maatwebsite\Excel\Facades\Excel;
+use Symfony\Component\HttpFoundation\BinaryFileResponse;
 
 class ReportController extends Controller
 {
-    public function __construct(
-        private DashboardStatsService $stats,
-        private LoanQueryService $loans,
-    ) {}
+    public function __construct(private ReportService $reports) {}
 
-    public function index()
+    public function index(Request $request)
     {
         $this->authorize('view reports');
 
-        $stats = $this->stats->forUser();
-        $monthly = $this->stats->monthlyApplications();
-        $disbursements = $this->stats->monthlyDisbursements();
-        $pipeline = $this->stats->stepBreakdown();
-        $statusChart = $this->stats->statusBreakdown();
-        $regionChart = $this->stats->byRegion();
-        $loans = $this->loans->paginatedForReports();
+        $filters = $this->reports->normalizeFilters($request->all());
+        $summary = $this->reports->summary($filters);
+        $charts = $this->reports->chartData($filters);
+        $rows = $this->reports->paginatedRows($filters);
+        $regions = $this->reports->regions();
 
-        return view('reports.index', compact(
-            'stats', 'monthly', 'disbursements', 'pipeline',
-            'statusChart', 'regionChart', 'loans'
-        ));
+        return view('reports.index', compact('filters', 'summary', 'charts', 'rows', 'regions'));
+    }
+
+    public function exportExcel(Request $request): BinaryFileResponse
+    {
+        $this->authorize('view reports');
+
+        $data = $this->exportData($request);
+
+        return Excel::download(
+            new ReportsExport($data['summary'], $data['rows'], $data['filters']),
+            $this->reports->exportFilename('xlsx')
+        );
+    }
+
+    public function exportPdf(Request $request)
+    {
+        $this->authorize('view reports');
+
+        $data = $this->exportData($request);
+
+        return Pdf::loadView('reports.export-pdf', $data)
+            ->download($this->reports->exportFilename('pdf'));
+    }
+
+    protected function exportData(Request $request): array
+    {
+        $filters = $this->reports->normalizeFilters($request->all());
+
+        return [
+            'filters' => $filters,
+            'summary' => $this->reports->summary($filters),
+            'rows' => $this->reports->allRows($filters),
+        ];
     }
 }

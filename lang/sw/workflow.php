@@ -24,7 +24,10 @@ return [
         'approve_km' => 'Idhinisha Mwisho',
         'assign_accountant' => 'Weka Mhasibu kwa Utoaji',
         'disburse' => 'Toa :amount',
+        'rollback_step' => 'Rudisha Hatua Iliyotangulia',
     ],
+    'rollback_help' => 'Rudisha ombi kwa mkaguzi wa awali ili kusahihisha data kabla ya kuendelea.',
+    'rollback_reason' => 'Sababu ya kurudisha (lazima)',
     'actions' => [
         'received' => 'Imepokelewa',
         'forwarded_to_ministry' => 'Imetumwa Wizara',
@@ -38,5 +41,6 @@ return [
         'approved' => 'Imekubaliwa',
         'assigned_accountant' => 'Mhasibu Amewekwa',
         'disbursed' => 'Imetolewa',
+        'rolled_back' => 'Imerudishwa Hatua Iliyotangulia',
     ],
 ];

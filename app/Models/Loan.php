@@ -23,6 +23,8 @@ class Loan extends Model
         'loan_group_id',
         'user_id',
         'loan_type',
+        'has_disability',
+        'is_widowed',
         'requested_amount',
         'proposed_amount',
         'disbursed_amount',
@@ -44,6 +46,8 @@ class Loan extends Model
         'disbursed_amount' => 'decimal:2',
         'date_issued' => 'date',
         'approval_history' => 'array',
+        'has_disability' => 'boolean',
+        'is_widowed' => 'boolean',
     ];
 
     public const TERMINAL_STATUSES = ['disbursed', 'declined_by_applicant', 'rejected'];

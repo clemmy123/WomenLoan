@@ -33,12 +33,58 @@
         <div x-show="step === 1" x-cloak data-wizard-step="1" class="app-card app-card-padded wizard-panel">
             <h3 class="text-lg font-bold text-slate-900 dark:text-white">1. {{ __('loans.wizard_steps.1') }}</h3>
             <x-wizard-field :label="__('loans.select_loan_type')" for="loan_type" :required="true">
-                <select name="loan_type" id="loan_type" :required="step === 1" class="app-select">
+                <select name="loan_type" id="loan_type" x-model="loanType" :required="step === 1" class="app-select">
                     <option value="">-- {{ __('loans.select_loan_type') }} --</option>
                     <option value="individual" @selected($fd('loan_type') === 'individual')>{{ __('loans.types.individual') }}</option>
                     <option value="group" @selected($fd('loan_type') === 'group')>{{ __('loans.types.group') }}</option>
                 </select>
             </x-wizard-field>
+
+            <div x-show="loanType === 'group'" x-cloak class="wizard-section mt-6">
+                <p class="wizard-section-title">{{ __('loans.select_group') }}</p>
+                @if($userGroup ?? null)
+                    <input type="hidden" name="loan_group_id" value="{{ $userGroup->id }}">
+                    <div class="rounded-xl border border-slate-200 dark:border-white/10 p-4 mb-4">
+                        <p class="font-semibold text-slate-900 dark:text-white">{{ $userGroup->name }}</p>
+                        @if($userGroup->registration_number)
+                            <p class="text-sm text-slate-500 dark:text-zinc-400">{{ __('groups.reg_number') }}: {{ $userGroup->registration_number }}</p>
+                        @endif
+                    </div>
+                    <div class="overflow-x-auto">
+                        <table class="app-table">
+                            <thead>
+                                <tr>
+                                    <th>{{ __('common.full_name') }}</th>
+                                    <th>{{ __('applicants.nin') }}</th>
+                                    <th>{{ __('groups.member_age') }}</th>
+                                    <th>{{ __('applicants.sex') }}</th>
+                                    <th>{{ __('common.phone') }}</th>
+                                    <th>{{ __('common.email') }}</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach($userGroup->members as $member)
+                                <tr>
+                                    <td>{{ $member->full_name }}@if($member->is_group_leader) <span class="text-xs text-indigo-600">({{ __('groups.group_leader') }})</span>@endif</td>
+                                    <td class="font-mono text-sm">{{ $member->nin }}</td>
+                                    <td>{{ $member->age ?? '—' }}</td>
+                                    <td>{{ $member->sex ?? '—' }}</td>
+                                    <td>{{ $member->phone }}</td>
+                                    <td>{{ $member->email ?? '—' }}</td>
+                                </tr>
+                                @endforeach
+                            </tbody>
+                        </table>
+                    </div>
+                @elseif($canSetupGroup ?? false)
+                    <div class="rounded-xl bg-amber-50 dark:bg-amber-500/10 border border-amber-200 dark:border-amber-500/20 p-4 text-sm text-amber-900 dark:text-amber-200">
+                        <p>{{ __('loans.group_setup_required') }}</p>
+                        <a href="{{ route('my-group.create') }}" class="inline-block mt-3 font-semibold text-indigo-600 hover:text-indigo-500">{{ __('groups.setup_title') }} →</a>
+                    </div>
+                @else
+                    <p class="text-sm text-slate-500 dark:text-zinc-400">{{ __('loans.group_not_available') }}</p>
+                @endif
+            </div>
         </div>
 
         <div x-show="step === 2" x-cloak data-wizard-step="2" class="app-card app-card-padded wizard-panel">
@@ -64,7 +110,7 @@
                             :disabled="!districts.length || loading" :required="step === 2" class="app-select">
                             <option value="">-- {{ __('geo.select_district') }} --</option>
                             <template x-for="district in districts" :key="district.id">
-                                <option :value="district.id" x-text="district.name"></option>
+                                <option :value="String(district.id)" x-text="district.name"></option>
                             </template>
                         </select>
                     </x-wizard-field>
@@ -75,7 +121,7 @@
                             :disabled="!councils.length || loading" :required="step === 2" class="app-select">
                             <option value="">-- {{ __('geo.select_council') }} --</option>
                             <template x-for="council in councils" :key="council.id">
-                                <option :value="council.id" x-text="council.name"></option>
+                                <option :value="String(council.id)" x-text="council.name"></option>
                             </template>
                         </select>
                     </x-wizard-field>
@@ -86,7 +132,7 @@
                             :disabled="!wards.length || loading" :required="step === 2" class="app-select">
                             <option value="">-- {{ __('geo.select_ward') }} --</option>
                             <template x-for="ward in wards" :key="ward.id">
-                                <option :value="ward.id" x-text="ward.name"></option>
+                                <option :value="String(ward.id)" x-text="ward.name"></option>
                             </template>
                         </select>
                     </x-wizard-field>
@@ -96,7 +142,7 @@
                             :disabled="!streets.length || loading" :required="step === 2" class="app-select">
                             <option value="">-- {{ __('geo.select_street') }} --</option>
                             <template x-for="street in streets" :key="street.id">
-                                <option :value="street.id" x-text="street.name"></option>
+                                <option :value="String(street.id)" x-text="street.name"></option>
                             </template>
                         </select>
                     </x-wizard-field>
@@ -139,6 +185,59 @@
                     <x-wizard-field :label="__('loans.business_registration')" for="business_registration_attachment">
                         <input type="file" name="business_registration_attachment" id="business_registration_attachment" accept=".pdf,.doc,.docx" class="app-input">
                     </x-wizard-field>
+                    <div x-show="loanType === 'individual'" x-cloak class="wizard-form-grid wizard-form-grid-2 wizard-form-grid-span-2">
+                        <x-wizard-field :label="__('loans.application_letter')" for="application_letter" :required="true">
+                            <input type="file" name="application_letter" id="application_letter" accept=".pdf,.doc,.docx"
+                                @if(!($editing ?? false)) :required="step === 2 && loanType === 'individual'" @endif class="app-input">
+                            @if(($editing ?? false) && ($editingLoan->businessDetails?->application_letter ?? false))
+                                <p class="text-xs text-slate-500 dark:text-zinc-400 mt-1">{{ __('loans.keep_existing_file') }}</p>
+                            @endif
+                        </x-wizard-field>
+                        <x-wizard-field :label="__('loans.bank_statement')" for="bank_statement" :required="true">
+                            <input type="file" name="bank_statement" id="bank_statement" accept=".pdf,.doc,.docx"
+                                @if(!($editing ?? false)) :required="step === 2 && loanType === 'individual'" @endif class="app-input">
+                            @if(($editing ?? false) && ($editingLoan->businessDetails?->bank_statement ?? false))
+                                <p class="text-xs text-slate-500 dark:text-zinc-400 mt-1">{{ __('loans.keep_existing_file') }}</p>
+                            @endif
+                        </x-wizard-field>
+                    </div>
+                    <div x-show="loanType === 'group'" x-cloak class="wizard-form-grid wizard-form-grid-2 wizard-form-grid-span-2">
+                        <x-wizard-field :label="__('loans.group_constitution')" for="group_constitution" :required="true">
+                            <input type="file" name="group_constitution" id="group_constitution" accept=".pdf,.doc,.docx"
+                                @if(!($editing ?? false)) :required="step === 2 && loanType === 'group'" @endif class="app-input">
+                            @if(($editing ?? false) && ($editingLoan->businessDetails?->group_constitution ?? false))
+                                <p class="text-xs text-slate-500 dark:text-zinc-400 mt-1">{{ __('loans.keep_existing_file') }}</p>
+                            @endif
+                        </x-wizard-field>
+                        <x-wizard-field :label="__('loans.group_muhtasari')" for="group_muhtasari" :required="true">
+                            <input type="file" name="group_muhtasari" id="group_muhtasari" accept=".pdf,.doc,.docx"
+                                @if(!($editing ?? false)) :required="step === 2 && loanType === 'group'" @endif class="app-input">
+                            @if(($editing ?? false) && ($editingLoan->businessDetails?->group_muhtasari ?? false))
+                                <p class="text-xs text-slate-500 dark:text-zinc-400 mt-1">{{ __('loans.keep_existing_file') }}</p>
+                            @endif
+                        </x-wizard-field>
+                        <x-wizard-field :label="__('loans.group_certificate')" for="group_certificate" :required="true">
+                            <input type="file" name="group_certificate" id="group_certificate" accept=".pdf,.doc,.docx"
+                                @if(!($editing ?? false)) :required="step === 2 && loanType === 'group'" @endif class="app-input">
+                            @if(($editing ?? false) && ($editingLoan->businessDetails?->group_certificate ?? false))
+                                <p class="text-xs text-slate-500 dark:text-zinc-400 mt-1">{{ __('loans.keep_existing_file') }}</p>
+                            @endif
+                        </x-wizard-field>
+                        <x-wizard-field :label="__('loans.bank_statement')" for="bank_statement_group">
+                            <input type="file" name="bank_statement" id="bank_statement_group" accept=".pdf,.doc,.docx"
+                                @if(!($editing ?? false)) :required="step === 2 && loanType === 'group'" @endif class="app-input">
+                            @if(($editing ?? false) && ($editingLoan->businessDetails?->bank_statement ?? false))
+                                <p class="text-xs text-slate-500 dark:text-zinc-400 mt-1">{{ __('loans.keep_existing_file') }}</p>
+                            @endif
+                        </x-wizard-field>
+                        <x-wizard-field :label="__('loans.application_letter')" for="application_letter_group">
+                            <input type="file" name="application_letter" id="application_letter_group" accept=".pdf,.doc,.docx"
+                                @if(!($editing ?? false)) :required="step === 2 && loanType === 'group'" @endif class="app-input">
+                            @if(($editing ?? false) && ($editingLoan->businessDetails?->application_letter ?? false))
+                                <p class="text-xs text-slate-500 dark:text-zinc-400 mt-1">{{ __('loans.keep_existing_file') }}</p>
+                            @endif
+                        </x-wizard-field>
+                    </div>
                 </div>
             </div>
         </div>
@@ -153,7 +252,21 @@
                     <input type="text" name="applicant_phone" id="applicant_phone" value="{{ $fd('applicant_phone', $applicant?->phone) }}" class="app-input">
                 </x-wizard-field>
                 <x-wizard-field :label="__('loans.applicant_nin')" for="applicant_nin" class="wizard-form-grid-span-2">
-                    <input type="text" name="applicant_nin" id="applicant_nin" value="{{ $fd('applicant_nin', $applicant?->nin) }}" class="app-input">
+                    <input type="text" name="applicant_nin" id="applicant_nin" value="{{ $fd('applicant_nin', $applicant?->nin) }}" class="app-input" readonly>
+                </x-wizard-field>
+                <x-wizard-field :label="__('loans.has_disability')" for="has_disability" :required="true">
+                    <select name="has_disability" id="has_disability" :required="step === 3" class="app-select">
+                        <option value="">{{ __('loans.select_yes_no') }}</option>
+                        <option value="1" @selected((string) $fd('has_disability') === '1')>{{ __('common.yes') }}</option>
+                        <option value="0" @selected((string) $fd('has_disability') === '0')>{{ __('common.no') }}</option>
+                    </select>
+                </x-wizard-field>
+                <x-wizard-field :label="__('loans.is_widowed')" for="is_widowed" :required="true">
+                    <select name="is_widowed" id="is_widowed" :required="step === 3" class="app-select">
+                        <option value="">{{ __('loans.select_yes_no') }}</option>
+                        <option value="1" @selected((string) $fd('is_widowed') === '1')>{{ __('common.yes') }}</option>
+                        <option value="0" @selected((string) $fd('is_widowed') === '0')>{{ __('common.no') }}</option>
+                    </select>
                 </x-wizard-field>
             </div>
         </div>

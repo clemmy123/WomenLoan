@@ -2,9 +2,11 @@
 
 namespace Tests\Feature;
 
+use App\Models\Applicant;
 use App\Models\Gurantor;
 use App\Models\Loan;
 use App\Models\Scopes\ApprovalLevelScope;
+use App\Models\Scopes\ApplicantAccess;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
@@ -40,6 +42,10 @@ class LoanSubmissionTest extends TestCase
             'business_type' => 'Retail',
             'tin_number' => '12345678901',
             'business_proposal_document' => UploadedFile::fake()->create('proposal.pdf', 100, 'application/pdf'),
+            'application_letter' => UploadedFile::fake()->create('letter.pdf', 100, 'application/pdf'),
+            'bank_statement' => UploadedFile::fake()->create('statement.pdf', 100, 'application/pdf'),
+            'has_disability' => '0',
+            'is_widowed' => '0',
             'requested_amount' => 500000,
             'bank_name' => 'CRDB',
             'bank_number' => '1234567890',
@@ -60,6 +66,10 @@ class LoanSubmissionTest extends TestCase
         $guarantor = Gurantor::where('loan_id', $loan->id)->firstOrFail();
         $this->assertSame('Jane Guarantor', $guarantor->name);
         $this->assertSame('Spouse', $guarantor->relationship);
+        $this->assertFalse($loan->has_disability);
+        $this->assertFalse($loan->is_widowed);
+        $this->assertNotNull($loan->businessDetails->application_letter);
+        $this->assertNotNull($loan->businessDetails->bank_statement);
     }
 
     public function test_guarantor_relationship_defaults_when_not_provided(): void
@@ -81,6 +91,10 @@ class LoanSubmissionTest extends TestCase
             'business_type' => 'Retail',
             'tin_number' => '12345678901',
             'business_proposal_document' => UploadedFile::fake()->create('proposal.pdf', 100, 'application/pdf'),
+            'application_letter' => UploadedFile::fake()->create('letter.pdf', 100, 'application/pdf'),
+            'bank_statement' => UploadedFile::fake()->create('statement.pdf', 100, 'application/pdf'),
+            'has_disability' => '0',
+            'is_widowed' => '0',
             'requested_amount' => 500000,
             'declaration' => '1',
             'guarantor_name' => 'Jane Guarantor',
@@ -93,5 +107,72 @@ class LoanSubmissionTest extends TestCase
             ->firstOrFail();
 
         $this->assertSame('Other', Gurantor::where('loan_id', $loan->id)->value('relationship'));
+    }
+
+    public function test_group_loan_requires_group_documents(): void
+    {
+        $user = \App\Models\User::where('email', 'test@example.com')->firstOrFail();
+        Applicant::withoutGlobalScope(ApplicantAccess::class)
+            ->where('user_id', $user->id)
+            ->firstOrFail()
+            ->groups()
+            ->detach();
+
+        $this->actingAs($user)->post(route('my-group.store'), [
+            'name' => 'Group Loan Test',
+            'leader' => ['age' => 30, 'sex' => 'Female'],
+            'members' => [
+                [
+                    'first_name' => 'Grace',
+                    'last_name' => 'Moyo',
+                    'nin' => '19940101123450000013',
+                    'age' => 29,
+                    'phone' => '0755666777',
+                    'sex' => 'Female',
+                ],
+            ],
+        ]);
+
+        $group = \App\Models\LoanGroup::where('name', 'Group Loan Test')->firstOrFail();
+
+        $this->actingAs($user)->post(route('loan-applications.store'), [
+            'track_id' => 'WL000302',
+            'loan_type' => 'group',
+            'loan_group_id' => $group->id,
+            'region_id' => 1,
+            'district_id' => 1,
+            'council_id' => 1,
+            'ward_id' => 1,
+            'street_id' => 1,
+            'business_name' => 'Group Shop',
+            'business_phone' => '0712345678',
+            'business_email' => 'group@test.com',
+            'business_sector' => 'Trade',
+            'business_type' => 'Retail',
+            'tin_number' => '12345678901',
+            'business_proposal_document' => UploadedFile::fake()->create('proposal.pdf', 100, 'application/pdf'),
+            'group_constitution' => UploadedFile::fake()->create('constitution.pdf', 100, 'application/pdf'),
+            'group_muhtasari' => UploadedFile::fake()->create('muhtasari.pdf', 100, 'application/pdf'),
+            'group_certificate' => UploadedFile::fake()->create('certificate.pdf', 100, 'application/pdf'),
+            'application_letter' => UploadedFile::fake()->create('letter.pdf', 100, 'application/pdf'),
+            'bank_statement' => UploadedFile::fake()->create('statement.pdf', 100, 'application/pdf'),
+            'has_disability' => '0',
+            'is_widowed' => '1',
+            'requested_amount' => 800000,
+            'declaration' => '1',
+        ])->assertRedirect(route('loan-applications.index'));
+
+        $loan = Loan::withoutGlobalScope(ApprovalLevelScope::class)
+            ->where('loan_track_id', 'WL000302')
+            ->firstOrFail();
+
+        $this->assertSame('group', $loan->loan_type);
+        $this->assertSame($group->id, $loan->loan_group_id);
+        $this->assertTrue($loan->is_widowed);
+        $this->assertNotNull($loan->businessDetails->group_constitution);
+        $this->assertNotNull($loan->businessDetails->group_muhtasari);
+        $this->assertNotNull($loan->businessDetails->group_certificate);
+        $this->assertNotNull($loan->businessDetails->application_letter);
+        $this->assertNotNull($loan->businessDetails->bank_statement);
     }
 }

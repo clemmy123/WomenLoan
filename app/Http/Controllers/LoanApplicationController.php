@@ -7,6 +7,7 @@ use App\Http\Requests\Loan\UpdateLoanApplicationRequest;
 use App\Models\DraftLoan;
 use App\Models\Loan;
 use App\Models\LoanGroup;
+use App\Services\ApplicantGroupService;
 use App\Services\GeoHierarchyService;
 use App\Services\LoanApplicationService;
 use App\Services\LoanQueryService;
@@ -19,6 +20,7 @@ class LoanApplicationController extends Controller
         private LoanApplicationService $applications,
         private LoanQueryService $loans,
         private GeoHierarchyService $geo,
+        private ApplicantGroupService $applicantGroups,
     ) {}
 
     public function index()
@@ -27,8 +29,10 @@ class LoanApplicationController extends Controller
         $drafts = DraftLoan::where('user_id', Auth::id())->latest()->get();
         $canStartNew = Auth::user()->can('create loan application')
             && ! $this->loans->userHasActiveLoan(Auth::user());
+        $userGroup = $this->applicantGroups->groupForUser(Auth::user());
+        $canSetupGroup = $this->applicantGroups->canSetupGroup(Auth::user());
 
-        return view('loan_applications.index', compact('loans', 'drafts', 'canStartNew'));
+        return view('loan_applications.index', compact('loans', 'drafts', 'canStartNew', 'userGroup', 'canSetupGroup'));
     }
 
     public function create(Request $request)
@@ -80,6 +84,11 @@ class LoanApplicationController extends Controller
                 ->withInput($request->except([
                     'business_proposal_document',
                     'business_registration_attachment',
+                    'application_letter',
+                    'bank_statement',
+                    'group_constitution',
+                    'group_muhtasari',
+                    'group_certificate',
                     '_token',
                 ]));
         }
@@ -178,15 +187,20 @@ class LoanApplicationController extends Controller
         $regions = $this->geo->regions();
         $groups = LoanGroup::query()->orderBy('name')->get(['id', 'name']);
         $applicant = $user->applicant;
+        $userGroup = $editing
+            ? $editingLoan?->group?->load('members')
+            : $this->applicantGroups->groupForUser($user);
+        $canSetupGroup = $this->applicantGroups->canSetupGroup($user);
 
         $wizardConfig = [
             'step' => (int) old('step', $formData['step'] ?? 1),
             'totalSteps' => 7,
-            'selectedRegion' => old('region_id', $formData['region_id'] ?? null),
-            'selectedDistrict' => old('district_id', $formData['district_id'] ?? null),
-            'selectedCouncil' => old('council_id', $formData['council_id'] ?? null),
-            'selectedWard' => old('ward_id', $formData['ward_id'] ?? null),
-            'selectedStreet' => old('street_id', $formData['street_id'] ?? null),
+            'selectedRegion' => $this->stringOrNull(old('region_id', $formData['region_id'] ?? null)),
+            'selectedDistrict' => $this->stringOrNull(old('district_id', $formData['district_id'] ?? null)),
+            'selectedCouncil' => $this->stringOrNull(old('council_id', $formData['council_id'] ?? null)),
+            'selectedWard' => $this->stringOrNull(old('ward_id', $formData['ward_id'] ?? null)),
+            'selectedStreet' => $this->stringOrNull(old('street_id', $formData['street_id'] ?? null)),
+            'loanType' => old('loan_type', $formData['loan_type'] ?? ''),
             'geoApi' => GeoHierarchyService::apiUrls(),
             'i18n' => [
                 'load_failed' => __('loans.load_failed'),
@@ -196,6 +210,14 @@ class LoanApplicationController extends Controller
             ],
         ];
 
-        return compact('regions', 'groups', 'trackId', 'applicant', 'wizardConfig', 'formData', 'editing', 'editingLoan');
+        return compact(
+            'regions', 'groups', 'trackId', 'applicant', 'wizardConfig', 'formData',
+            'editing', 'editingLoan', 'userGroup', 'canSetupGroup',
+        );
+    }
+
+    private function stringOrNull(mixed $value): ?string
+    {
+        return filled($value) ? (string) $value : null;
     }
 }

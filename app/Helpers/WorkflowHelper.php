@@ -23,6 +23,7 @@ if (! function_exists('loan_has_workflow_actions')) {
             || ($user->can('forward to km') && $step === 6)
             || ($user->can('approve as km') && $step === 7)
             || ($user->can('assign accountant') && $step === 8)
-            || ($user->can('disburse loan') && $step === 9 && $loan->officer_id === $user->id);
+            || ($user->can('disburse loan') && $step === 9 && $loan->officer_id === $user->id)
+            || app(\App\Services\WorkflowAuthorizationService::class)->canPerform($user, $loan, 'rollback_step');
     }
 }

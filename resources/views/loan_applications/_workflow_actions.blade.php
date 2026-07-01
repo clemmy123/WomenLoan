@@ -12,6 +12,7 @@
     $canApproveKm = $user->can('approve as km') && $step === 7;
     $canAssignAccountant = $user->can('assign accountant') && $step === 8;
     $canDisburse = $user->can('disburse loan') && $step === 9 && $loan->officer_id === $user->id;
+    $canRollback = app(\App\Services\WorkflowAuthorizationService::class)->canPerform($user, $loan, 'rollback_step');
 @endphp
 
 @if(loan_has_workflow_actions($loan, $user))
@@ -50,6 +51,9 @@
         @endif
         @if($canDisburse)
             <button type="button" @click="modal = 'disburse'" class="app-btn app-btn-success app-btn-block">{{ __('workflow.buttons.disburse', ['amount' => format_tzs($loan->proposed_amount)]) }}</button>
+        @endif
+        @if($canRollback)
+            <button type="button" @click="modal = 'rollback_step'" class="app-btn app-btn-danger app-btn-block">{{ __('workflow.buttons.rollback_step') }}</button>
         @endif
     </div>
 
@@ -135,6 +139,14 @@
             'name' => 'disburse',
             'title' => __('workflow.buttons.disburse', ['amount' => format_tzs($loan->proposed_amount)]),
             'body' => view('loan_applications._workflow_forms.disburse', compact('loan'))->render(),
+        ])
+    @endif
+
+    @if($canRollback)
+        @include('partials.modal', [
+            'name' => 'rollback_step',
+            'title' => __('workflow.buttons.rollback_step'),
+            'body' => view('loan_applications._workflow_forms.rollback_step', compact('loan'))->render(),
         ])
     @endif
 </div>

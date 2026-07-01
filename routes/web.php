@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\ApplicantGroupController;
 use App\Http\Controllers\ReportController;
 use App\Http\Controllers\ApplicantController;
 use App\Http\Controllers\Auth\AuthController;
@@ -50,6 +51,15 @@ Route::middleware(['auth'])->group(function () {
     Route::resource('loan-groups', LoanGroupController::class)
         ->middleware('can:manage loan groups');
 
+    Route::prefix('my-group')->name('my-group.')->middleware('can:create loan application')->group(function () {
+        Route::get('/', [ApplicantGroupController::class, 'show'])->name('show');
+        Route::get('/setup', [ApplicantGroupController::class, 'create'])->name('create');
+        Route::post('/setup', [ApplicantGroupController::class, 'store'])->name('store');
+        Route::post('/members', [ApplicantGroupController::class, 'storeMember'])->name('members.store');
+        Route::put('/members/{member}', [ApplicantGroupController::class, 'updateMember'])->name('members.update');
+        Route::delete('/members/{member}', [ApplicantGroupController::class, 'destroyMember'])->name('members.destroy');
+    });
+
     Route::prefix('loan-applications')->name('loan-applications.')->group(function () {
         Route::get('/', [LoanApplicationController::class, 'index'])->name('index');
         Route::get('/apply', [LoanApplicationController::class, 'create'])->name('create');
@@ -64,9 +74,21 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/repayments', [LoanPaymentController::class, 'index'])
         ->middleware('can:view repayments')
         ->name('repayments.index');
+    Route::get('/repayments/{payment}', [LoanPaymentController::class, 'show'])
+        ->middleware('can:view repayments')
+        ->name('repayments.show');
+    Route::post('/repayments/{payment}/pay', [LoanPaymentController::class, 'pay'])
+        ->middleware('can:record repayment')
+        ->name('repayments.pay');
     Route::get('/reports', [ReportController::class, 'index'])
         ->middleware('can:view reports')
         ->name('reports.index');
+    Route::get('/reports/export/excel', [ReportController::class, 'exportExcel'])
+        ->middleware('can:view reports')
+        ->name('reports.export.excel');
+    Route::get('/reports/export/pdf', [ReportController::class, 'exportPdf'])
+        ->middleware('can:view reports')
+        ->name('reports.export.pdf');
 
     Route::prefix('admin')->name('admin.')->middleware('can:manage users')->group(function () {
         Route::resource('users', UserController::class)->except(['show']);

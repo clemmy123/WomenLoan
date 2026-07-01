@@ -16,7 +16,23 @@ class LoanGroup extends Model
         'registration_number',
         'phone',
         'email',
+        'created_by_user_id',
+        'setup_completed_at',
     ];
+
+    protected $casts = [
+        'setup_completed_at' => 'datetime',
+    ];
+
+    public function creator()
+    {
+        return $this->belongsTo(User::class, 'created_by_user_id');
+    }
+
+    public function members()
+    {
+        return $this->hasMany(LoanGroupMember::class)->orderByDesc('is_group_leader')->orderBy('full_name');
+    }
 
     public function applicants()
     {

@@ -1,0 +1,91 @@
+document.addEventListener('alpine:init', () => {
+    Alpine.data('reportFilters', (config) => ({
+        selectedRegion: config.selectedRegion ?? '',
+        selectedDistrict: config.selectedDistrict ?? '',
+        selectedCouncil: config.selectedCouncil ?? '',
+        selectedWard: config.selectedWard ?? '',
+        selectedStreet: config.selectedStreet ?? '',
+        geoApi: config.geoApi ?? {},
+        districts: [],
+        councils: [],
+        wards: [],
+        streets: [],
+
+        async init() {
+            if (this.selectedRegion) {
+                await this.loadDistricts(this.selectedRegion);
+            }
+            if (this.selectedDistrict) {
+                await this.loadCouncils(this.selectedDistrict);
+            }
+            if (this.selectedCouncil) {
+                await this.loadWards(this.selectedCouncil);
+            }
+            if (this.selectedWard) {
+                await this.loadStreets(this.selectedWard);
+            }
+        },
+
+        async fetchGeo(url, target) {
+            const response = await fetch(url, { headers: { Accept: 'application/json' } });
+            const data = await response.json();
+            this[target] = data?.data ?? data;
+        },
+
+        async loadDistricts(regionId) {
+            this.districts = [];
+            if (!regionId) return;
+            await this.fetchGeo(`${this.geoApi.districts}/${regionId}`, 'districts');
+        },
+
+        async loadCouncils(districtId) {
+            this.councils = [];
+            if (!districtId) return;
+            await this.fetchGeo(`${this.geoApi.councils}/${districtId}`, 'councils');
+        },
+
+        async loadWards(councilId) {
+            this.wards = [];
+            if (!councilId) return;
+            await this.fetchGeo(`${this.geoApi.wards}/${councilId}`, 'wards');
+        },
+
+        async loadStreets(wardId) {
+            this.streets = [];
+            if (!wardId) return;
+            await this.fetchGeo(`${this.geoApi.streets}/${wardId}`, 'streets');
+        },
+
+        onRegionChange() {
+            this.selectedDistrict = '';
+            this.selectedCouncil = '';
+            this.selectedWard = '';
+            this.selectedStreet = '';
+            this.councils = [];
+            this.wards = [];
+            this.streets = [];
+            this.loadDistricts(this.selectedRegion);
+        },
+
+        onDistrictChange() {
+            this.selectedCouncil = '';
+            this.selectedWard = '';
+            this.selectedStreet = '';
+            this.wards = [];
+            this.streets = [];
+            this.loadCouncils(this.selectedDistrict);
+        },
+
+        onCouncilChange() {
+            this.selectedWard = '';
+            this.selectedStreet = '';
+            this.streets = [];
+            this.loadWards(this.selectedCouncil);
+        },
+
+        onWardChange() {
+            this.selectedStreet = '';
+            this.loadStreets(this.selectedWard);
+        },
+    }));
+});

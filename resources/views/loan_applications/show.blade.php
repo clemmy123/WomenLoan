@@ -12,6 +12,7 @@
     $applicantCouncil = $applicantWard?->council;
     $applicantDistrict = $applicantCouncil?->district;
     $applicantRegion = $applicantDistrict?->region;
+    $yesNo = fn (?bool $value) => $value === null ? null : ($value ? __('common.yes') : __('common.no'));
 @endphp
 <div class="page">
     <div class="page-header">
@@ -76,6 +77,8 @@
                     @include('partials.detail-field', ['label' => __('geo.council'), 'value' => $applicantCouncil?->name])
                     @include('partials.detail-field', ['label' => __('geo.ward'), 'value' => $applicantWard?->name])
                     @include('partials.detail-field', ['label' => __('geo.street'), 'value' => $applicantStreet?->name])
+                    @include('partials.detail-field', ['label' => __('loans.has_disability'), 'value' => $yesNo($loan->has_disability)])
+                    @include('partials.detail-field', ['label' => __('loans.is_widowed'), 'value' => $yesNo($loan->is_widowed)])
                 </div>
             </div>
 
@@ -109,6 +112,49 @@
                     @include('partials.detail-field-file', ['label' => __('loans.business_proposal'), 'path' => $business->business_proposal_document])
                     @include('partials.detail-field-file', ['label' => __('loans.business_registration'), 'path' => $business->business_registration_attachment])
                     @include('partials.detail-field-file', ['label' => __('loans.proof_address'), 'path' => $business->proof_address_attachment])
+                    @if($loan->loan_type === 'individual')
+                        @include('partials.detail-field-file', ['label' => __('loans.application_letter'), 'path' => $business->application_letter])
+                        @include('partials.detail-field-file', ['label' => __('loans.bank_statement'), 'path' => $business->bank_statement])
+                    @endif
+                    @if($loan->loan_type === 'group')
+                        @include('partials.detail-field-file', ['label' => __('loans.group_constitution'), 'path' => $business->group_constitution])
+                        @include('partials.detail-field-file', ['label' => __('loans.group_muhtasari'), 'path' => $business->group_muhtasari])
+                        @include('partials.detail-field-file', ['label' => __('loans.group_certificate'), 'path' => $business->group_certificate])
+                        @include('partials.detail-field-file', ['label' => __('loans.bank_statement'), 'path' => $business->bank_statement])
+                        @include('partials.detail-field-file', ['label' => __('loans.application_letter'), 'path' => $business->application_letter])
+                    @endif
+                </div>
+            </div>
+            @endif
+
+            @if($loan->loan_type === 'group' && $loan->group?->members?->count())
+            <div class="app-card app-card-padded">
+                <h3 class="text-sm font-semibold tracking-wide uppercase text-indigo-600 border-b border-slate-100 dark:border-white/10 pb-2 mb-5">{{ __('groups.group_members') }}</h3>
+                <div class="overflow-x-auto">
+                    <table class="app-table">
+                        <thead>
+                            <tr>
+                                <th>{{ __('common.full_name') }}</th>
+                                <th>{{ __('applicants.nin') }}</th>
+                                <th>{{ __('groups.member_age') }}</th>
+                                <th>{{ __('applicants.sex') }}</th>
+                                <th>{{ __('common.phone') }}</th>
+                                <th>{{ __('common.email') }}</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach($loan->group->members as $member)
+                            <tr>
+                                <td>{{ $member->full_name }}@if($member->is_group_leader) ({{ __('groups.group_leader') }})@endif</td>
+                                <td class="font-mono text-sm">{{ $member->nin }}</td>
+                                <td>{{ $member->age ?? __('common.na') }}</td>
+                                <td>{{ $member->sex ?? __('common.na') }}</td>
+                                <td>{{ $member->phone }}</td>
+                                <td>{{ $member->email ?? __('common.na') }}</td>
+                            </tr>
+                            @endforeach
+                        </tbody>
+                    </table>
                 </div>
             </div>
             @endif
