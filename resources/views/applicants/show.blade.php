@@ -79,13 +79,13 @@
             <form action="{{ route('applicants.attach-group', $applicant) }}" method="POST" class="space-y-4">
                 @csrf
                 <div>
-                    <label for="group_id" class="detail-field-label">{{ __('applicants.select_group') }}</label>
+                    {{-- <label for="group_id" class="detail-field-label">{{ __('applicants.select_group') }}</label>
                     <select name="group_id" id="group_id" required class="w-full bg-slate-50 dark:bg-white/5 border border-slate-300 dark:border-white/10 rounded-lg px-4 py-2 text-sm text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500">
                         <option value="">{{ __('applicants.select_group') }}</option>
                         @foreach($groups as $loanGroup)
                             <option value="{{ $loanGroup->hashid }}" @selected(old('group_id') === $loanGroup->hashid)>{{ $loanGroup->name }}</option>
                         @endforeach
-                    </select>
+                    </select> --}}
                     @error('group_id') <p class="mt-1 text-xs text-red-600">{{ $message }}</p> @enderror
                 </div>
                 <button type="submit" class="app-btn app-btn-primary w-full">
