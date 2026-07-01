@@ -30,6 +30,15 @@ document.addEventListener('alpine:init', () => {
             selectedStreet: normalizeId(config.selectedStreet),
             loanType: config.loanType ?? '',
             i18n: config.i18n ?? {},
+            
+            // FIX: Added geoApi property to prevent 'undefined' error
+            geoApi: config.geoApi ?? {
+                districts: '/api/districts',
+                councils: '/api/councils',
+                wards: '/api/wards',
+                streets: '/api/streets'
+            },
+
             districts: [],
             councils: [],
             wards: [],
