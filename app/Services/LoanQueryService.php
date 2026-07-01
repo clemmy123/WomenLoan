@@ -51,6 +51,7 @@ class LoanQueryService
             'guarantors.street',
             'officer',
             'group',
+            'group.members',
         ]);
     }
 

@@ -26,6 +26,11 @@ return [
     'applicant_group_attached' => 'Applicant added to group successfully.',
     'applicant_group_detached' => 'Applicant removed from group successfully.',
     'loan_group_created' => 'Loan group created successfully.',
+    'group_member_added' => 'Group member added successfully.',
+    'group_member_updated' => 'Group member updated successfully.',
+    'group_member_removed' => 'Group member removed successfully.',
+    'cannot_remove_group_leader' => 'The group leader cannot be removed.',
+    'group_already_registered' => 'You already belong to a registered group.',
     'loan_group_updated' => 'Loan group updated successfully.',
     'loan_group_deleted' => 'Loan group deleted successfully.',
 ];

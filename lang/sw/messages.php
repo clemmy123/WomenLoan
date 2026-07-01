@@ -26,6 +26,11 @@ return [
     'applicant_group_attached' => 'Mwombaji ameongezwa kwenye kundi.',
     'applicant_group_detached' => 'Mwombaji ameondolewa kwenye kundi.',
     'loan_group_created' => 'Kundi la mkopo limeundwa.',
+    'group_member_added' => 'Mwanachama ameongezwa kwenye kundi.',
+    'group_member_updated' => 'Taarifa za mwanachama zimesasishwa.',
+    'group_member_removed' => 'Mwanachama ameondolewa kwenye kundi.',
+    'cannot_remove_group_leader' => 'Kiongozi wa kundi hawezi kuondolewa.',
+    'group_already_registered' => 'Tayari uko kwenye kundi lililosajiliwa.',
     'loan_group_updated' => 'Kundi la mkopo limesasishwa.',
     'loan_group_deleted' => 'Kundi la mkopo limefutwa.',
 ];

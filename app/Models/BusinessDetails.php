@@ -28,7 +28,12 @@ class BusinessDetails extends Model
         'tin_number',
         'proof_address_attachment',
         'business_registration_attachment',
-        'business_proposal_document'
+        'business_proposal_document',
+        'application_letter',
+        'bank_statement',
+        'group_constitution',
+        'group_muhtasari',
+        'group_certificate',
     ];
 
     /**

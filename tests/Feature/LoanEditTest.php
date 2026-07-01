@@ -23,10 +23,14 @@ class LoanEditTest extends TestCase
         $loan = $this->loanByTrack('WL000001');
         $user = User::findOrFail($loan->user_id);
 
-        $this->actingAs($user)
-            ->get(route('loan-applications.edit', $loan))
-            ->assertOk()
-            ->assertSee(__('loans.edit_title'));
+        $response = $this->actingAs($user)
+            ->get(route('loan-applications.edit', $loan));
+
+        $response->assertOk();
+        $response->assertSee(__('loans.edit_title'));
+        $response->assertSee('"selectedRegion":"'.$loan->businessDetails->region_id.'"', false);
+        $response->assertSee('"selectedDistrict":"'.$loan->businessDetails->district_id.'"', false);
+        $response->assertSee('"selectedStreet":"'.$loan->businessDetails->street_id.'"', false);
     }
 
     public function test_applicant_can_edit_received_application(): void
@@ -70,6 +74,8 @@ class LoanEditTest extends TestCase
             'requested_amount' => 4200000,
             'bank_name' => 'NMB',
             'bank_number' => '9876543210',
+            'has_disability' => '1',
+            'is_widowed' => '0',
             'declaration' => '1',
         ]);
 
@@ -80,6 +86,8 @@ class LoanEditTest extends TestCase
         $this->assertSame('4200000.00', $loan->requested_amount);
         $this->assertSame('Updated Shop Name', $loan->businessDetails->business_name);
         $this->assertSame('NMB', $loan->bank_name);
+        $this->assertTrue($loan->has_disability);
+        $this->assertFalse($loan->is_widowed);
     }
 
     public function test_update_blocked_when_processing_started(): void

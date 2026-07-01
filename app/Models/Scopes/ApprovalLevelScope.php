@@ -30,6 +30,10 @@ class ApprovalLevelScope implements Scope
             return;
         }
 
+        if ($user->can('view all loans')) {
+            return;
+        }
+
         if ($user->hasRole(['cdo_ward', 'cdo_council', 'cdo_region'])) {
             $builder->whereHas('businessDetails', function ($q) use ($user) {
                 if ($user->hasRole('cdo_ward')) {
@@ -40,6 +44,12 @@ class ApprovalLevelScope implements Scope
                     $q->where('region_id', $user->zoneable_id);
                 }
             });
+
+            if ($user->hasRole('cdo_ward')) {
+                $builder->whereIn('current_step', WorkflowSteps::ROLE_STEP_MAP['cdo_ward']);
+            }
+
+            return;
         }
 
         $stepMap = WorkflowSteps::ROLE_STEP_MAP;

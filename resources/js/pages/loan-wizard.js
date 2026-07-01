@@ -12,6 +12,10 @@ function stepLabel(template, step, total) {
     return template.replace(':step', String(step)).replace(':total', String(total));
 }
 
+function normalizeId(id) {
+    return id === null || id === undefined || id === '' ? '' : String(id);
+}
+
 document.addEventListener('alpine:init', () => {
     Alpine.data('loanWizard', () => {
         const config = readWizardConfig();
@@ -19,12 +23,12 @@ document.addEventListener('alpine:init', () => {
         return {
             step: config.step ?? 1,
             totalSteps: config.totalSteps ?? 7,
-            selectedRegion: config.selectedRegion ?? null,
-            selectedDistrict: config.selectedDistrict ?? null,
-            selectedCouncil: config.selectedCouncil ?? null,
-            selectedWard: config.selectedWard ?? null,
-            selectedStreet: config.selectedStreet ?? null,
-            geoApi: config.geoApi ?? {},
+            selectedRegion: normalizeId(config.selectedRegion),
+            selectedDistrict: normalizeId(config.selectedDistrict),
+            selectedCouncil: normalizeId(config.selectedCouncil),
+            selectedWard: normalizeId(config.selectedWard),
+            selectedStreet: normalizeId(config.selectedStreet),
+            loanType: config.loanType ?? '',
             i18n: config.i18n ?? {},
             districts: [],
             councils: [],
@@ -37,18 +41,18 @@ document.addEventListener('alpine:init', () => {
                 return stepLabel(this.i18n.step ?? 'Step :step / :total', this.step, this.totalSteps);
             },
 
-            init() {
+            async init() {
                 if (this.selectedRegion) {
-                    this.loadDistricts(this.selectedRegion);
+                    await this.loadDistricts(this.selectedRegion, { preserveChildren: true });
                 }
                 if (this.selectedDistrict) {
-                    this.loadCouncils(this.selectedDistrict);
+                    await this.loadCouncils(this.selectedDistrict, { preserveChildren: true });
                 }
                 if (this.selectedCouncil) {
-                    this.loadWards(this.selectedCouncil);
+                    await this.loadWards(this.selectedCouncil, { preserveChildren: true });
                 }
                 if (this.selectedWard) {
-                    this.loadStreets(this.selectedWard);
+                    await this.loadStreets(this.selectedWard);
                 }
             },
 
@@ -75,50 +79,74 @@ document.addEventListener('alpine:init', () => {
                 }
             },
 
-            loadDistricts(regionId) {
+            async loadDistricts(regionId, options = {}) {
+                const { preserveChildren = false } = options;
+
                 this.districts = [];
-                this.councils = [];
-                this.wards = [];
-                this.streets = [];
+
+                if (!preserveChildren) {
+                    this.councils = [];
+                    this.wards = [];
+                    this.streets = [];
+                    this.selectedDistrict = '';
+                    this.selectedCouncil = '';
+                    this.selectedWard = '';
+                    this.selectedStreet = '';
+                }
 
                 if (!regionId) {
                     return;
                 }
 
-                this.fetchData(`${this.geoApi.districts}/${regionId}`, 'districts');
+                await this.fetchData(`${this.geoApi.districts}/${regionId}`, 'districts');
             },
 
-            loadCouncils(districtId) {
+            async loadCouncils(districtId, options = {}) {
+                const { preserveChildren = false } = options;
+
                 this.councils = [];
-                this.wards = [];
-                this.streets = [];
+
+                if (!preserveChildren) {
+                    this.wards = [];
+                    this.streets = [];
+                    this.selectedCouncil = '';
+                    this.selectedWard = '';
+                    this.selectedStreet = '';
+                }
 
                 if (!districtId) {
                     return;
                 }
 
-                this.fetchData(`${this.geoApi.councils}/${districtId}`, 'councils');
+                await this.fetchData(`${this.geoApi.councils}/${districtId}`, 'councils');
             },
 
-            loadWards(councilId) {
+            async loadWards(councilId, options = {}) {
+                const { preserveChildren = false } = options;
+
                 this.wards = [];
-                this.streets = [];
+
+                if (!preserveChildren) {
+                    this.streets = [];
+                    this.selectedWard = '';
+                    this.selectedStreet = '';
+                }
 
                 if (!councilId) {
                     return;
                 }
 
-                this.fetchData(`${this.geoApi.wards}/${councilId}`, 'wards');
+                await this.fetchData(`${this.geoApi.wards}/${councilId}`, 'wards');
             },
 
-            loadStreets(wardId) {
+            async loadStreets(wardId) {
                 this.streets = [];
 
                 if (!wardId) {
                     return;
                 }
 
-                this.fetchData(`${this.geoApi.streets}/${wardId}`, 'streets');
+                await this.fetchData(`${this.geoApi.streets}/${wardId}`, 'streets');
             },
 
             validateStep(step) {

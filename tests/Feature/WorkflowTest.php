@@ -64,7 +64,7 @@ class WorkflowTest extends TestCase
                 'comments' => 'Proposed amount.',
             ]);
 
-        $response->assertRedirect(route('dashboard'));
+        $response->assertRedirect(route('loan-applications.show', $loan->hashid));
         $response->assertSessionHas('success');
 
         $loan->refresh();
@@ -100,7 +100,7 @@ class WorkflowTest extends TestCase
                 'comments' => 'To assistant director.',
             ]);
 
-        $response->assertRedirect(route('dashboard'));
+        $response->assertRedirect(route('loan-applications.show', $loan->hashid));
         $loan->refresh();
         $this->assertSame(5, $loan->current_step);
     }
@@ -115,7 +115,7 @@ class WorkflowTest extends TestCase
                 'comments' => 'Recommend approval.',
             ]);
 
-        $response->assertRedirect(route('dashboard'));
+        $response->assertRedirect(route('loan-applications.show', $loan->hashid));
         $loan->refresh();
         $this->assertSame(6, $loan->current_step);
     }
@@ -130,7 +130,7 @@ class WorkflowTest extends TestCase
                 'comments' => 'Endorsed.',
             ]);
 
-        $response->assertRedirect(route('dashboard'));
+        $response->assertRedirect(route('loan-applications.show', $loan->hashid));
         $loan->refresh();
         $this->assertSame(7, $loan->current_step);
     }
@@ -145,7 +145,7 @@ class WorkflowTest extends TestCase
                 'comments' => 'Approved.',
             ]);
 
-        $response->assertRedirect(route('dashboard'));
+        $response->assertRedirect(route('loan-applications.show', $loan->hashid));
         $response->assertSessionHas('success');
 
         $loan->refresh();
@@ -169,7 +169,7 @@ class WorkflowTest extends TestCase
                 'accountant_id' => $accountant->id,
             ]);
 
-        $response->assertRedirect(route('dashboard'));
+        $response->assertRedirect(route('loan-applications.show', $loan->hashid));
         $loan->refresh();
         $this->assertSame(9, $loan->current_step);
         $this->assertSame($accountant->id, $loan->officer_id);
@@ -190,6 +190,26 @@ class WorkflowTest extends TestCase
         $loan->refresh();
         $this->assertSame('disbursed', $loan->status);
         $this->assertSame('3800000.00', $loan->disbursed_amount);
+        $this->assertDatabaseHas('loan_payments', [
+            'loan_id' => $loan->id,
+            'amount_disbursed' => 3800000,
+        ]);
+    }
+
+    public function test_ministry_can_rollback_application_to_previous_step(): void
+    {
+        $loan = $this->loanByTrack('WL000005');
+
+        $response = $this->actingAsRole('ministry@wdf.go.tz')
+            ->post(route('loans.workflow', $loan->hashid), [
+                'action' => 'rollback_step',
+                'comments' => 'Incorrect supporting documents.',
+            ]);
+
+        $response->assertRedirect(route('loan-applications.show', $loan->hashid));
+        $loan->refresh();
+        $this->assertSame(3, $loan->current_step);
+        $this->assertSame('awaiting_applicant', $loan->status);
     }
 
     public function test_unauthorized_workflow_action_is_forbidden(): void

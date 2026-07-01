@@ -16,6 +16,7 @@ class LoanApplicationService
     public function __construct(
         private LoanTrackIdGenerator $trackIds,
         private DraftLoanService $drafts,
+        private ApplicantGroupService $groups,
     ) {}
 
     public function nextTrackId(): string
@@ -40,10 +41,17 @@ class LoanApplicationService
         }
 
         return DB::transaction(function () use ($request, $user, $trackId, $applicant) {
+            $loanGroupId = $request->loan_type === 'group'
+                ? $this->resolveGroupIdForUser($user, $request->loan_group_id)
+                : null;
+
             $loan = Loan::create([
                 'loan_track_id' => $trackId,
                 'applicant_id' => $applicant->id,
+                'loan_group_id' => $loanGroupId,
                 'loan_type' => $request->loan_type,
+                'has_disability' => $request->boolean('has_disability'),
+                'is_widowed' => $request->boolean('is_widowed'),
                 'requested_amount' => $request->requested_amount,
                 'bank_name' => $request->bank_name,
                 'bank_number' => $request->bank_number,
@@ -66,6 +74,11 @@ class LoanApplicationService
                 'tin_number' => $request->tin_number,
                 'business_proposal_document' => $request->file('business_proposal_document')?->store('proposals', 'public'),
                 'business_registration_attachment' => $request->file('business_registration_attachment')?->store('registrations', 'public'),
+                'application_letter' => $request->file('application_letter')?->store('application-letters', 'public'),
+                'bank_statement' => $request->file('bank_statement')?->store('bank-statements', 'public'),
+                'group_constitution' => $request->file('group_constitution')?->store('group-documents', 'public'),
+                'group_muhtasari' => $request->file('group_muhtasari')?->store('group-documents', 'public'),
+                'group_certificate' => $request->file('group_certificate')?->store('group-documents', 'public'),
             ]);
 
             if ($request->filled('guarantor_name')) {
@@ -95,6 +108,7 @@ class LoanApplicationService
 
         return [
             'loan_type' => $loan->loan_type,
+            'loan_group_id' => $loan->loan_group_id,
             'region_id' => $business?->region_id,
             'district_id' => $business?->district_id,
             'council_id' => $business?->council_id,
@@ -114,6 +128,8 @@ class LoanApplicationService
             'requested_amount' => $loan->requested_amount,
             'bank_name' => $loan->bank_name,
             'bank_number' => $loan->bank_number,
+            'has_disability' => $loan->has_disability === null ? null : ($loan->has_disability ? '1' : '0'),
+            'is_widowed' => $loan->is_widowed === null ? null : ($loan->is_widowed ? '1' : '0'),
             'declaration' => true,
         ];
     }
@@ -121,8 +137,15 @@ class LoanApplicationService
     public function update(UpdateLoanApplicationRequest $request, Loan $loan): Loan
     {
         return DB::transaction(function () use ($request, $loan) {
+            $loanGroupId = $request->loan_type === 'group'
+                ? $this->resolveGroupIdForUser($loan->user, $request->loan_group_id)
+                : null;
+
             $loan->update([
                 'loan_type' => $request->loan_type,
+                'loan_group_id' => $loanGroupId,
+                'has_disability' => $request->boolean('has_disability'),
+                'is_widowed' => $request->boolean('is_widowed'),
                 'requested_amount' => $request->requested_amount,
                 'bank_name' => $request->bank_name,
                 'bank_number' => $request->bank_number,
@@ -150,6 +173,31 @@ class LoanApplicationService
             if ($request->hasFile('business_registration_attachment')) {
                 $businessData['business_registration_attachment'] = $request->file('business_registration_attachment')
                     ->store('registrations', 'public');
+            }
+
+            if ($request->hasFile('application_letter')) {
+                $businessData['application_letter'] = $request->file('application_letter')
+                    ->store('application-letters', 'public');
+            }
+
+            if ($request->hasFile('bank_statement')) {
+                $businessData['bank_statement'] = $request->file('bank_statement')
+                    ->store('bank-statements', 'public');
+            }
+
+            if ($request->hasFile('group_constitution')) {
+                $businessData['group_constitution'] = $request->file('group_constitution')
+                    ->store('group-documents', 'public');
+            }
+
+            if ($request->hasFile('group_muhtasari')) {
+                $businessData['group_muhtasari'] = $request->file('group_muhtasari')
+                    ->store('group-documents', 'public');
+            }
+
+            if ($request->hasFile('group_certificate')) {
+                $businessData['group_certificate'] = $request->file('group_certificate')
+                    ->store('group-documents', 'public');
             }
 
             $loan->businessDetails()->updateOrCreate(
@@ -191,6 +239,17 @@ class LoanApplicationService
 
     public function groupMembers(int $groupId): LoanGroup
     {
-        return LoanGroup::with('applicants')->findOrFail($groupId);
+        return LoanGroup::with('members')->findOrFail($groupId);
+    }
+
+    protected function resolveGroupIdForUser(User $user, ?int $groupId): int
+    {
+        $group = $this->groups->groupForUser($user);
+
+        if (! $group || (int) $groupId !== (int) $group->id) {
+            throw new \RuntimeException('invalid_loan_group');
+        }
+
+        return $group->id;
     }
 }

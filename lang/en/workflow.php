@@ -24,7 +24,10 @@ return [
         'approve_km' => 'Final Approve',
         'assign_accountant' => 'Assign for Disbursement',
         'disburse' => 'Disburse :amount',
+        'rollback_step' => 'Return to Previous Step',
     ],
+    'rollback_help' => 'Send this application back to the previous reviewer to correct data before proceeding.',
+    'rollback_reason' => 'Reason for returning (required)',
     'actions' => [
         'received' => 'Received',
         'forwarded_to_ministry' => 'Forwarded to Ministry',
@@ -38,5 +41,6 @@ return [
         'approved' => 'Approved',
         'assigned_accountant' => 'Accountant Assigned',
         'disbursed' => 'Disbursed',
+        'rolled_back' => 'Returned to Previous Step',
     ],
 ];

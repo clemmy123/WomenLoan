@@ -52,6 +52,7 @@ class PermissionCatalog
                     'approve as km',
                     'assign accountant',
                     'disburse loan',
+                    'rollback workflow step',
                 ],
             ],
             'groups' => [
@@ -60,7 +61,7 @@ class PermissionCatalog
             ],
             'finance' => [
                 'label' => __('permissions.groups.finance'),
-                'permissions' => ['view repayments'],
+                'permissions' => ['view repayments', 'record repayment'],
             ],
             'reports' => [
                 'label' => __('permissions.groups.reports'),
