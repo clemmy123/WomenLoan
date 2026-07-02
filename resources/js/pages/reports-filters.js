@@ -30,6 +30,7 @@ document.addEventListener('alpine:init', () => {
             const response = await fetch(url, { headers: { Accept: 'application/json' } });
             const data = await response.json();
             this[target] = data?.data ?? data;
+            queueMicrotask(() => window.AppSelect?.enhanceAllAppSelects());
         },
 
         async loadDistricts(regionId) {

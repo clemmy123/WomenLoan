@@ -85,6 +85,7 @@ document.addEventListener('alpine:init', () => {
                     this.error = this.i18n.load_failed ?? 'Failed to load data';
                 } finally {
                     this.loading = false;
+                    queueMicrotask(() => window.AppSelect?.enhanceAllAppSelects());
                 }
             },
 

@@ -44,11 +44,6 @@ export async function fetchGeoChildren(config, type, id) {
     return data?.data ?? data;
 }
 
-export function resetSelect(select, placeholder, disabled = true) {
-    select.innerHTML = `<option value="">-- ${placeholder} --</option>`;
-    select.disabled = disabled;
-}
-
 export function fillSelect(select, items, selectedId = null, labelFn = (item) => item.name) {
     select.disabled = false;
 
@@ -61,6 +56,15 @@ export function fillSelect(select, items, selectedId = null, labelFn = (item) =>
         }
         select.appendChild(option);
     });
+
+    window.AppSelect?.refreshAppSelect(select);
+}
+
+export function resetSelect(select, placeholder, disabled = true) {
+    select.innerHTML = `<option value="">-- ${placeholder} --</option>`;
+    select.disabled = disabled;
+
+    window.AppSelect?.refreshAppSelect(select);
 }
 
 export function initGeoCascade(config, selects, oldValues = {}, labels = {}) {
