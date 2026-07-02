@@ -5,6 +5,7 @@ namespace App\Services;
 use App\Models\Applicant;
 use App\Models\Concerns\HasDisplayName;
 use App\Models\LoanGroup;
+use App\Models\User;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Database\Eloquent\Collection;
 
@@ -26,6 +27,24 @@ class ApplicantService
             ->latest()
             ->paginate($perPage)
             ->withQueryString();
+    }
+
+    public function registrationFieldDefaults(User $user): array
+    {
+        $nameParts = HasDisplayName::splitFullName($user->name ?? '');
+
+        return [
+            'first_name' => $nameParts['first_name'],
+            'middle_name' => $nameParts['middle_name'],
+            'last_name' => $nameParts['last_name'],
+            'email' => $user->email,
+            'phone' => $user->phone,
+        ];
+    }
+
+    public function draftFromUser(User $user): Applicant
+    {
+        return new Applicant($this->registrationFieldDefaults($user));
     }
 
     public function create(array $validated, ?int $userId = null): Applicant

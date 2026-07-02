@@ -28,6 +28,7 @@ class LoanApplicationController extends Controller
         $loans = $this->loans->paginatedIndex();
         $drafts = DraftLoan::where('user_id', Auth::id())->latest()->get();
         $canStartNew = Auth::user()->can('create loan application')
+            && Auth::user()->hasCompletedProfile()
             && ! $this->loans->userHasActiveLoan(Auth::user());
         $userGroup = $this->applicantGroups->groupForUser(Auth::user());
         $canSetupGroup = $this->applicantGroups->canSetupGroup(Auth::user());
@@ -40,6 +41,11 @@ class LoanApplicationController extends Controller
         $this->authorize('create loan application');
 
         $user = Auth::user();
+
+        if (! $user->hasCompletedProfile()) {
+            return redirect()->route('applicants.create')
+                ->withErrors(['error' => __('messages.complete_applicant_profile')]);
+        }
 
         if ($this->loans->userHasActiveLoan($user)) {
             return redirect()->route('loan-applications.index')

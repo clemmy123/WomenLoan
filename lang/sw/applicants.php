@@ -12,6 +12,7 @@ return [
     'save_profile' => 'Hifadhi Wasifu',
     'search_placeholder' => 'Tafuta kwa jina, NIN, simu au barua pepe…',
     'section_identification' => 'Utambulisho',
+    'registration_fields_locked' => 'Jina, barua pepe na simu zimechukuliwa kutoka akaunti yako ya usajili na haziwezi kubadilishwa hapa.',
     'section_demographics' => 'Demografia na Eneo',
     'first_name' => 'Jina la Kwanza',
     'middle_name' => 'Jina la Kati',

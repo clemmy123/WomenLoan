@@ -16,7 +16,14 @@
     <form action="{{ route('applicants.store') }}" method="POST" class="space-y-6">
         @csrf
 
-        @include('applicants._form', ['applicant' => null, 'regionId' => null, 'districtId' => null, 'councilId' => null, 'wardId' => null, 'streetId' => null])
+        @include('applicants._form', [
+            'lockRegistrationFields' => $lockRegistrationFields ?? false,
+            'regionId' => null,
+            'districtId' => null,
+            'councilId' => null,
+            'wardId' => null,
+            'streetId' => null,
+        ])
 
         <div class="flex items-center justify-end space-x-3 border-t border-gray-200 pt-6">
             <a href="{{ route('applicants.index') }}" class="rounded-xl border border-gray-300 bg-white px-4 py-2.5 text-sm font-semibold text-gray-700 hover:bg-gray-50 transition-all">{{ __('common.cancel') }}</a>

@@ -17,6 +17,17 @@ class LoanApplicationAccessTest extends TestCase
         $this->seedApplication();
     }
 
+    public function test_applicant_without_profile_cannot_open_apply_form(): void
+    {
+        $user = User::factory()->create();
+        $user->assignRole('applicant');
+
+        $this->actingAs($user)
+            ->get(route('loan-applications.create'))
+            ->assertRedirect(route('applicants.create'))
+            ->assertSessionHasErrors('error');
+    }
+
     public function test_applicant_without_active_loan_can_open_apply_form(): void
     {
         $this->actingAsRole('test@example.com')

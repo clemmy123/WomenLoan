@@ -4,6 +4,7 @@ namespace App\Http\Requests\Applicant;
 
 use App\Models\Applicant;
 use App\Rules\TanzaniaPhone;
+use App\Services\ApplicantService;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
@@ -12,6 +13,17 @@ class StoreApplicantRequest extends FormRequest
     public function authorize(): bool
     {
         return true;
+    }
+
+    protected function prepareForValidation(): void
+    {
+        $user = $this->user();
+
+        if (! $user || $user->applicant || ! $user->isApplicant()) {
+            return;
+        }
+
+        $this->merge(app(ApplicantService::class)->registrationFieldDefaults($user));
     }
 
     public function rules(): array

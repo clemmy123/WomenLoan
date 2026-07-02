@@ -1,7 +1,9 @@
 @php
     use App\Models\Applicant;
 
-    $isEdit = isset($applicant);
+    $isEdit = $applicant?->exists ?? false;
+    $lockRegistrationFields = $lockRegistrationFields ?? false;
+    $lockedInputClass = 'bg-gray-100 border-gray-200 text-gray-600 cursor-not-allowed focus:ring-0 focus:border-gray-200';
     $dobValue = old('dob', $isEdit && $applicant->dob ? $applicant->dob->format('Y-m-d') : '');
     $maritalValue = old('marital_status', $applicant?->marital_status ?? '');
 @endphp
@@ -9,22 +11,26 @@
 <div class="bg-white p-6 rounded-xl border border-gray-200 space-y-6">
     <h2 class="text-sm font-semibold tracking-wide uppercase text-indigo-600 border-b border-gray-100 pb-2">{{ __('applicants.section_identification') }}</h2>
 
+    @if($lockRegistrationFields)
+        <p class="text-xs text-gray-500">{{ __('applicants.registration_fields_locked') }}</p>
+    @endif
+
     <div class="grid grid-cols-1 sm:grid-cols-3 gap-5">
         <div>
             <label for="first_name" class="block text-xs font-semibold text-gray-700 uppercase tracking-wider mb-2">{{ __('applicants.first_name') }}</label>
-            <input type="text" name="first_name" id="first_name" value="{{ old('first_name', $applicant?->first_name ?? '') }}" class="w-full bg-gray-50 border @error('first_name') border-red-500 @else border-gray-300 @enderror rounded-lg px-4 py-2.5 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-indigo-500">
+            <input type="text" name="first_name" id="first_name" value="{{ old('first_name', $applicant?->first_name ?? '') }}" @readonly($lockRegistrationFields) class="w-full border @error('first_name') border-red-500 @else border-gray-300 @enderror rounded-lg px-4 py-2.5 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-indigo-500 {{ $lockRegistrationFields ? $lockedInputClass : 'bg-gray-50' }}">
             @error('first_name') <p class="mt-1.5 text-xs font-medium text-red-600">{{ $message }}</p> @enderror
         </div>
 
         <div>
             <label for="middle_name" class="block text-xs font-semibold text-gray-700 uppercase tracking-wider mb-2">{{ __('applicants.middle_name') }}</label>
-            <input type="text" name="middle_name" id="middle_name" value="{{ old('middle_name', $applicant?->middle_name ?? '') }}" class="w-full bg-gray-50 border @error('middle_name') border-red-500 @else border-gray-300 @enderror rounded-lg px-4 py-2.5 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-indigo-500">
+            <input type="text" name="middle_name" id="middle_name" value="{{ old('middle_name', $applicant?->middle_name ?? '') }}" @readonly($lockRegistrationFields) class="w-full border @error('middle_name') border-red-500 @else border-gray-300 @enderror rounded-lg px-4 py-2.5 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-indigo-500 {{ $lockRegistrationFields ? $lockedInputClass : 'bg-gray-50' }}">
             @error('middle_name') <p class="mt-1.5 text-xs font-medium text-red-600">{{ $message }}</p> @enderror
         </div>
 
         <div>
             <label for="last_name" class="block text-xs font-semibold text-gray-700 uppercase tracking-wider mb-2">{{ __('applicants.last_name') }}</label>
-            <input type="text" name="last_name" id="last_name" value="{{ old('last_name', $applicant?->last_name ?? '') }}" class="w-full bg-gray-50 border @error('last_name') border-red-500 @else border-gray-300 @enderror rounded-lg px-4 py-2.5 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-indigo-500">
+            <input type="text" name="last_name" id="last_name" value="{{ old('last_name', $applicant?->last_name ?? '') }}" @readonly($lockRegistrationFields) class="w-full border @error('last_name') border-red-500 @else border-gray-300 @enderror rounded-lg px-4 py-2.5 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-indigo-500 {{ $lockRegistrationFields ? $lockedInputClass : 'bg-gray-50' }}">
             @error('last_name') <p class="mt-1.5 text-xs font-medium text-red-600">{{ $message }}</p> @enderror
         </div>
     </div>
@@ -44,13 +50,13 @@
 
         <div>
             <label for="phone" class="block text-xs font-semibold text-gray-700 uppercase tracking-wider mb-2">{{ __('applicants.phone_hint') }}</label>
-            <input type="text" name="phone" id="phone" value="{{ old('phone', $applicant?->phone ?? '') }}" placeholder="0712345678" class="w-full bg-gray-50 border @error('phone') border-red-500 @else border-gray-300 @enderror rounded-lg px-4 py-2.5 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-indigo-500">
+            <input type="text" name="phone" id="phone" value="{{ old('phone', $applicant?->phone ?? '') }}" placeholder="0712345678" @readonly($lockRegistrationFields) class="w-full border @error('phone') border-red-500 @else border-gray-300 @enderror rounded-lg px-4 py-2.5 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-indigo-500 {{ $lockRegistrationFields ? $lockedInputClass : 'bg-gray-50' }}">
             @error('phone') <p class="mt-1.5 text-xs font-medium text-red-600">{{ $message }}</p> @enderror
         </div>
 
         <div>
             <label for="email" class="block text-xs font-semibold text-gray-700 uppercase tracking-wider mb-2">{{ __('applicants.email') }}</label>
-            <input type="email" name="email" id="email" value="{{ old('email', $applicant?->email ?? '') }}" class="w-full bg-gray-50 border @error('email') border-red-500 @else border-gray-300 @enderror rounded-lg px-4 py-2.5 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-indigo-500">
+            <input type="email" name="email" id="email" value="{{ old('email', $applicant?->email ?? '') }}" @readonly($lockRegistrationFields) class="w-full border @error('email') border-red-500 @else border-gray-300 @enderror rounded-lg px-4 py-2.5 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-indigo-500 {{ $lockRegistrationFields ? $lockedInputClass : 'bg-gray-50' }}">
             @error('email') <p class="mt-1.5 text-xs font-medium text-red-600">{{ $message }}</p> @enderror
         </div>
     </div>

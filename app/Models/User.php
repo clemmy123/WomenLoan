@@ -4,6 +4,7 @@ namespace App\Models;
 
 use App\Models\Council;
 use App\Models\Region;
+use App\Models\Scopes\ApplicantAccess;
 use App\Models\Ward;
 use App\Models\Concerns\HasHashid;
 use Database\Factories\UserFactory;
@@ -45,7 +46,16 @@ class User extends Authenticatable
 
     public function applicant(): HasOne
     {
-        return $this->hasOne(Applicant::class);
+        return $this->hasOne(Applicant::class)->withoutGlobalScope(ApplicantAccess::class);
+    }
+
+    public function hasCompletedProfile(): bool
+    {
+        if ($this->relationLoaded('applicant')) {
+            return $this->applicant !== null;
+        }
+
+        return $this->applicant()->exists();
     }
 
     public function zoneable(): MorphTo

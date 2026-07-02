@@ -12,6 +12,7 @@ return [
     'save_profile' => 'Save Profile',
     'search_placeholder' => 'Search by name, NIN, phone or email…',
     'section_identification' => 'Identification',
+    'registration_fields_locked' => 'Name, email and phone were taken from your registration account and cannot be changed here.',
     'section_demographics' => 'Demographics & Location',
     'first_name' => 'First Name',
     'middle_name' => 'Middle Name',

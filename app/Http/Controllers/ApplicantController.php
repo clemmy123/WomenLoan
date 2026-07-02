@@ -30,9 +30,17 @@ class ApplicantController extends Controller
 
     public function create()
     {
-        $regions = $this->geo->regions();
+        $user = auth()->user();
 
-        return view('applicants.create', compact('regions'));
+        if ($user->applicant) {
+            return redirect()->route('applicants.show', $user->applicant);
+        }
+
+        $regions = $this->geo->regions();
+        $applicant = $this->applicants->draftFromUser($user);
+        $lockRegistrationFields = $user->isApplicant() && ! $user->applicant;
+
+        return view('applicants.create', compact('regions', 'applicant', 'lockRegistrationFields'));
     }
 
     public function store(StoreApplicantRequest $request)
