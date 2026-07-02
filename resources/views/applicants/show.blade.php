@@ -80,7 +80,7 @@
                 @csrf
                 <div>
                     {{-- <label for="group_id" class="detail-field-label">{{ __('applicants.select_group') }}</label>
-                    <select name="group_id" id="group_id" required class="w-full bg-slate-50 dark:bg-white/5 border border-slate-300 dark:border-white/10 rounded-lg px-4 py-2 text-sm text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                    <select name="group_id" id="group_id" required class="app-select">
                         <option value="">{{ __('applicants.select_group') }}</option>
                         @foreach($groups as $loanGroup)
                             <option value="{{ $loanGroup->hashid }}" @selected(old('group_id') === $loanGroup->hashid)>{{ $loanGroup->name }}</option>

@@ -68,7 +68,7 @@
     <div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
         <div>
             <label for="sex" class="block text-xs font-semibold text-gray-700 uppercase tracking-wider mb-2">{{ __('applicants.sex') }}</label>
-            <select name="sex" id="sex" class="w-full bg-gray-50 border @error('sex') border-red-500 @else border-gray-300 @enderror rounded-lg px-4 py-2.5 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-indigo-500">
+            <select name="sex" id="sex" class="app-select @error('sex') app-select-error @enderror">
                 <option value="">{{ __('applicants.select_sex') }}</option>
                 <option value="Male" @selected(old('sex', $applicant?->sex ?? '') === 'Male')>{{ __('applicants.male') }}</option>
                 <option value="Female" @selected(old('sex', $applicant?->sex ?? '') === 'Female')>{{ __('applicants.female') }}</option>
@@ -78,7 +78,7 @@
 
         <div>
             <label for="marital_status" class="block text-xs font-semibold text-gray-700 uppercase tracking-wider mb-2">{{ __('applicants.marital_status') }}</label>
-            <select name="marital_status" id="marital_status" class="w-full bg-gray-50 border @error('marital_status') border-red-500 @else border-gray-300 @enderror rounded-lg px-4 py-2.5 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-indigo-500">
+            <select name="marital_status" id="marital_status" class="app-select @error('marital_status') app-select-error @enderror">
                 <option value="">{{ __('applicants.select_marital_status') }}</option>
                 @foreach(Applicant::MARITAL_STATUSES as $status)
                     <option value="{{ $status }}" @selected($maritalValue === $status)>{{ __('applicants.marital_statuses.'.$status) }}</option>
@@ -98,7 +98,7 @@
 
         <div>
             <label for="region_select" class="block text-xs font-semibold text-gray-700 uppercase tracking-wider mb-2">{{ __('geo.residential_region') }}</label>
-            <select id="region_select" name="region_id" class="w-full bg-gray-50 border border-gray-300 rounded-lg px-4 py-2.5 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-indigo-500">
+            <select id="region_select" name="region_id" class="app-select">
                 <option value="">-- {{ __('geo.select_region') }} --</option>
                 @foreach($regions as $region)
                     <option value="{{ $region->id }}" @selected(old('region_id', $regionId ?? null) == $region->id)>{{ $region->name }}</option>
@@ -108,28 +108,28 @@
 
         <div>
             <label for="district_select" class="block text-xs font-semibold text-gray-700 uppercase tracking-wider mb-2">{{ __('geo.district') }}</label>
-            <select id="district_select" class="w-full bg-gray-50 border border-gray-300 rounded-lg px-4 py-2.5 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-indigo-500" disabled>
+            <select id="district_select" class="app-select" disabled>
                 <option value="">-- {{ __('geo.select_district') }} --</option>
             </select>
         </div>
 
         <div>
             <label for="council_select" class="block text-xs font-semibold text-gray-700 uppercase tracking-wider mb-2">{{ __('geo.council') }}</label>
-            <select id="council_select" class="w-full bg-gray-50 border border-gray-300 rounded-lg px-4 py-2.5 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-indigo-500" disabled>
+            <select id="council_select" class="app-select" disabled>
                 <option value="">-- {{ __('geo.select_council') }} --</option>
             </select>
         </div>
 
         <div>
             <label for="ward_select" class="block text-xs font-semibold text-gray-700 uppercase tracking-wider mb-2">{{ __('geo.ward') }}</label>
-            <select id="ward_select" class="w-full bg-gray-50 border border-gray-300 rounded-lg px-4 py-2.5 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-indigo-500" disabled>
+            <select id="ward_select" class="app-select" disabled>
                 <option value="">-- {{ __('geo.select_ward') }} --</option>
             </select>
         </div>
 
         <div class="sm:col-span-2">
             <label for="street_select" class="block text-xs font-semibold text-gray-700 uppercase tracking-wider mb-2">{{ __('geo.street') }}</label>
-            <select id="street_select" name="location_id" class="w-full bg-gray-50 border @error('location_id') border-red-500 @else border-gray-300 @enderror rounded-lg px-4 py-2.5 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-indigo-500" disabled>
+            <select id="street_select" name="location_id" class="app-select @error('location_id') app-select-error @enderror" disabled>
                 <option value="">-- {{ __('geo.select_street') }} --</option>
             </select>
             @error('location_id') <p class="mt-1.5 text-xs font-medium text-red-600">{{ $message }}</p> @enderror
