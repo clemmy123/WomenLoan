@@ -25,7 +25,7 @@ class LoanSubmissionTest extends TestCase
 
     public function test_applicant_can_submit_loan_with_guarantor(): void
     {
-        $user = \App\Models\User::where('email', 'test@example.com')->firstOrFail();
+        $user = $this->applicantWithoutLoan();
 
         $response = $this->actingAs($user)->post(route('loan-applications.store'), [
             'track_id' => 'WL000300',
@@ -74,7 +74,7 @@ class LoanSubmissionTest extends TestCase
 
     public function test_guarantor_relationship_defaults_when_not_provided(): void
     {
-        $user = \App\Models\User::where('email', 'test@example.com')->firstOrFail();
+        $user = $this->applicantWithoutLoan();
 
         $this->actingAs($user)->post(route('loan-applications.store'), [
             'track_id' => 'WL000301',
@@ -111,7 +111,7 @@ class LoanSubmissionTest extends TestCase
 
     public function test_guarantor_relationship_defaults_when_empty_string(): void
     {
-        $user = \App\Models\User::where('email', 'test@example.com')->firstOrFail();
+        $user = $this->applicantWithoutLoan();
 
         $this->actingAs($user)->post(route('loan-applications.store'), [
             'track_id' => 'WL000302',
@@ -149,7 +149,7 @@ class LoanSubmissionTest extends TestCase
 
     public function test_group_loan_requires_group_documents(): void
     {
-        $user = \App\Models\User::where('email', 'test@example.com')->firstOrFail();
+        $user = $this->applicantWithoutLoan();
         Applicant::withoutGlobalScope(ApplicantAccess::class)
             ->where('user_id', $user->id)
             ->firstOrFail()

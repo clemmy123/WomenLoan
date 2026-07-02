@@ -73,7 +73,7 @@
         @endif
     </div>
 
-    @if($drafts->count())
+    @if(($canStartNew ?? true) && $drafts->count())
     <div class="app-card app-card-padded">
         <h3 class="font-bold text-lg mb-4 text-slate-900 dark:text-white">{{ __('loans.drafts') }}</h3>
         <ul class="space-y-3">

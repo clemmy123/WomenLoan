@@ -29,7 +29,7 @@ class LoanApplicationController extends Controller
         $drafts = DraftLoan::where('user_id', Auth::id())->latest()->get();
         $canStartNew = Auth::user()->can('create loan application')
             && Auth::user()->hasCompletedProfile()
-            && ! $this->loans->userHasActiveLoan(Auth::user());
+            && ! $this->loans->userHasLoanApplication(Auth::user());
         $userGroup = $this->applicantGroups->groupForUser(Auth::user());
         $canSetupGroup = $this->applicantGroups->canSetupGroup(Auth::user());
 
@@ -47,7 +47,7 @@ class LoanApplicationController extends Controller
                 ->withErrors(['error' => __('messages.complete_applicant_profile')]);
         }
 
-        if ($this->loans->userHasActiveLoan($user)) {
+        if ($this->loans->userHasLoanApplication($user)) {
             return redirect()->route('loan-applications.index')
                 ->withErrors(['error' => __('messages.already_has_application')]);
         }
@@ -82,6 +82,11 @@ class LoanApplicationController extends Controller
         $user = Auth::user();
 
         if ($action === 'save_draft') {
+            if ($this->loans->userHasLoanApplication($user)) {
+                return redirect()->route('loan-applications.index')
+                    ->withErrors(['error' => __('messages.already_has_application')]);
+            }
+
             $this->applications->saveDraft($request, $user->id, $trackId);
 
             return redirect()
@@ -103,7 +108,7 @@ class LoanApplicationController extends Controller
         $formRequest->setContainer(app())->setRedirector(app('redirect'));
         $formRequest->validateResolved();
 
-        if ($this->loans->userHasActiveLoan($user)) {
+        if ($this->loans->userHasLoanApplication($user)) {
             return redirect()->route('loan-applications.index')
                 ->withErrors(['error' => __('messages.already_has_application')]);
         }

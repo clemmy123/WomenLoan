@@ -16,7 +16,7 @@ return [
     'application_submitted' => 'Application submitted successfully.',
     'application_updated' => 'Application updated successfully.',
     'application_not_editable' => 'This application can no longer be edited because processing has started.',
-    'already_has_application' => 'You already have an active loan application.',
+    'already_has_application' => 'You may only submit one loan application (individual or group).',
     'draft_saved' => 'Draft saved successfully.',
     'complete_applicant_profile' => 'Please complete your applicant profile first.',
     'applicant_created' => 'Applicant registered successfully.',

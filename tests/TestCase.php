@@ -29,4 +29,9 @@ abstract class TestCase extends BaseTestCase
             ->where('loan_track_id', $trackId)
             ->firstOrFail();
     }
+
+    protected function applicantWithoutLoan(): \App\Models\User
+    {
+        return \App\Models\User::where('email', 'applicant2@wdf.go.tz')->firstOrFail();
+    }
 }

@@ -21,14 +21,21 @@ class ApplicantGroupController extends Controller
         $group = $this->groups->groupForUser(Auth::user());
 
         if (! $group) {
-            return redirect()->route('my-group.create');
+            if ($this->groups->canSetupGroup(Auth::user())) {
+                return redirect()->route('my-group.create');
+            }
+
+            return redirect()->route('loan-applications.index');
         }
 
         $group->load('members');
 
         $canManage = $this->groups->userCanManageGroup(Auth::user(), $group);
+        $canStartApplication = Auth::user()->can('create loan application')
+            && Auth::user()->hasCompletedProfile()
+            && ! Auth::user()->hasLoanApplication();
 
-        return view('my_group.show', compact('group', 'canManage'));
+        return view('my_group.show', compact('group', 'canManage', 'canStartApplication'));
     }
 
     public function create()
@@ -40,6 +47,11 @@ class ApplicantGroupController extends Controller
         if (! $user->applicant) {
             return redirect()->route('applicants.create')
                 ->withErrors(['error' => __('messages.complete_applicant_profile')]);
+        }
+
+        if ($user->hasLoanApplication()) {
+            return redirect()->route('loan-applications.index')
+                ->withErrors(['error' => __('messages.already_has_application')]);
         }
 
         if (! $this->groups->canSetupGroup($user)) {
@@ -67,6 +79,11 @@ class ApplicantGroupController extends Controller
     public function store(StoreApplicantGroupRequest $request)
     {
         $user = Auth::user();
+
+        if ($user->hasLoanApplication()) {
+            return redirect()->route('loan-applications.index')
+                ->withErrors(['error' => __('messages.already_has_application')]);
+        }
 
         if (! $this->groups->canSetupGroup($user)) {
             return redirect()->route('my-group.show')

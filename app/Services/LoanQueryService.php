@@ -60,7 +60,7 @@ class LoanQueryService
         return User::role('accountant')->get(['id', 'name', 'email']);
     }
 
-    public function userHasActiveLoan(User $user): bool
+    public function userHasLoanApplication(User $user): bool
     {
         if (! $user->hasRole('applicant')) {
             return false;
@@ -69,7 +69,6 @@ class LoanQueryService
         $applicantId = $user->applicant?->id;
 
         return Loan::withoutGlobalScope(ApprovalLevelScope::class)
-            ->active()
             ->where(function ($query) use ($user, $applicantId) {
                 $query->where('user_id', $user->id);
 

@@ -11,6 +11,8 @@ use Illuminate\Support\Facades\DB;
 
 class ApplicantGroupService
 {
+    public function __construct(private LoanQueryService $loans) {}
+
     public function groupForUser(User $user): ?LoanGroup
     {
         $applicantId = $user->applicant?->id;
@@ -27,7 +29,7 @@ class ApplicantGroupService
 
     public function canSetupGroup(User $user): bool
     {
-        if (! $user->applicant) {
+        if (! $user->applicant || $this->loans->userHasLoanApplication($user)) {
             return false;
         }
 

@@ -6,6 +6,7 @@ use App\Models\Council;
 use App\Models\Region;
 use App\Models\Scopes\ApplicantAccess;
 use App\Models\Ward;
+use App\Services\LoanQueryService;
 use App\Models\Concerns\HasHashid;
 use Database\Factories\UserFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -56,6 +57,11 @@ class User extends Authenticatable
         }
 
         return $this->applicant()->exists();
+    }
+
+    public function hasLoanApplication(): bool
+    {
+        return app(LoanQueryService::class)->userHasLoanApplication($this);
     }
 
     public function zoneable(): MorphTo

@@ -22,7 +22,7 @@ class GroupSetupTest extends TestCase
 
     public function test_applicant_can_register_group_with_members_once(): void
     {
-        $user = User::where('email', 'test@example.com')->firstOrFail();
+        $user = $this->applicantWithoutLoan();
         $applicant = Applicant::withoutGlobalScope(ApplicantAccess::class)
             ->where('user_id', $user->id)
             ->firstOrFail();
@@ -59,7 +59,12 @@ class GroupSetupTest extends TestCase
 
     public function test_create_group_option_hidden_after_registration(): void
     {
-        $user = User::where('email', 'applicant6@wdf.go.tz')->firstOrFail();
+        $user = $this->applicantWithoutLoan();
+        Applicant::withoutGlobalScope(ApplicantAccess::class)
+            ->where('user_id', $user->id)
+            ->firstOrFail()
+            ->groups()
+            ->detach();
 
         $this->actingAs($user)->post(route('my-group.store'), [
             'name' => 'One Time Group',
@@ -89,7 +94,7 @@ class GroupSetupTest extends TestCase
 
     public function test_group_creator_can_update_and_remove_member(): void
     {
-        $user = User::where('email', 'test@example.com')->firstOrFail();
+        $user = $this->applicantWithoutLoan();
         $applicant = Applicant::withoutGlobalScope(ApplicantAccess::class)
             ->where('user_id', $user->id)
             ->firstOrFail();

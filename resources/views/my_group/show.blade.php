@@ -31,7 +31,9 @@
             @if($canManage)
                 <button type="button" @click="modal = 'add'" class="app-btn app-btn-secondary">{{ __('groups.add_member') }}</button>
             @endif
+            @if($canStartApplication ?? false)
             <a href="{{ route('loan-applications.create') }}" class="app-btn app-btn-success">{{ __('loans.start_group_application') }}</a>
+            @endif
         </div>
     </div>
 

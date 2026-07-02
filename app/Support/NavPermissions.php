@@ -12,7 +12,9 @@ class NavPermissions
             'viewDashboard' => $user->can('view dashboard'),
             'trackLoan' => $user->can('view loan by track id'),
             'isApplicant' => $user->hasRole('applicant'),
-            'createLoan' => $user->can('create loan application') && $user->hasCompletedProfile(),
+            'createLoan' => $user->can('create loan application')
+                && $user->hasCompletedProfile()
+                && ! $user->hasLoanApplication(),
             'registerApplicant' => $user->can('register applicant'),
             'manageApplicants' => $user->can('manage applicants') && ! $user->hasRole('applicant'),
             'viewStaffLoans' => $user->can('view ward loans')

@@ -16,7 +16,7 @@ return [
     'application_submitted' => 'Ombi limewasilishwa.',
     'application_updated' => 'Ombi limesasishwa.',
     'application_not_editable' => 'Ombi hili haliwezi kuhaririwa tena kwa sababu uchakataji umeanza.',
-    'already_has_application' => 'Tayari una ombi la mkopo linaloendelea.',
+    'already_has_application' => 'Unaweza kuwasilisha ombi la mkopo mara moja tu (binafsi au kundi).',
     'draft_saved' => 'Rasimu imehifadhiwa.',
     'complete_applicant_profile' => 'Tafadhali kamilisha wasifu wako wa mwombaji kwanza.',
     'applicant_created' => 'Mwombaji amesajiliwa.',
