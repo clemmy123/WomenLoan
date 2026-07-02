@@ -172,6 +172,18 @@ document.addEventListener('alpine:init', () => {
 
                 const fields = panel.querySelectorAll('input, select, textarea');
                 for (const field of fields) {
+                    if (field.disabled) {
+                        continue;
+                    }
+
+                    const scopeRoot = field.closest('[data-loan-scope]');
+                    if (scopeRoot) {
+                        const scope = scopeRoot.dataset.loanScope;
+                        if (scope === 'group' && this.loanType !== 'group') {
+                            continue;
+                        }
+                    }
+
                     if (!field.checkValidity()) {
                         field.reportValidity();
                         return false;
@@ -179,6 +191,22 @@ document.addEventListener('alpine:init', () => {
                 }
 
                 return true;
+            },
+
+            prepareSubmit(event) {
+                const form = event.target;
+                if (!form) {
+                    return;
+                }
+
+                form.querySelectorAll('[data-loan-scope="group"] input, [data-loan-scope="group"] select, [data-loan-scope="group"] textarea').forEach((field) => {
+                    field.disabled = this.loanType !== 'group';
+                });
+
+                const stepInput = form.querySelector('input[name="step"]');
+                if (stepInput) {
+                    stepInput.value = this.step;
+                }
             },
 
             nextStep() {

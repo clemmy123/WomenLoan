@@ -21,7 +21,7 @@
         <p class="text-xs uppercase font-bold text-slate-400 mt-2" x-text="stepText"></p>
     </div>
 
-    <form action="{{ ($editing ?? false) ? route('loan-applications.update', $editingLoan) : route('loan-applications.store') }}" method="POST" enctype="multipart/form-data" class="space-y-6" novalidate>
+    <form action="{{ ($editing ?? false) ? route('loan-applications.update', $editingLoan) : route('loan-applications.store') }}" method="POST" enctype="multipart/form-data" class="space-y-6 wizard-form" novalidate @submit="prepareSubmit($event)">
         @csrf
         @if($editing ?? false)
             @method('PUT')
@@ -30,7 +30,7 @@
         @endif
         <input type="hidden" name="step" :value="step">
 
-        <div x-show="step === 1" x-cloak data-wizard-step="1" class="app-card app-card-padded wizard-panel">
+        <div data-wizard-step="1" class="app-card app-card-padded wizard-panel" :class="step === 1 ? 'wizard-step-active' : 'wizard-step-inactive'">
             <h3 class="text-lg font-bold text-slate-900 dark:text-white">1. {{ __('loans.wizard_steps.1') }}</h3>
             <x-wizard-field :label="__('loans.select_loan_type')" for="loan_type" :required="true">
                 <select name="loan_type" id="loan_type" x-model="loanType" :required="step === 1" class="app-select">
@@ -87,7 +87,7 @@
             </div>
         </div>
 
-        <div x-show="step === 2" x-cloak data-wizard-step="2" class="app-card app-card-padded wizard-panel">
+        <div data-wizard-step="2" class="app-card app-card-padded wizard-panel" :class="step === 2 ? 'wizard-step-active' : 'wizard-step-inactive'">
             <h3 class="text-lg font-bold text-slate-900 dark:text-white">2. {{ __('loans.wizard_steps.2') }}</h3>
 
             <div class="wizard-section">
@@ -185,23 +185,7 @@
                     <x-wizard-field :label="__('loans.business_registration')" for="business_registration_attachment">
                         <input type="file" name="business_registration_attachment" id="business_registration_attachment" accept=".pdf,.doc,.docx" class="app-input">
                     </x-wizard-field>
-                    <div x-show="loanType === 'individual'" x-cloak class="wizard-form-grid wizard-form-grid-2 wizard-form-grid-span-2">
-                        <x-wizard-field :label="__('loans.application_letter')" for="application_letter" :required="true">
-                            <input type="file" name="application_letter" id="application_letter" accept=".pdf,.doc,.docx"
-                                @if(!($editing ?? false)) :required="step === 2 && loanType === 'individual'" @endif class="app-input">
-                            @if(($editing ?? false) && ($editingLoan->businessDetails?->application_letter ?? false))
-                                <p class="text-xs text-slate-500 dark:text-zinc-400 mt-1">{{ __('loans.keep_existing_file') }}</p>
-                            @endif
-                        </x-wizard-field>
-                        <x-wizard-field :label="__('loans.bank_statement')" for="bank_statement" :required="true">
-                            <input type="file" name="bank_statement" id="bank_statement" accept=".pdf,.doc,.docx"
-                                @if(!($editing ?? false)) :required="step === 2 && loanType === 'individual'" @endif class="app-input">
-                            @if(($editing ?? false) && ($editingLoan->businessDetails?->bank_statement ?? false))
-                                <p class="text-xs text-slate-500 dark:text-zinc-400 mt-1">{{ __('loans.keep_existing_file') }}</p>
-                            @endif
-                        </x-wizard-field>
-                    </div>
-                    <div x-show="loanType === 'group'" x-cloak class="wizard-form-grid wizard-form-grid-2 wizard-form-grid-span-2">
+                    <div data-loan-scope="group" x-show="loanType === 'group'" x-cloak class="wizard-form-grid wizard-form-grid-2 wizard-form-grid-span-2">
                         <x-wizard-field :label="__('loans.group_constitution')" for="group_constitution" :required="true">
                             <input type="file" name="group_constitution" id="group_constitution" accept=".pdf,.doc,.docx"
                                 @if(!($editing ?? false)) :required="step === 2 && loanType === 'group'" @endif class="app-input">
@@ -223,17 +207,19 @@
                                 <p class="text-xs text-slate-500 dark:text-zinc-400 mt-1">{{ __('loans.keep_existing_file') }}</p>
                             @endif
                         </x-wizard-field>
-                        <x-wizard-field :label="__('loans.bank_statement')" for="bank_statement_group">
-                            <input type="file" name="bank_statement" id="bank_statement_group" accept=".pdf,.doc,.docx"
-                                @if(!($editing ?? false)) :required="step === 2 && loanType === 'group'" @endif class="app-input">
-                            @if(($editing ?? false) && ($editingLoan->businessDetails?->bank_statement ?? false))
+                    </div>
+                    <div data-loan-scope="shared" class="wizard-form-grid wizard-form-grid-2 wizard-form-grid-span-2">
+                        <x-wizard-field :label="__('loans.application_letter')" for="application_letter" :required="true">
+                            <input type="file" name="application_letter" id="application_letter" accept=".pdf,.doc,.docx"
+                                @if(!($editing ?? false)) :required="step === 2" @endif class="app-input">
+                            @if(($editing ?? false) && ($editingLoan->businessDetails?->application_letter ?? false))
                                 <p class="text-xs text-slate-500 dark:text-zinc-400 mt-1">{{ __('loans.keep_existing_file') }}</p>
                             @endif
                         </x-wizard-field>
-                        <x-wizard-field :label="__('loans.application_letter')" for="application_letter_group">
-                            <input type="file" name="application_letter" id="application_letter_group" accept=".pdf,.doc,.docx"
-                                @if(!($editing ?? false)) :required="step === 2 && loanType === 'group'" @endif class="app-input">
-                            @if(($editing ?? false) && ($editingLoan->businessDetails?->application_letter ?? false))
+                        <x-wizard-field :label="__('loans.bank_statement')" for="bank_statement" :required="true">
+                            <input type="file" name="bank_statement" id="bank_statement" accept=".pdf,.doc,.docx"
+                                @if(!($editing ?? false)) :required="step === 2" @endif class="app-input">
+                            @if(($editing ?? false) && ($editingLoan->businessDetails?->bank_statement ?? false))
                                 <p class="text-xs text-slate-500 dark:text-zinc-400 mt-1">{{ __('loans.keep_existing_file') }}</p>
                             @endif
                         </x-wizard-field>
@@ -242,7 +228,7 @@
             </div>
         </div>
 
-        <div x-show="step === 3" x-cloak data-wizard-step="3" class="app-card app-card-padded wizard-panel">
+        <div data-wizard-step="3" class="app-card app-card-padded wizard-panel" :class="step === 3 ? 'wizard-step-active' : 'wizard-step-inactive'">
             <h3 class="text-lg font-bold text-slate-900 dark:text-white">3. {{ __('loans.wizard_steps.3') }}</h3>
             <div class="wizard-form-grid wizard-form-grid-2">
                 <x-wizard-field :label="__('loans.applicant_name')" for="applicant_name">
@@ -271,7 +257,7 @@
             </div>
         </div>
 
-        <div x-show="step === 4" x-cloak data-wizard-step="4" class="app-card app-card-padded wizard-panel">
+        <div data-wizard-step="4" class="app-card app-card-padded wizard-panel" :class="step === 4 ? 'wizard-step-active' : 'wizard-step-inactive'">
             <h3 class="text-lg font-bold text-slate-900 dark:text-white">4. {{ __('loans.wizard_steps.4') }}</h3>
             <div class="wizard-form-grid wizard-form-grid-2">
                 <x-wizard-field :label="__('loans.guarantor_name')" for="guarantor_name">
@@ -297,14 +283,14 @@
             </div>
         </div>
 
-        <div x-show="step === 5" x-cloak data-wizard-step="5" class="app-card app-card-padded wizard-panel">
+        <div data-wizard-step="5" class="app-card app-card-padded wizard-panel" :class="step === 5 ? 'wizard-step-active' : 'wizard-step-inactive'">
             <h3 class="text-lg font-bold text-slate-900 dark:text-white">5. {{ __('loans.wizard_steps.5') }}</h3>
             <x-wizard-field :label="__('loans.requested_amount')" for="requested_amount" :required="true">
                 <input type="number" name="requested_amount" id="requested_amount" min="1" step="1" value="{{ $fd('requested_amount') }}" :required="step === 5" class="app-input">
             </x-wizard-field>
         </div>
 
-        <div x-show="step === 6" x-cloak data-wizard-step="6" class="app-card app-card-padded wizard-panel">
+        <div data-wizard-step="6" class="app-card app-card-padded wizard-panel" :class="step === 6 ? 'wizard-step-active' : 'wizard-step-inactive'">
             <h3 class="text-lg font-bold text-slate-900 dark:text-white">6. {{ __('loans.wizard_steps.6') }}</h3>
             <div class="wizard-form-grid wizard-form-grid-2">
                 <x-wizard-field :label="__('loans.bank_name')" for="bank_name">
@@ -316,7 +302,7 @@
             </div>
         </div>
 
-        <div x-show="step === 7" x-cloak data-wizard-step="7" class="app-card app-card-padded wizard-panel">
+        <div data-wizard-step="7" class="app-card app-card-padded wizard-panel" :class="step === 7 ? 'wizard-step-active' : 'wizard-step-inactive'">
             <h3 class="text-lg font-bold text-slate-900 dark:text-white">7. {{ __('loans.wizard_steps.7') }}</h3>
             <label class="flex items-start gap-3 cursor-pointer text-slate-900 dark:text-white">
                 <input type="checkbox" name="declaration" value="1" :required="step === 7" @checked($fd('declaration')) class="mt-1 w-5 h-5 accent-indigo-600">
