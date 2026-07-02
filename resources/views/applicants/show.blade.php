@@ -7,7 +7,7 @@
     <div class="page-header">
         <a href="{{ route('applicants.index') }}" class="text-sm font-semibold text-slate-500 hover:text-slate-900 dark:text-zinc-400 dark:hover:text-white transition-colors">&larr; {{ __('applicants.back_to_registry') }}</a>
         <div class="page-actions">
-            <a href="{{ route('applicants.edit', $applicant) }}" class="app-btn bg-amber-600 text-white hover:bg-amber-500">{{ __('applicants.edit_profile') }}</a>
+            <a href="{{ route('applicants.edit', $applicant) }}" class="app-btn app-btn-warning">{{ __('applicants.edit_profile') }}</a>
         </div>
     </div>
 
@@ -64,7 +64,7 @@
                         <form action="{{ route('applicants.detach-group', [$applicant, $group]) }}" method="POST" onsubmit="return confirm(@json(__('applicants.unlink_confirm')));">
                             @csrf
                             @method('DELETE')
-                            <button type="submit" class="text-xs text-red-600 hover:text-red-900 dark:text-red-400 font-medium">{{ __('applicants.remove') }}</button>
+                            <button type="submit" class="app-btn app-btn-link-danger app-btn-sm">{{ __('applicants.remove') }}</button>
                         </form>
                     </li>
                 @empty
@@ -88,7 +88,7 @@
                     </select> --}}
                     @error('group_id') <p class="mt-1 text-xs text-red-600">{{ $message }}</p> @enderror
                 </div>
-                <button type="submit" class="app-btn app-btn-primary w-full">
+                <button type="submit" class="app-btn app-btn-primary app-btn-block w-full">
                     {{ __('applicants.link_group_button') }}
                 </button>
             </form>

@@ -32,7 +32,7 @@
             <label class="block text-xs font-semibold text-slate-600 dark:text-zinc-400 mb-1">{{ __('common.confirm_password') }}</label>
             <input type="password" name="password_confirmation" required class="w-full rounded-xl border border-slate-200 dark:border-white/10 bg-white dark:bg-dm-800 text-slate-900 dark:text-white px-4 py-2.5 text-sm focus:ring-2 focus:ring-indigo-500">
         </div>
-        <button type="submit" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-2.5 rounded-xl text-sm transition">
+        <button type="submit" class="app-btn app-btn-primary app-btn-block">
             {{ __('nav.register') }}
         </button>
     </form>

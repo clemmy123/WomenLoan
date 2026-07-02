@@ -26,8 +26,8 @@
         ])
 
         <div class="flex items-center justify-end space-x-3 border-t border-gray-200 pt-6">
-            <a href="{{ route('applicants.show', $applicant) }}" class="rounded-xl border border-gray-300 bg-white px-4 py-2.5 text-sm font-semibold text-gray-700 hover:bg-gray-50">{{ __('common.cancel') }}</a>
-            <button type="submit" class="rounded-xl bg-amber-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-amber-500">{{ __('applicants.update_profile') }}</button>
+            <a href="{{ route('applicants.show', $applicant) }}" class="app-btn app-btn-outline">{{ __('common.cancel') }}</a>
+            <button type="submit" class="app-btn app-btn-warning">{{ __('applicants.update_profile') }}</button>
         </div>
     </form>
 </div>

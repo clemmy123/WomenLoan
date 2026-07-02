@@ -18,6 +18,20 @@ class ApplicantProfilePrefillTest extends TestCase
         $this->seedApplication();
     }
 
+    public function test_registration_redirects_to_dashboard(): void
+    {
+        $response = $this->post(route('register'), [
+            'name' => 'John Doe',
+            'email' => 'john.doe@example.com',
+            'phone' => '0712345678',
+            'password' => 'password',
+            'password_confirmation' => 'password',
+        ]);
+
+        $response->assertRedirect(route('dashboard'));
+        $this->assertAuthenticatedAs(User::where('email', 'john.doe@example.com')->first());
+    }
+
     public function test_split_full_name_handles_common_formats(): void
     {
         $this->assertSame(

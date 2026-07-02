@@ -26,8 +26,8 @@
         ])
 
         <div class="flex items-center justify-end space-x-3 border-t border-gray-200 pt-6">
-            <a href="{{ route('applicants.index') }}" class="rounded-xl border border-gray-300 bg-white px-4 py-2.5 text-sm font-semibold text-gray-700 hover:bg-gray-50 transition-all">{{ __('common.cancel') }}</a>
-            <button type="submit" class="rounded-xl bg-indigo-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-indigo-500 transition-all">{{ __('applicants.save_profile') }}</button>
+            <a href="{{ route('applicants.index') }}" class="app-btn app-btn-outline">{{ __('common.cancel') }}</a>
+            <button type="submit" class="app-btn app-btn-primary">{{ __('applicants.save_profile') }}</button>
         </div>
     </form>
 </div>

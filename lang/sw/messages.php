@@ -1,7 +1,7 @@
 <?php
 
 return [
-    'register_success' => 'Akaunti imeundwa. Tafadhali kamilisha wasifu wako wa mwombaji.',
+    'register_success' => 'Akaunti imeundwa. Karibu kwenye dashibodi yako.',
     'user_created' => 'Mtumiaji ameundwa.',
     'user_updated' => 'Mtumiaji amesasishwa.',
     'user_deleted' => 'Mtumiaji amefutwa.',

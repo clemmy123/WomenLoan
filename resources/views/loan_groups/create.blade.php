@@ -37,7 +37,7 @@
         </div>
 
         <div class="flex justify-end pt-4">
-            <button type="submit" class="bg-indigo-600 text-white px-8 py-3 rounded-xl font-bold hover:bg-indigo-700 transition-all ">
+            <button type="submit" class="app-btn app-btn-primary px-8 py-3 font-bold">
                 {{ __('groups.save_group') }}
             </button>
         </div>

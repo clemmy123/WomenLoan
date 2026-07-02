@@ -3,7 +3,6 @@
 namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
-use App\Models\Applicant;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -63,7 +62,7 @@ class AuthController extends Controller
 
         Auth::login($user);
 
-        return redirect()->route('applicants.create')
+        return redirect()->route('dashboard')
             ->with('success', __('messages.register_success'));
     }
 

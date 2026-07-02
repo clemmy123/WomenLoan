@@ -54,8 +54,8 @@
         </div>
 
         <div class="flex items-center gap-4 pt-4 border-t border-slate-100">
-            <a href="{{ route('loan-groups.show', $loanGroup) }}" class="px-6 py-3 rounded-xl text-sm font-bold text-slate-600 hover:bg-slate-100 transition-all">{{ __('common.cancel') }}</a>
-            <button type="submit" class="flex-1 bg-indigo-600 text-white px-6 py-3 rounded-xl font-bold hover:bg-indigo-700  transition-all">{{ __('groups.update_group') }}</button>
+            <a href="{{ route('loan-groups.show', $loanGroup) }}" class="app-btn app-btn-outline px-6 py-3 font-bold">{{ __('common.cancel') }}</a>
+            <button type="submit" class="app-btn app-btn-primary flex-1 px-6 py-3 font-bold">{{ __('groups.update_group') }}</button>
         </div>
     </form>
 </div>

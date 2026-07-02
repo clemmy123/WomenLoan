@@ -1,7 +1,7 @@
 <?php
 
 return [
-    'register_success' => 'Account created successfully. Please complete your applicant profile.',
+    'register_success' => 'Account created successfully. Welcome to your dashboard.',
     'user_created' => 'User created successfully.',
     'user_updated' => 'User updated successfully.',
     'user_deleted' => 'User deleted successfully.',

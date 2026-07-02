@@ -39,7 +39,7 @@
             {{ __('common.remember_me') }}
         </label>
         <button type="submit" data-loading-text="{{ __('auth.authenticating') }}"
-            class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-2.5 rounded-xl text-sm transition">
+            class="app-btn app-btn-primary app-btn-block">
             {{ __('nav.login') }}
         </button>
     </form>

@@ -54,7 +54,7 @@
                     <div x-show="open" @click.outside="open = false" x-cloak class="absolute right-0 mt-2 w-56 bg-white dark:dark-surface rounded-2xl border border-slate-200 dark:border-white/[0.08] shadow-lg dark:shadow-none p-2 z-50">
                         <form method="POST" action="{{ route('logout') }}">
                             @csrf
-                            <button type="submit" class="w-full text-left px-4 py-2 text-xs font-bold text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-xl">{{ __('nav.logout') }}</button>
+                            <button type="submit" class="app-btn app-btn-link-danger app-btn-sm app-btn-block !justify-start">{{ __('nav.logout') }}</button>
                         </form>
                     </div>
                 </div>

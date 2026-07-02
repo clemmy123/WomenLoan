@@ -61,8 +61,8 @@
 
     @if(!$role->hasLockedPermissions())
     <div class="mt-6 flex gap-3">
-        <button type="submit" data-loading-text="{{ __('common.saving') }}" class="bg-indigo-600 hover:bg-indigo-700 text-white font-semibold px-6 py-2.5 rounded-xl text-sm">{{ __('admin.save_permissions') }}</button>
-        <a href="{{ route('admin.roles.index') }}" class="px-6 py-2.5 rounded-xl text-sm font-semibold text-slate-600 dark:text-zinc-400 hover:bg-slate-100 dark:hover:bg-white/5">{{ __('common.cancel') }}</a>
+        <button type="submit" data-loading-text="{{ __('common.saving') }}" class="app-btn app-btn-primary">{{ __('admin.save_permissions') }}</button>
+        <a href="{{ route('admin.roles.index') }}" class="app-btn app-btn-outline">{{ __('common.cancel') }}</a>
     </div>
     @endif
 </form>
@@ -71,7 +71,7 @@
 <form method="POST" action="{{ route('admin.roles.destroy', $role) }}" class="mt-8"
     onsubmit="return confirm(@json(__('admin.delete_role_confirm')));">
     @csrf @method('DELETE')
-    <button type="submit" class="text-sm font-semibold text-red-600 hover:text-red-700 dark:text-red-400">{{ __('admin.delete_role') }}</button>
+    <button type="submit" class="app-btn app-btn-link-danger app-btn-sm">{{ __('admin.delete_role') }}</button>
 </form>
 @elseif(!$role->isProtected())
 <p class="mt-8 text-xs text-slate-400 dark:text-zinc-500">{{ __('admin.cannot_delete_role_in_use') }}</p>

@@ -667,56 +667,200 @@
         padding: 0.625rem 1.25rem;
         font-size: 0.875rem;
         font-weight: 600;
-        transition: background-color 0.15s, color 0.15s;
+        line-height: 1.25rem;
+        border: 1px solid transparent;
+        transition: transform 0.15s ease, box-shadow 0.15s ease, filter 0.15s ease, background 0.15s ease;
+        box-shadow: 0 2px 8px rgba(15, 23, 42, 0.08);
     }
 
-    .app-btn-primary {
-        background-color: #4f46e5;
-        color: #fff;
+    .app-btn:hover {
+        transform: translateY(-1px);
     }
 
-    .app-btn-primary:hover {
-        background-color: #4338ca;
-    }
-
-    .app-btn-success {
-        background-color: #059669;
-        color: #fff;
-    }
-
-    .app-btn-success:hover {
-        background-color: #047857;
-    }
-
-    .app-btn-danger {
-        background-color: #dc2626;
-        color: #fff;
-    }
-
-    .app-btn-danger:hover {
-        background-color: #b91c1c;
-    }
-
-    .app-btn-secondary {
-        background-color: #f1f5f9;
-        color: #334155;
-    }
-
-    .dark .app-btn-secondary {
-        background-color: rgba(255, 255, 255, 0.08);
-        color: #e4e4e7;
-    }
-
-    .app-btn-secondary:hover {
-        background-color: #e2e8f0;
-    }
-
-    .dark .app-btn-secondary:hover {
-        background-color: rgba(255, 255, 255, 0.12);
+    .app-btn:active {
+        transform: translateY(0);
+        filter: brightness(0.97);
     }
 
     .app-btn-block {
         width: 100%;
+    }
+
+    .app-btn-sm {
+        padding: 0.375rem 0.75rem;
+        font-size: 0.75rem;
+        border-radius: 0.625rem;
+    }
+
+    .app-btn-primary {
+        color: #fff;
+        background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 48%, #7c3aed 100%);
+        box-shadow: 0 4px 14px rgba(99, 102, 241, 0.35);
+    }
+
+    .app-btn-primary:hover {
+        background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 48%, #6d28d9 100%);
+        box-shadow: 0 6px 20px rgba(99, 102, 241, 0.45);
+    }
+
+    .dark .app-btn-primary {
+        background: linear-gradient(135deg, #4338ca 0%, #6d28d9 50%, #5b21b6 100%);
+        box-shadow: 0 4px 16px rgba(79, 70, 229, 0.4);
+    }
+
+    .dark .app-btn-primary:hover {
+        background: linear-gradient(135deg, #3730a3 0%, #5b21b6 50%, #4c1d95 100%);
+        box-shadow: 0 6px 22px rgba(79, 70, 229, 0.5);
+    }
+
+    .app-btn-success {
+        color: #fff;
+        background: linear-gradient(135deg, #34d399 0%, #10b981 48%, #059669 100%);
+        box-shadow: 0 4px 14px rgba(16, 185, 129, 0.35);
+    }
+
+    .app-btn-success:hover {
+        background: linear-gradient(135deg, #10b981 0%, #059669 48%, #047857 100%);
+        box-shadow: 0 6px 20px rgba(16, 185, 129, 0.45);
+    }
+
+    .dark .app-btn-success {
+        background: linear-gradient(135deg, #059669 0%, #047857 50%, #0f766e 100%);
+        box-shadow: 0 4px 16px rgba(16, 185, 129, 0.35);
+    }
+
+    .dark .app-btn-success:hover {
+        background: linear-gradient(135deg, #047857 0%, #065f46 50%, #115e59 100%);
+    }
+
+    .app-btn-danger {
+        color: #fff;
+        background: linear-gradient(135deg, #f87171 0%, #ef4444 48%, #dc2626 100%);
+        box-shadow: 0 4px 14px rgba(239, 68, 68, 0.35);
+    }
+
+    .app-btn-danger:hover {
+        background: linear-gradient(135deg, #ef4444 0%, #dc2626 48%, #b91c1c 100%);
+        box-shadow: 0 6px 20px rgba(239, 68, 68, 0.45);
+    }
+
+    .dark .app-btn-danger {
+        background: linear-gradient(135deg, #dc2626 0%, #b91c1c 50%, #991b1b 100%);
+    }
+
+    .dark .app-btn-danger:hover {
+        background: linear-gradient(135deg, #b91c1c 0%, #991b1b 50%, #7f1d1d 100%);
+    }
+
+    .app-btn-warning {
+        color: #fff;
+        background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 48%, #d97706 100%);
+        box-shadow: 0 4px 14px rgba(245, 158, 11, 0.35);
+    }
+
+    .app-btn-warning:hover {
+        background: linear-gradient(135deg, #f59e0b 0%, #d97706 48%, #b45309 100%);
+        box-shadow: 0 6px 20px rgba(245, 158, 11, 0.45);
+    }
+
+    .dark .app-btn-warning {
+        background: linear-gradient(135deg, #d97706 0%, #b45309 50%, #92400e 100%);
+    }
+
+    .app-btn-secondary {
+        color: #334155;
+        background: linear-gradient(135deg, #ffffff 0%, #f1f5f9 55%, #e2e8f0 100%);
+        border-color: rgba(148, 163, 184, 0.35);
+        box-shadow: 0 2px 8px rgba(15, 23, 42, 0.06);
+    }
+
+    .app-btn-secondary:hover {
+        background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 55%, #cbd5e1 100%);
+        box-shadow: 0 4px 12px rgba(15, 23, 42, 0.1);
+    }
+
+    .dark .app-btn-secondary {
+        color: #e4e4e7;
+        background: linear-gradient(135deg, rgba(255, 255, 255, 0.14) 0%, rgba(255, 255, 255, 0.08) 55%, rgba(255, 255, 255, 0.04) 100%);
+        border-color: rgba(255, 255, 255, 0.12);
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.25);
+    }
+
+    .dark .app-btn-secondary:hover {
+        background: linear-gradient(135deg, rgba(255, 255, 255, 0.18) 0%, rgba(255, 255, 255, 0.1) 55%, rgba(255, 255, 255, 0.06) 100%);
+    }
+
+    .app-btn-outline {
+        color: #4338ca;
+        background: linear-gradient(135deg, #ffffff 0%, #eef2ff 100%);
+        border-color: rgba(99, 102, 241, 0.28);
+        box-shadow: 0 2px 8px rgba(99, 102, 241, 0.1);
+    }
+
+    .app-btn-outline:hover {
+        background: linear-gradient(135deg, #eef2ff 0%, #e0e7ff 100%);
+        border-color: rgba(99, 102, 241, 0.45);
+    }
+
+    .dark .app-btn-outline {
+        color: #c7d2fe;
+        background: linear-gradient(135deg, rgba(99, 102, 241, 0.16) 0%, rgba(139, 92, 246, 0.1) 100%);
+        border-color: rgba(129, 140, 248, 0.35);
+    }
+
+    .dark .app-btn-outline:hover {
+        background: linear-gradient(135deg, rgba(99, 102, 241, 0.24) 0%, rgba(139, 92, 246, 0.16) 100%);
+    }
+
+    .app-btn-ghost {
+        color: #4338ca;
+        background: linear-gradient(135deg, rgba(99, 102, 241, 0.1) 0%, rgba(139, 92, 246, 0.14) 100%);
+        border-color: rgba(99, 102, 241, 0.22);
+    }
+
+    .app-btn-ghost:hover {
+        background: linear-gradient(135deg, rgba(99, 102, 241, 0.16) 0%, rgba(139, 92, 246, 0.22) 100%);
+        border-color: rgba(99, 102, 241, 0.35);
+    }
+
+    .dark .app-btn-ghost {
+        color: #a5b4fc;
+        background: linear-gradient(135deg, rgba(99, 102, 241, 0.18) 0%, rgba(139, 92, 246, 0.12) 100%);
+        border-color: rgba(129, 140, 248, 0.28);
+    }
+
+    .app-btn-dark {
+        color: #fff;
+        background: linear-gradient(135deg, #334155 0%, #1e293b 55%, #0f172a 100%);
+        box-shadow: 0 4px 14px rgba(15, 23, 42, 0.35);
+    }
+
+    .app-btn-dark:hover {
+        background: linear-gradient(135deg, #1e293b 0%, #0f172a 55%, #020617 100%);
+        box-shadow: 0 6px 18px rgba(15, 23, 42, 0.45);
+    }
+
+    .app-btn-link-danger {
+        padding: 0.375rem 0.625rem;
+        color: #dc2626;
+        background: linear-gradient(135deg, rgba(239, 68, 68, 0.08) 0%, rgba(244, 63, 94, 0.12) 100%);
+        border-color: rgba(239, 68, 68, 0.2);
+        box-shadow: none;
+    }
+
+    .app-btn-link-danger:hover {
+        color: #b91c1c;
+        background: linear-gradient(135deg, rgba(239, 68, 68, 0.14) 0%, rgba(244, 63, 94, 0.18) 100%);
+        box-shadow: 0 2px 8px rgba(239, 68, 68, 0.15);
+    }
+
+    .dark .app-btn-link-danger {
+        color: #fca5a5;
+    }
+
+    .app-step-active {
+        background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 50%, #7c3aed 100%);
+        box-shadow: 0 2px 8px rgba(99, 102, 241, 0.35);
     }
 
     .app-table-link {
@@ -899,68 +1043,81 @@
         height: 2rem;
         width: 2rem;
         border-radius: 0.5rem;
-        border: 1px solid;
+        border: 1px solid transparent;
         background-color: transparent;
-        transition: background-color 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+        transition: transform 0.15s ease, box-shadow 0.15s ease, background 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+    }
+
+    .table-icon-btn:hover {
+        transform: translateY(-1px);
     }
 
     .table-icon-btn--view {
         border-color: rgba(99, 102, 241, 0.35);
         color: #4f46e5;
+        background: linear-gradient(135deg, rgba(99, 102, 241, 0.08) 0%, rgba(139, 92, 246, 0.12) 100%);
     }
 
     .table-icon-btn--view:hover {
-        background-color: rgba(99, 102, 241, 0.08);
+        background: linear-gradient(135deg, rgba(99, 102, 241, 0.16) 0%, rgba(139, 92, 246, 0.22) 100%);
         border-color: rgba(99, 102, 241, 0.55);
+        box-shadow: 0 4px 12px rgba(99, 102, 241, 0.2);
     }
 
     .dark .table-icon-btn--view {
         border-color: rgba(129, 140, 248, 0.35);
         color: #818cf8;
+        background: linear-gradient(135deg, rgba(99, 102, 241, 0.14) 0%, rgba(139, 92, 246, 0.1) 100%);
     }
 
     .dark .table-icon-btn--view:hover {
-        background-color: rgba(99, 102, 241, 0.15);
+        background: linear-gradient(135deg, rgba(99, 102, 241, 0.22) 0%, rgba(139, 92, 246, 0.18) 100%);
         border-color: rgba(129, 140, 248, 0.55);
     }
 
     .table-icon-btn--edit {
         border-color: rgba(217, 119, 6, 0.35);
         color: #d97706;
+        background: linear-gradient(135deg, rgba(251, 191, 36, 0.12) 0%, rgba(245, 158, 11, 0.16) 100%);
     }
 
     .table-icon-btn--edit:hover {
-        background-color: rgba(245, 158, 11, 0.1);
+        background: linear-gradient(135deg, rgba(251, 191, 36, 0.2) 0%, rgba(245, 158, 11, 0.26) 100%);
         border-color: rgba(217, 119, 6, 0.55);
+        box-shadow: 0 4px 12px rgba(245, 158, 11, 0.2);
     }
 
     .dark .table-icon-btn--edit {
         border-color: rgba(251, 191, 36, 0.35);
         color: #fbbf24;
+        background: linear-gradient(135deg, rgba(245, 158, 11, 0.14) 0%, rgba(217, 119, 6, 0.1) 100%);
     }
 
     .dark .table-icon-btn--edit:hover {
-        background-color: rgba(245, 158, 11, 0.12);
+        background: linear-gradient(135deg, rgba(245, 158, 11, 0.22) 0%, rgba(217, 119, 6, 0.18) 100%);
         border-color: rgba(251, 191, 36, 0.55);
     }
 
     .table-icon-btn--delete {
         border-color: rgba(239, 68, 68, 0.35);
         color: #dc2626;
+        background: linear-gradient(135deg, rgba(248, 113, 113, 0.1) 0%, rgba(239, 68, 68, 0.14) 100%);
     }
 
     .table-icon-btn--delete:hover {
-        background-color: rgba(239, 68, 68, 0.08);
+        background: linear-gradient(135deg, rgba(248, 113, 113, 0.18) 0%, rgba(239, 68, 68, 0.24) 100%);
         border-color: rgba(239, 68, 68, 0.55);
+        box-shadow: 0 4px 12px rgba(239, 68, 68, 0.2);
     }
 
     .dark .table-icon-btn--delete {
         border-color: rgba(248, 113, 113, 0.35);
         color: #f87171;
+        background: linear-gradient(135deg, rgba(239, 68, 68, 0.14) 0%, rgba(220, 38, 38, 0.1) 100%);
     }
 
     .dark .table-icon-btn--delete:hover {
-        background-color: rgba(239, 68, 68, 0.12);
+        background: linear-gradient(135deg, rgba(239, 68, 68, 0.22) 0%, rgba(220, 38, 38, 0.18) 100%);
         border-color: rgba(248, 113, 113, 0.55);
     }
 }

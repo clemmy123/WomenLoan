@@ -16,7 +16,7 @@
                 <input type="text" name="search" value="{{ request('search') }}" placeholder="{{ __('applicants.search_placeholder') }}" class="app-input">
             </div>
             <div class="flex gap-2">
-                <button type="submit" class="bg-gray-900 text-white rounded-lg px-4 py-2 text-sm font-medium hover:bg-gray-800 transition-all">{{ __('common.filter') }}</button>
+                <button type="submit" class="app-btn app-btn-dark">{{ __('common.filter') }}</button>
                 @if(request('search'))
                     <a href="{{ route('applicants.index') }}" class="bg-gray-100 text-gray-700 border border-gray-300 rounded-lg px-4 py-2 text-sm font-medium hover:bg-gray-200 transition-all flex items-center">{{ __('common.clear') }}</a>
                 @endif

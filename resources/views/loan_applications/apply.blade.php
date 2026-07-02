@@ -15,7 +15,7 @@
         <div class="flex items-center gap-2 mt-4">
             <template x-for="i in totalSteps" :key="i">
                 <div class="h-2 flex-1 rounded-full transition-all duration-300"
-                     :class="step >= i ? 'bg-indigo-600' : 'bg-slate-200 dark:bg-white/10'"></div>
+                     :class="step >= i ? 'app-step-active' : 'bg-slate-200 dark:bg-white/10'"></div>
             </template>
         </div>
         <p class="text-xs uppercase font-bold text-slate-400 mt-2" x-text="stepText"></p>
@@ -325,10 +325,10 @@
         </div>
 
         <div class="app-card app-card-padded flex flex-wrap justify-between items-center gap-3">
-            <button type="button" x-show="step > 1" x-cloak @click="step--" class="app-btn bg-slate-100 text-slate-700 hover:bg-slate-200 dark:bg-white/10 dark:text-zinc-300 dark:hover:bg-white/15">{{ __('common.back') }}</button>
+            <button type="button" x-show="step > 1" x-cloak @click="step--" class="app-btn app-btn-secondary">{{ __('common.back') }}</button>
             <div class="flex flex-wrap gap-3 ml-auto">
                 @if(!($editing ?? false))
-                <button type="submit" name="form_action" value="save_draft" formnovalidate @click="prepareDraftSubmit()" class="app-btn text-indigo-600 hover:bg-indigo-50 dark:text-indigo-400 dark:hover:bg-indigo-500/10">{{ __('loans.save_draft') }}</button>
+                <button type="submit" name="form_action" value="save_draft" formnovalidate @click="prepareDraftSubmit()" class="app-btn app-btn-ghost">{{ __('loans.save_draft') }}</button>
                 @endif
                 <button type="button" x-show="step < totalSteps" x-cloak @click="nextStep()" class="app-btn app-btn-primary">{{ __('common.next') }}</button>
                 <button type="submit" x-show="step === totalSteps" x-cloak class="app-btn app-btn-success">{{ ($editing ?? false) ? __('loans.update_application') : __('loans.submit_application') }}</button>
