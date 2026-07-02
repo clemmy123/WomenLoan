@@ -6,6 +6,13 @@ use Illuminate\Validation\Rule;
 
 trait ValidatesLoanApplication
 {
+    protected function prepareForValidation(): void
+    {
+        if ($this->filled('guarantor_name') && ! $this->filled('guarantor_relationship')) {
+            $this->merge(['guarantor_relationship' => 'Other']);
+        }
+    }
+
     protected function loanApplicationRules(bool $updating = false): array
     {
         $loanType = fn () => $this->input('loan_type');

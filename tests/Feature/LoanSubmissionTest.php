@@ -109,6 +109,44 @@ class LoanSubmissionTest extends TestCase
         $this->assertSame('Other', Gurantor::where('loan_id', $loan->id)->value('relationship'));
     }
 
+    public function test_guarantor_relationship_defaults_when_empty_string(): void
+    {
+        $user = \App\Models\User::where('email', 'test@example.com')->firstOrFail();
+
+        $this->actingAs($user)->post(route('loan-applications.store'), [
+            'track_id' => 'WL000302',
+            'loan_type' => 'individual',
+            'region_id' => 1,
+            'district_id' => 1,
+            'council_id' => 1,
+            'ward_id' => 1,
+            'street_id' => 1,
+            'business_name' => 'Test Shop',
+            'business_phone' => '0712345678',
+            'business_email' => 'shop@test.com',
+            'business_sector' => 'Trade',
+            'business_type' => 'Retail',
+            'tin_number' => '12345678901',
+            'business_proposal_document' => UploadedFile::fake()->create('proposal.pdf', 100, 'application/pdf'),
+            'application_letter' => UploadedFile::fake()->create('letter.pdf', 100, 'application/pdf'),
+            'bank_statement' => UploadedFile::fake()->create('statement.pdf', 100, 'application/pdf'),
+            'has_disability' => '0',
+            'is_widowed' => '0',
+            'requested_amount' => 500000,
+            'declaration' => '1',
+            'guarantor_name' => 'Jane Guarantor',
+            'guarantor_phone' => '0755123456',
+            'guarantor_nin' => '19850101123450000002',
+            'guarantor_relationship' => '',
+        ])->assertRedirect();
+
+        $loan = Loan::withoutGlobalScope(ApprovalLevelScope::class)
+            ->where('loan_track_id', 'WL000302')
+            ->firstOrFail();
+
+        $this->assertSame('Other', Gurantor::where('loan_id', $loan->id)->value('relationship'));
+    }
+
     public function test_group_loan_requires_group_documents(): void
     {
         $user = \App\Models\User::where('email', 'test@example.com')->firstOrFail();

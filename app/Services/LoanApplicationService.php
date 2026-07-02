@@ -87,7 +87,7 @@ class LoanApplicationService
                     'name' => $request->guarantor_name,
                     'phone' => $request->guarantor_phone,
                     'id_number' => $request->guarantor_nin,
-                    'relationship' => $request->input('guarantor_relationship', 'Other'),
+                    'relationship' => $this->resolveGuarantorRelationship($request),
                     'occupation' => $request->guarantor_occupation,
                 ]);
             }
@@ -211,7 +211,7 @@ class LoanApplicationService
                     'name' => $request->guarantor_name,
                     'phone' => $request->guarantor_phone,
                     'id_number' => $request->guarantor_nin,
-                    'relationship' => $request->input('guarantor_relationship', 'Other'),
+                    'relationship' => $this->resolveGuarantorRelationship($request),
                     'occupation' => $request->guarantor_occupation,
                 ];
 
@@ -251,5 +251,12 @@ class LoanApplicationService
         }
 
         return $group->id;
+    }
+
+    private function resolveGuarantorRelationship(Request $request): string
+    {
+        $relationship = trim((string) $request->input('guarantor_relationship', ''));
+
+        return $relationship !== '' ? $relationship : 'Other';
     }
 }
