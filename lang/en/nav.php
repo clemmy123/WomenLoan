@@ -2,7 +2,7 @@
 
 return [
     'dashboard' => 'Dashboard',
-    'login' => 'Login',
+    'login' => 'Sign In',
     'register' => 'Register',
     'logout' => 'Logout',
     'profile' => 'Profile',
