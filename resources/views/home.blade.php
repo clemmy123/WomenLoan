@@ -1,8 +1,9 @@
 <!DOCTYPE html>
-<html lang="{{ app()->getLocale() }}" class="h-full">
+<html lang="{{ app()->getLocale() }}" translate="no" class="notranslate h-full">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="google" content="notranslate">
     <title>{{ __('home.portal_name') }} | {{ __('nav.welcome') }}</title>
     <link rel="icon" href="{{ asset('images/nembo2.png') }}" type="image/png">
     @vite(['resources/css/app.css', 'resources/js/pages/landing.js'])

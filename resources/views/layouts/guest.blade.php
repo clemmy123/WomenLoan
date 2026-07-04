@@ -1,11 +1,12 @@
 <!DOCTYPE html>
-<html lang="{{ app()->getLocale() }}" class="h-full" data-loading-text="{{ __('common.loading') }}"
+<html lang="{{ app()->getLocale() }}" translate="no" class="notranslate h-full" data-loading-text="{{ __('common.loading') }}"
     x-data="{ dark: localStorage.getItem('theme') === 'dark' }"
     x-init="$watch('dark', v => { localStorage.setItem('theme', v ? 'dark' : 'light'); document.documentElement.classList.toggle('dark', v) }); document.documentElement.classList.toggle('dark', dark)"
     :class="dark ? 'dark' : ''">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="google" content="notranslate">
     <title>{{ __('nav.welcome') }} | {{ __('nav.login') }}</title>
     <link rel="icon" href="{{ asset('images/nembo2.png') }}" type="image/png">
     <script>
