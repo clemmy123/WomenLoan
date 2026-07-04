@@ -15,7 +15,11 @@
         </div>
         <div class="wizard-field">
             <label class="app-label">{{ __('applicants.nin') }} <span class="text-red-500">*</span></label>
-            <input type="text" name="nin" value="{{ old('nin') }}" required class="app-input">
+            @include('partials.inputs.nin-input', [
+                'name' => 'nin',
+                'value' => old('nin'),
+                'class' => 'w-full bg-gray-50 border border-gray-300 rounded-lg px-4 py-2.5 text-sm',
+            ])
         </div>
         <div class="wizard-field">
             <label class="app-label">{{ __('groups.member_age') }} <span class="text-red-500">*</span></label>
@@ -23,15 +27,18 @@
         </div>
         <div class="wizard-field">
             <label class="app-label">{{ __('applicants.sex') }} <span class="text-red-500">*</span></label>
-            <select name="sex" required class="app-select">
-                <option value="">{{ __('groups.select_gender') }}</option>
-                <option value="Female" @selected(old('sex') === 'Female')>{{ __('groups.sex_female') }}</option>
-                <option value="Male" @selected(old('sex') === 'Male')>{{ __('groups.sex_male') }}</option>
-            </select>
+            @include('partials.inputs.female-sex-field')
+        </div>
+        <div class="wizard-field">
+            <label class="app-label">{{ __('applicants.marital_status') }} <span class="text-red-500">*</span></label>
+            @include('partials.inputs.marital-status-select', ['required' => true])
         </div>
         <div class="wizard-field">
             <label class="app-label">{{ __('common.phone') }} <span class="text-red-500">*</span></label>
-            <input type="text" name="phone" value="{{ old('phone') }}" required class="app-input">
+            @include('partials.inputs.phone-input', [
+                'name' => 'phone',
+                'value' => old('phone'),
+            ])
         </div>
         <div class="wizard-field">
             <label class="app-label">{{ __('common.email') }}</label>

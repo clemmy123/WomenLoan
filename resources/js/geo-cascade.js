@@ -1,3 +1,5 @@
+import { preserveScroll } from './preserve-scroll';
+
 export function readGeoApiConfig() {
     const el = document.getElementById('geo-api-config');
     if (!el) {
@@ -45,26 +47,30 @@ export async function fetchGeoChildren(config, type, id) {
 }
 
 export function fillSelect(select, items, selectedId = null, labelFn = (item) => item.name) {
-    select.disabled = false;
+    preserveScroll(() => {
+        select.disabled = false;
 
-    items.forEach((item) => {
-        const option = document.createElement('option');
-        option.value = item.id;
-        option.textContent = labelFn(item);
-        if (selectedId && String(item.id) === String(selectedId)) {
-            option.selected = true;
-        }
-        select.appendChild(option);
+        items.forEach((item) => {
+            const option = document.createElement('option');
+            option.value = item.id;
+            option.textContent = labelFn(item);
+            if (selectedId && String(item.id) === String(selectedId)) {
+                option.selected = true;
+            }
+            select.appendChild(option);
+        });
+
+        window.AppSelect?.refreshAppSelect(select);
     });
-
-    window.AppSelect?.refreshAppSelect(select);
 }
 
 export function resetSelect(select, placeholder, disabled = true) {
-    select.innerHTML = `<option value="">-- ${placeholder} --</option>`;
-    select.disabled = disabled;
+    preserveScroll(() => {
+        select.innerHTML = `<option value="">-- ${placeholder} --</option>`;
+        select.disabled = disabled;
 
-    window.AppSelect?.refreshAppSelect(select);
+        window.AppSelect?.refreshAppSelect(select);
+    });
 }
 
 export function initGeoCascade(config, selects, oldValues = {}, labels = {}) {

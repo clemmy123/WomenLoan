@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests;
 
+use App\Support\IdentityNormalizer;
 use Illuminate\Foundation\Http\FormRequest;
 
 class RecordRepaymentRequest extends FormRequest
@@ -21,6 +22,15 @@ class RecordRepaymentRequest extends FormRequest
         $payment = $this->route('payment');
 
         return $payment && (int) $payment->loan?->user_id === (int) $user->id;
+    }
+
+    protected function prepareForValidation(): void
+    {
+        if ($this->has('amount')) {
+            $this->merge([
+                'amount' => IdentityNormalizer::normalizeAmount($this->input('amount')),
+            ]);
+        }
     }
 
     public function rules(): array

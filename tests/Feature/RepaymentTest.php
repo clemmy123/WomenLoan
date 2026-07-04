@@ -23,7 +23,6 @@ class RepaymentTest extends TestCase
         $this->actingAsRole('accountant1@wdf.go.tz')
             ->post(route('loans.workflow', $loan->hashid), [
                 'action' => 'disburse',
-                'disbursed_amount' => 3800000,
             ])
             ->assertRedirect();
 
@@ -51,10 +50,26 @@ class RepaymentTest extends TestCase
                 'reference' => 'TXN12345',
             ]);
 
-        $response->assertRedirect(route('repayments.show', $payment));
+        $payment->refresh();
+        $transactionIndex = count(app(\App\Services\RepaymentScheduleService::class)->transactions($payment)) - 1;
+
+        $response->assertRedirect(route('repayments.receipt', [$payment, $transactionIndex]));
         $response->assertSessionHas('success');
         $payment->refresh();
         $this->assertSame($before - 200000.0, (float) $payment->outstanding_debt);
+    }
+
+    public function test_applicant_can_view_payment_receipt(): void
+    {
+        $loan = $this->loanByTrack('WL000011');
+        $payment = LoanPayment::withoutGlobalScopes()->where('loan_id', $loan->id)->firstOrFail();
+        $user = \App\Models\User::where('email', 'test@example.com')->firstOrFail();
+
+        $this->actingAs($user)
+            ->get(route('repayments.receipt', [$payment, 0]))
+            ->assertOk()
+            ->assertSee(__('repayments.receipt_title'), false)
+            ->assertSee($payment->loan->loan_track_id, false);
     }
 
     public function test_repayment_show_displays_collection_account(): void

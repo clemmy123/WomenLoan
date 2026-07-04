@@ -25,11 +25,11 @@ class LoanPaymentController extends Controller
         $this->authorize('view repayments');
 
         $payment->load('loan.applicant');
-        $installments = $this->schedule->installmentSchedule($payment);
         $transactions = $this->schedule->transactions($payment);
         $account = config('wdf.repayment_account');
+        $suggestedAmount = $this->schedule->monthlyInstallmentAmount($payment);
 
-        return view('repayments.show', compact('payment', 'installments', 'transactions', 'account'));
+        return view('repayments.show', compact('payment', 'transactions', 'account', 'suggestedAmount'));
     }
 
     public function pay(RecordRepaymentRequest $request, LoanPayment $payment): RedirectResponse
@@ -45,15 +45,38 @@ class LoanPaymentController extends Controller
                 ->with('error', __('repayments.amount_exceeds_outstanding'));
         }
 
-        $this->schedule->recordPayment(
+        $result = $this->schedule->recordPayment(
             $payment,
             $amount,
             $request->input('reference'),
             $request->input('method'),
         );
 
+        if ($result['transaction_index'] === null) {
+            return back()->with('error', __('repayments.already_cleared'));
+        }
+
         return redirect()
-            ->route('repayments.show', $payment)
+            ->route('repayments.receipt', [
+                'payment' => $payment,
+                'transaction' => $result['transaction_index'],
+            ])
             ->with('success', __('repayments.payment_recorded'));
+    }
+
+    public function receipt(LoanPayment $payment, int $transaction)
+    {
+        $this->authorize('view repayments');
+
+        $payment->load('loan.applicant');
+        $transactions = $this->schedule->transactions($payment->fresh());
+
+        if (! isset($transactions[$transaction])) {
+            abort(404);
+        }
+
+        $tx = $transactions[$transaction];
+
+        return view('repayments.receipt', compact('payment', 'tx', 'transaction'));
     }
 }

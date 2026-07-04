@@ -128,18 +128,20 @@
                         <th>{{ __('dashboard.amount') }}</th>
                         <th>{{ __('dashboard.step') }}</th>
                         <th>{{ __('dashboard.status') }}</th>
+                        <th class="w-24">{{ __('common.actions') }}</th>
                     </tr>
                 </thead>
                 <tbody>
                     @foreach($recentLoans as $loan)
                     <tr>
                         <td>
-                            <a href="{{ route('loan-applications.show', $loan) }}" class="app-table-link">{{ $loan->loan_track_id }}</a>
+                            @include('partials.track-id-chip', ['trackId' => $loan->loan_track_id])
                         </td>
                         <td class="text-slate-700 dark:text-zinc-300">{{ $loan->applicant?->full_name ?? '—' }}</td>
                         <td class="font-medium">{{ format_tzs($loan->requested_amount) }}</td>
                         <td>@include('partials.badge', ['variant' => 'secondary', 'text' => $loan->current_step.'/9'])</td>
                         <td>@include('partials.loan-status-badge', ['status' => $loan->status])</td>
+                        <td>@include('partials.loan-row-actions', ['loan' => $loan])</td>
                     </tr>
                     @endforeach
                 </tbody>

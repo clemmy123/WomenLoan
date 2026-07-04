@@ -24,7 +24,10 @@
                     <input type="text" name="registration_number" id="registration_number" value="{{ old('registration_number') }}" class="app-input">
                 </x-wizard-field>
                 <x-wizard-field :label="__('groups.phone_number')" for="phone">
-                    <input type="text" name="phone" id="phone" value="{{ old('phone') }}" class="app-input">
+                    @include('partials.inputs.phone-input', [
+                        'name' => 'phone',
+                        'value' => old('phone'),
+                    ])
                 </x-wizard-field>
                 <x-wizard-field :label="__('groups.email_address')" for="email">
                     <input type="email" name="email" id="email" value="{{ old('email') }}" class="app-input">
@@ -48,15 +51,14 @@
                 <x-wizard-field :label="__('common.email')">
                     <input type="text" value="{{ $applicant->email }}" class="app-input" readonly>
                 </x-wizard-field>
+                <x-wizard-field :label="__('applicants.marital_status')" for="leader_marital_status">
+                    <input type="text" value="{{ $applicant->marital_status ? __('applicants.marital_statuses.'.$applicant->marital_status) : __('common.na') }}" class="app-input" readonly>
+                </x-wizard-field>
                 <x-wizard-field :label="__('groups.member_age')" for="leader_age" :required="true">
                     <input type="number" name="leader[age]" id="leader_age" min="18" max="120" value="{{ old('leader.age', $applicant->dob?->age) }}" required class="app-input">
                 </x-wizard-field>
-                <x-wizard-field :label="__('applicants.sex')" for="leader_sex" :required="true">
-                    <select name="leader[sex]" id="leader_sex" required class="app-select">
-                        <option value="">{{ __('groups.select_gender') }}</option>
-                        <option value="Female" @selected(old('leader.sex', $applicant->sex) === 'Female')>{{ __('groups.sex_female') }}</option>
-                        <option value="Male" @selected(old('leader.sex', $applicant->sex) === 'Male')>{{ __('groups.sex_male') }}</option>
-                    </select>
+                <x-wizard-field :label="__('applicants.sex')" for="leader_sex">
+                    @include('partials.inputs.female-sex-field', ['name' => 'leader[sex]', 'id' => 'leader_sex'])
                 </x-wizard-field>
             </div>
         </div>
@@ -91,7 +93,7 @@
                         </div>
                         <div class="wizard-field">
                             <label class="app-label">{{ __('applicants.nin') }} <span class="text-red-500">*</span></label>
-                            <input type="text" class="app-input" x-model="member.nin" :name="'members[' + index + '][nin]'" required>
+                            <input type="text" class="app-input app-nin-input" data-nin-input :name="'members[' + index + '][nin]'" :value="member.nin" required>
                         </div>
                         <div class="wizard-field">
                             <label class="app-label">{{ __('groups.member_age') }} <span class="text-red-500">*</span></label>
@@ -99,15 +101,28 @@
                         </div>
                         <div class="wizard-field">
                             <label class="app-label">{{ __('applicants.sex') }} <span class="text-red-500">*</span></label>
-                            <select class="app-select" x-model="member.sex" :name="'members[' + index + '][sex]'" required>
-                                <option value="">{{ __('groups.select_gender') }}</option>
-                                <option value="Female">{{ __('groups.sex_female') }}</option>
-                                <option value="Male">{{ __('groups.sex_male') }}</option>
-                            </select>
+                            <input type="hidden" :name="'members[' + index + '][sex]'" value="Female">
+                            <input type="text" class="app-input bg-gray-100 cursor-not-allowed" value="{{ __('applicants.female') }}" readonly>
                         </div>
                         <div class="wizard-field">
                             <label class="app-label">{{ __('common.phone') }} <span class="text-red-500">*</span></label>
-                            <input type="text" class="app-input" x-model="member.phone" :name="'members[' + index + '][phone]'" required>
+                            <div class="app-phone-field" data-phone-field>
+                                <span class="app-phone-prefix" aria-hidden="true">
+                                    <span class="app-phone-flag">@include('partials.flags.tanzania')</span>
+                                    <span class="app-phone-code">+255</span>
+                                </span>
+                                <input type="tel" class="app-phone-local" data-phone-local inputmode="numeric" maxlength="9" required>
+                                <input type="hidden" data-phone-hidden :name="'members[' + index + '][phone]'" :value="member.phone">
+                            </div>
+                        </div>
+                        <div class="wizard-field">
+                            <label class="app-label">{{ __('applicants.marital_status') }} <span class="text-red-500">*</span></label>
+                            <select class="app-select" x-model="member.marital_status" :name="'members[' + index + '][marital_status]'" required>
+                                <option value="">{{ __('applicants.select_marital_status') }}</option>
+                                @foreach(\App\Models\Applicant::MARITAL_STATUSES as $status)
+                                    <option value="{{ $status }}">{{ __('applicants.marital_statuses.'.$status) }}</option>
+                                @endforeach
+                            </select>
                         </div>
                         <div class="wizard-field">
                             <label class="app-label">{{ __('common.email') }}</label>
@@ -136,6 +151,8 @@ document.addEventListener('alpine:init', () => {
             if (!this.members.length) {
                 this.addMember();
             }
+
+            this.$nextTick(() => window.initIdentityInputs?.(this.$root));
         },
 
         memberLabel(index) {
@@ -152,7 +169,10 @@ document.addEventListener('alpine:init', () => {
                 phone: '',
                 email: '',
                 sex: '',
+                marital_status: '',
             });
+
+            this.$nextTick(() => window.initIdentityInputs?.(this.$root));
         },
 
         removeMember(index) {

@@ -78,7 +78,6 @@ class LoanWorkflowService
         $loan->update([
             'current_step' => $nextStep,
             'status' => 'in_review',
-            'comments' => $data['comments'] ?? $loan->comments,
         ]);
     }
 
@@ -125,7 +124,7 @@ class LoanWorkflowService
 
     protected function disburse(Loan $loan, User $user, array $data): void
     {
-        $disbursedAmount = (float) ($data['disbursed_amount'] ?? $loan->proposed_amount);
+        $disbursedAmount = (float) $loan->proposed_amount;
 
         $this->logAction($loan, $user, 9, 'disbursed', $data);
         $loan->update([

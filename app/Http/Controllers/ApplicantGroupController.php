@@ -71,6 +71,7 @@ class ApplicantGroupController extends Controller
                     'phone' => '',
                     'email' => '',
                     'sex' => '',
+                    'marital_status' => '',
                 ],
             ]),
         ]);

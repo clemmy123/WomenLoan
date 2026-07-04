@@ -11,6 +11,7 @@ export default defineConfig({
                 'resources/js/pages/dashboard.js',
                 'resources/js/pages/reports.js',
                 'resources/js/pages/geo-cascade.js',
+                'resources/js/pages/landing.js',
             ],
             refresh: true,
         }),

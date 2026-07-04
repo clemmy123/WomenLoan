@@ -11,6 +11,7 @@ abstract class TestCase extends BaseTestCase
         $this->seed([
             \Database\Seeders\RolePermissionSeeder::class,
             \Database\Seeders\LocationSeeder::class,
+            \Database\Seeders\BusinessSectorSeeder::class,
             \Database\Seeders\StaffUserSeeder::class,
             \Database\Seeders\DummyDataSeeder::class,
         ]);

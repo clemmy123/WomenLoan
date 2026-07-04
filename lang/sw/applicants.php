@@ -19,7 +19,7 @@ return [
     'last_name' => 'Jina la Mwisho',
     'nin' => 'NIN (tarakimu 20)',
     'dob' => 'Tarehe ya Kuzaliwa',
-    'phone_hint' => 'Simu (mf. 07xxxxxxxx)',
+    'phone_hint' => 'Simu (+255)',
     'email' => 'Barua Pepe',
     'sex' => 'Jinsia',
     'select_sex' => 'Chagua jinsia',

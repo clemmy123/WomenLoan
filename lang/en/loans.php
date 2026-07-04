@@ -37,6 +37,7 @@ return [
     'business_proposal' => 'Business Proposal Document',
     'business_registration' => 'Business Registration Attachment',
     'bank_name' => 'Bank Name',
+    'select_bank' => 'Select bank',
     'bank_number' => 'Account Number',
     'guarantor' => 'Guarantor',
     'types' => [
@@ -55,6 +56,8 @@ return [
     'business_email' => 'Business Email',
     'business_sector' => 'Business Sector',
     'business_type' => 'Business Type',
+    'select_business_sector' => 'Select business sector',
+    'select_business_type' => 'Select business type',
     'tin_number' => 'TIN / Business Registration Number',
     'applicant_information' => 'Applicant Information',
     'applicant_name' => 'Full Name',
@@ -79,6 +82,10 @@ return [
     'guarantor_nin' => 'NIN',
     'guarantor_relationship' => 'Relationship to Applicant',
     'guarantor_occupation' => 'Occupation',
+    'guarantor_sex' => 'Sex',
+    'guarantor_letter' => 'Guarantor Letter',
+    'guarantor_location' => 'Guarantor Location',
+    'current_file' => 'Current file',
     'select_relationship' => 'Select relationship',
     'guarantor_relationships' => [
         'Spouse' => 'Spouse',

@@ -57,9 +57,12 @@
             @csrf
             <div>
                 <label class="app-label" for="amount">{{ __('repayments.payment_amount') }}</label>
-                <input type="number" name="amount" id="amount" min="1" step="1" required
-                    value="{{ old('amount', $installments[0]['amount_due'] ?? '') }}"
-                    class="app-input">
+                @include('partials.inputs.amount-input', [
+                    'name' => 'amount',
+                    'id' => 'amount',
+                    'value' => old('amount', $suggestedAmount ?: ''),
+                    'required' => true,
+                ])
             </div>
             <div>
                 <label class="app-label" for="reference">{{ __('repayments.payment_reference') }}</label>
@@ -75,43 +78,6 @@
 
     <div class="app-card overflow-hidden">
         <div class="app-card-header">
-            <h2 class="font-bold text-slate-900 dark:text-white">{{ __('repayments.monthly_schedule') }}</h2>
-        </div>
-        <div class="overflow-x-auto">
-            <table class="app-table">
-                <thead>
-                    <tr>
-                        <th>#</th>
-                        <th>{{ __('repayments.due_date') }}</th>
-                        <th>{{ __('repayments.amount_due') }}</th>
-                        <th>{{ __('repayments.amount_paid_col') }}</th>
-                        <th>{{ __('common.status') }}</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @forelse($installments as $row)
-                    <tr>
-                        <td>{{ $row['installment'] }}</td>
-                        <td>{{ \Illuminate\Support\Carbon::parse($row['due_date'])->translatedFormat('d M Y') }}</td>
-                        <td>{{ format_tzs($row['amount_due']) }}</td>
-                        <td>{{ format_tzs($row['amount_paid'] ?? 0) }}</td>
-                        <td>
-                            <span class="app-badge {{ ($row['status'] ?? 'pending') === 'paid' ? 'app-badge-success' : 'app-badge-warning' }}">
-                                {{ __('repayments.status.' . ($row['status'] ?? 'pending')) }}
-                            </span>
-                        </td>
-                    </tr>
-                    @empty
-                    <tr><td colspan="5" class="app-table-empty">{{ __('repayments.no_schedule') }}</td></tr>
-                    @endforelse
-                </tbody>
-            </table>
-        </div>
-    </div>
-
-    @if(count($transactions))
-    <div class="app-card overflow-hidden">
-        <div class="app-card-header">
             <h2 class="font-bold text-slate-900 dark:text-white">{{ __('repayments.payment_history') }}</h2>
         </div>
         <div class="overflow-x-auto">
@@ -122,21 +88,28 @@
                         <th>{{ __('repayments.payment_amount') }}</th>
                         <th>{{ __('repayments.payment_reference') }}</th>
                         <th>{{ __('repayments.method') }}</th>
+                        <th class="print:hidden">{{ __('common.actions') }}</th>
                     </tr>
                 </thead>
                 <tbody>
-                    @foreach($transactions as $tx)
+                    @forelse($transactions as $index => $tx)
                     <tr>
                         <td>{{ \Illuminate\Support\Carbon::parse($tx['date'])->translatedFormat('d M Y') }}</td>
                         <td>{{ format_tzs($tx['amount']) }}</td>
                         <td>{{ $tx['reference'] ?? '—' }}</td>
                         <td>{{ $tx['method'] ?? '—' }}</td>
+                        <td class="print:hidden">
+                            <a href="{{ route('repayments.receipt', [$payment, $index]) }}" class="app-btn app-btn-secondary app-btn-sm">
+                                {{ __('repayments.view_receipt') }}
+                            </a>
+                        </td>
                     </tr>
-                    @endforeach
+                    @empty
+                    <tr><td colspan="5" class="app-table-empty">{{ __('repayments.no_payments_yet') }}</td></tr>
+                    @endforelse
                 </tbody>
             </table>
         </div>
     </div>
-    @endif
 </div>
 @endsection

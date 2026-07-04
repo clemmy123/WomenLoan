@@ -74,6 +74,7 @@ class LoanApplicationService
                 'tin_number' => $request->tin_number,
                 'business_proposal_document' => $request->file('business_proposal_document')?->store('proposals', 'public'),
                 'business_registration_attachment' => $request->file('business_registration_attachment')?->store('registrations', 'public'),
+                'proof_address_attachment' => $request->file('proof_address_attachment')?->store('proof-of-address', 'public'),
                 'application_letter' => $request->file('application_letter')?->store('application-letters', 'public'),
                 'bank_statement' => $request->file('bank_statement')?->store('bank-statements', 'public'),
                 'group_constitution' => $request->file('group_constitution')?->store('group-documents', 'public'),
@@ -89,6 +90,13 @@ class LoanApplicationService
                     'id_number' => $request->guarantor_nin,
                     'relationship' => $this->resolveGuarantorRelationship($request),
                     'occupation' => $request->guarantor_occupation,
+                    'sex' => $request->guarantor_sex,
+                    'guarantor_region_id' => $request->guarantor_region_id,
+                    'guarantor_district_id' => $request->guarantor_district_id,
+                    'guarantor_council_id' => $request->guarantor_council_id,
+                    'guarantor_ward_id' => $request->guarantor_ward_id,
+                    'guarantor_street_id' => $request->guarantor_street_id,
+                    'guarantor_letter' => $request->file('guarantor_letter')?->store('guarantor-letters', 'public'),
                 ]);
             }
 
@@ -125,6 +133,13 @@ class LoanApplicationService
             'guarantor_nin' => $guarantor?->id_number,
             'guarantor_relationship' => $guarantor?->relationship,
             'guarantor_occupation' => $guarantor?->occupation,
+            'guarantor_sex' => $guarantor?->sex,
+            'guarantor_region_id' => $guarantor?->guarantor_region_id,
+            'guarantor_district_id' => $guarantor?->guarantor_district_id,
+            'guarantor_council_id' => $guarantor?->guarantor_council_id,
+            'guarantor_ward_id' => $guarantor?->guarantor_ward_id,
+            'guarantor_street_id' => $guarantor?->guarantor_street_id,
+            'guarantor_letter_existing' => $guarantor?->guarantor_letter,
             'requested_amount' => $loan->requested_amount,
             'bank_name' => $loan->bank_name,
             'bank_number' => $loan->bank_number,
@@ -175,6 +190,11 @@ class LoanApplicationService
                     ->store('registrations', 'public');
             }
 
+            if ($request->hasFile('proof_address_attachment')) {
+                $businessData['proof_address_attachment'] = $request->file('proof_address_attachment')
+                    ->store('proof-of-address', 'public');
+            }
+
             if ($request->hasFile('application_letter')) {
                 $businessData['application_letter'] = $request->file('application_letter')
                     ->store('application-letters', 'public');
@@ -213,7 +233,18 @@ class LoanApplicationService
                     'id_number' => $request->guarantor_nin,
                     'relationship' => $this->resolveGuarantorRelationship($request),
                     'occupation' => $request->guarantor_occupation,
+                    'sex' => $request->guarantor_sex,
+                    'guarantor_region_id' => $request->guarantor_region_id,
+                    'guarantor_district_id' => $request->guarantor_district_id,
+                    'guarantor_council_id' => $request->guarantor_council_id,
+                    'guarantor_ward_id' => $request->guarantor_ward_id,
+                    'guarantor_street_id' => $request->guarantor_street_id,
                 ];
+
+                if ($request->hasFile('guarantor_letter')) {
+                    $guarantorData['guarantor_letter'] = $request->file('guarantor_letter')
+                        ->store('guarantor-letters', 'public');
+                }
 
                 $existing = $loan->guarantors()->first();
 

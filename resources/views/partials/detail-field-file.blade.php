@@ -1,14 +1,35 @@
 @props(['label', 'path' => null])
 
-<div>
-    <span class="detail-field-label">{{ $label }}</span>
+@php
+    $docUrl = filled($path) ? asset('storage/'.$path) : null;
+@endphp
+
+<div {{ $attributes->merge(['class' => 'doc-attachment-field']) }}>
     @if(filled($path))
-        <a href="{{ asset('storage/'.$path) }}" target="_blank" rel="noopener noreferrer"
-           class="detail-field-value inline-flex items-center gap-1.5 text-indigo-600 hover:text-indigo-500 dark:text-indigo-400 dark:hover:text-indigo-300 font-semibold break-all">
-            <span>{{ basename($path) }}</span>
-            <span class="text-xs font-medium">↗</span>
-        </a>
+        <button
+            type="button"
+            class="doc-attachment-card doc-attachment-card--view"
+            data-doc-view
+            data-doc-url="{{ $docUrl }}"
+            data-doc-title="{{ $label }}"
+        >
+            <span class="doc-attachment-icon" aria-hidden="true">
+                @include('partials.icons.document-download')
+            </span>
+            <span class="doc-attachment-body">
+                <span class="doc-attachment-title">{{ $label }}</span>
+                <span class="doc-attachment-action">{{ __('common.view_document') }}</span>
+            </span>
+        </button>
     @else
-        <span class="detail-field-value">{{ __('common.na') }}</span>
+        <div class="doc-attachment-card doc-attachment-card--empty">
+            <span class="doc-attachment-icon doc-attachment-icon--muted" aria-hidden="true">
+                @include('partials.icons.document-download')
+            </span>
+            <span class="doc-attachment-body">
+                <span class="doc-attachment-title">{{ $label }}</span>
+                <span class="doc-attachment-hint">{{ __('common.no_file') }}</span>
+            </span>
+        </div>
     @endif
 </div>

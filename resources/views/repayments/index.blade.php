@@ -1,18 +1,18 @@
 @extends('layouts.app')
 
-@section('title', __('nav.repayments'))
+@section('title', __('repayments.payments_title'))
 
 @section('content')
 <div class="page">
-    @include('partials.page-header', ['title' => __('nav.repayments')])
+    @include('partials.page-header', ['title' => __('repayments.payments_title')])
 <div class="app-card overflow-hidden">
     <table class="app-table">
         <thead>
             <tr>
                 <th>{{ __('repayments.loan') }}</th>
                 <th>{{ __('repayments.disbursed_col') }}</th>
+                <th>{{ __('repayments.amount_paid_col') }}</th>
                 <th>{{ __('repayments.outstanding') }}</th>
-                <th>{{ __('repayments.progress') }}</th>
                 <th></th>
             </tr>
         </thead>
@@ -25,17 +25,10 @@
                     </a>
                 </td>
                 <td>{{ format_tzs($payment->amount_disbursed) }}</td>
+                <td>{{ format_tzs($payment->amount_paid) }}</td>
                 <td>{{ format_tzs($payment->outstanding_debt) }}</td>
                 <td>
-                    <div class="flex items-center gap-2">
-                        <div class="flex-1 h-2 bg-slate-100 dark:bg-dm-800 rounded-full overflow-hidden max-w-[100px]">
-                            <div class="h-full bg-emerald-500 rounded-full" style="width: {{ $payment->repayment_progress_percentage }}%"></div>
-                        </div>
-                        <span class="text-xs font-semibold">{{ $payment->repayment_progress_percentage }}%</span>
-                    </div>
-                </td>
-                <td>
-                    <a href="{{ route('repayments.show', $payment) }}" class="app-btn app-btn-secondary text-xs">{{ __('repayments.view_schedule') }}</a>
+                    <a href="{{ route('repayments.show', $payment) }}" class="app-btn app-btn-secondary text-xs">{{ __('repayments.view_payments') }}</a>
                 </td>
             </tr>
             @empty
@@ -44,5 +37,6 @@
         </tbody>
     </table>
     <div class="app-card-footer">{{ $payments->links() }}</div>
+</div>
 </div>
 @endsection

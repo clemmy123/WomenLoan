@@ -53,7 +53,7 @@ class Loan extends Model
     public const TERMINAL_STATUSES = ['disbursed', 'declined_by_applicant', 'rejected'];
 
     /** Statuses where the applicant may still revise the application (ward step only). */
-    public const APPLICANT_EDITABLE_STATUSES = ['pending', 'received'];
+    public const APPLICANT_EDITABLE_STATUSES = ['pending'];
 
     public function isEditableByApplicant(?User $user = null): bool
     {

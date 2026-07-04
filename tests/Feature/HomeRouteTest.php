@@ -11,11 +11,14 @@ class HomeRouteTest extends TestCase
 {
     use RefreshDatabase;
 
-    public function test_home_redirects_guests_to_login(): void
+    public function test_home_shows_landing_page_for_guests(): void
     {
         $response = $this->get('/');
 
-        $response->assertRedirect(route('login'));
+        $response->assertOk();
+        $response->assertSee(__('home.portal_name'), false);
+        $response->assertSee(__('home.headline'), false);
+        $response->assertSee(__('home.footer_copyright'), false);
     }
 
     public function test_home_redirects_authenticated_users_to_dashboard(): void

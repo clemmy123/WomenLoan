@@ -5,6 +5,7 @@ namespace Tests\Feature;
 use App\Models\Loan;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Http\UploadedFile;
 use Tests\TestCase;
 
 class WorkflowTest extends TestCase
@@ -38,19 +39,63 @@ class WorkflowTest extends TestCase
     public function test_ward_forwards_received_application_to_ministry(): void
     {
         $loan = $this->loanByTrack('WL000002');
+        $applicantName = $loan->applicant()->withoutGlobalScopes()->value('full_name');
 
         $response = $this->actingAsRole('ward.cdo@wdf.go.tz')
             ->post(route('loans.workflow', $loan->hashid), [
                 'action' => 'forward_ministry',
                 'comments' => 'Forward to ministry.',
+                'attachment' => UploadedFile::fake()->create('supervision.pdf', 100, 'application/pdf'),
             ]);
 
-        $response->assertRedirect(route('dashboard'));
+        $response->assertRedirect(route('loan-applications.show', $loan->hashid));
         $response->assertSessionHas('success');
 
         $loan->refresh();
         $this->assertSame(2, $loan->current_step);
         $this->assertSame('in_review', $loan->status);
+        $this->assertDatabaseHas('approval_levels', [
+            'loan_id' => $loan->id,
+            'action_taken' => 'forwarded_to_ministry',
+        ]);
+
+        $this->actingAsRole('ministry@wdf.go.tz')
+            ->get(route('loan-applications.show', $loan->hashid))
+            ->assertOk()
+            ->assertSee($applicantName, false)
+            ->assertSee($loan->businessDetails->business_name, false);
+    }
+
+    public function test_ward_cdo_sees_all_applications_from_their_ward(): void
+    {
+        $this->actingAsRole('ward.cdo@wdf.go.tz');
+
+        $this->assertTrue(Loan::where('loan_track_id', 'WL000001')->exists());
+        $this->assertTrue(Loan::where('loan_track_id', 'WL000003')->exists());
+    }
+
+    public function test_forward_ministry_requires_supervision_document(): void
+    {
+        $loan = $this->loanByTrack('WL000002');
+
+        $this->actingAsRole('ward.cdo@wdf.go.tz')
+            ->post(route('loans.workflow', $loan->hashid), [
+                'action' => 'forward_ministry',
+                'comments' => 'Missing attachment.',
+            ])
+            ->assertSessionHasErrors('attachment');
+    }
+
+    public function test_forward_ass_dir_requires_committee_minutes(): void
+    {
+        $loan = $this->loanByTrack('WL000005');
+
+        $this->actingAsRole('ministry@wdf.go.tz')
+            ->post(route('loans.workflow', $loan->hashid), [
+                'action' => 'forward_ass_dir',
+                'comments' => 'Missing minutes.',
+            ])
+            ->assertSessionHasErrors('attachment');
     }
 
     public function test_ministry_proposes_amount_and_redirects_when_loan_leaves_scope(): void
@@ -94,10 +139,17 @@ class WorkflowTest extends TestCase
     {
         $loan = $this->loanByTrack('WL000005');
 
+        $this->actingAsRole('ministry@wdf.go.tz')
+            ->get(route('loan-applications.show', $loan->hashid))
+            ->assertOk()
+            ->assertDontSee(__('workflow.buttons.propose_amount'), false)
+            ->assertSee(__('workflow.buttons.forward_ass_dir'), false);
+
         $response = $this->actingAsRole('ministry@wdf.go.tz')
             ->post(route('loans.workflow', $loan->hashid), [
                 'action' => 'forward_ass_dir',
                 'comments' => 'To assistant director.',
+                'attachment' => UploadedFile::fake()->create('committee-minutes.pdf', 100, 'application/pdf'),
             ]);
 
         $response->assertRedirect(route('loan-applications.show', $loan->hashid));
@@ -183,7 +235,6 @@ class WorkflowTest extends TestCase
         $response = $this->actingAsRole('accountant1@wdf.go.tz')
             ->post(route('loans.workflow', $loan->hashid), [
                 'action' => 'disburse',
-                'disbursed_amount' => 3800000,
             ]);
 
         $response->assertRedirect(route('loan-applications.show', $loan->hashid));
@@ -194,6 +245,28 @@ class WorkflowTest extends TestCase
             'loan_id' => $loan->id,
             'amount_disbursed' => 3800000,
         ]);
+    }
+
+    public function test_accountant_cannot_disburse_custom_amount(): void
+    {
+        $loan = $this->loanByTrack('WL000010');
+
+        $this->actingAsRole('accountant1@wdf.go.tz')
+            ->post(route('loans.workflow', $loan->hashid), [
+                'action' => 'disburse',
+                'disbursed_amount' => 1000000,
+            ])
+            ->assertSessionHasErrors('disbursed_amount');
+    }
+
+    public function test_disburse_button_hidden_after_loan_is_disbursed(): void
+    {
+        $loan = $this->loanByTrack('WL000011');
+
+        $this->actingAsRole('accountant1@wdf.go.tz')
+            ->get(route('loan-applications.show', $loan->hashid))
+            ->assertOk()
+            ->assertDontSee(__('workflow.buttons.disburse', ['amount' => format_tzs($loan->proposed_amount)]), false);
     }
 
     public function test_ministry_can_rollback_application_to_previous_step(): void

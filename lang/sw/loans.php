@@ -37,6 +37,7 @@ return [
     'business_proposal' => 'Nyaraka ya Mpango wa Biashara',
     'business_registration' => 'Nakala ya Usajili wa Biashara',
     'bank_name' => 'Jina la Benki',
+    'select_bank' => 'Chagua benki',
     'bank_number' => 'Nambari ya Akaunti',
     'guarantor' => 'Mdhamini',
     'types' => [
@@ -55,6 +56,8 @@ return [
     'business_email' => 'Barua Pepe ya Biashara',
     'business_sector' => 'Sekta ya Biashara',
     'business_type' => 'Aina ya Biashara',
+    'select_business_sector' => 'Chagua sekta ya biashara',
+    'select_business_type' => 'Chagua aina ya biashara',
     'tin_number' => 'TIN / Nambari ya Usajili wa Biashara',
     'applicant_information' => 'Taarifa za Mwombaji',
     'applicant_name' => 'Jina Kamili',
@@ -79,6 +82,10 @@ return [
     'guarantor_nin' => 'NIN',
     'guarantor_relationship' => 'Uhusiano na Mwombaji',
     'guarantor_occupation' => 'Kazi',
+    'guarantor_sex' => 'Jinsia',
+    'guarantor_letter' => 'Barua ya Mdhamini',
+    'guarantor_location' => 'Eneo la Mdhamini',
+    'current_file' => 'Faili iliyopo',
     'select_relationship' => 'Chagua uhusiano',
     'guarantor_relationships' => [
         'Spouse' => 'Mwenzi',

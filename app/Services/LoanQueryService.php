@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use App\Models\Loan;
+use App\Models\Scopes\ApplicantAccess;
 use App\Models\Scopes\ApprovalLevelScope;
 use App\Models\User;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
@@ -37,7 +38,9 @@ class LoanQueryService
     public function loadForShow(Loan $loan): Loan
     {
         return $loan->load([
-            'applicant.location.ward.council.district.region',
+            'applicant' => fn ($query) => $query
+                ->withoutGlobalScope(ApplicantAccess::class)
+                ->with('location.ward.council.district.region'),
             'businessDetails.region',
             'businessDetails.district',
             'businessDetails.council',

@@ -19,14 +19,17 @@ class WorkflowAuthorizationService
         return match ($action) {
             'receive' => $user->can('receive application') && $step === 1 && $status === 'pending',
             'forward_ministry' => $user->can('forward to ministry') && $step === 1 && $status === 'received',
-            'propose_amount', 'send_to_applicant' => $user->can('propose loan amount') && in_array($step, [2, 4], true),
+            'propose_amount', 'send_to_applicant' => $user->can('propose loan amount') && $step === 2,
             'accept_amount', 'decline_amount' => $user->hasRole('applicant') && $step === 3,
             'forward_ass_dir' => $user->can('forward to assistant director') && $step === 4,
             'forward_director' => $user->can('forward to director') && $step === 5,
             'forward_km' => $user->can('forward to km') && $step === 6,
             'approve_km' => $user->can('approve as km') && $step === 7,
             'assign_accountant' => $user->can('assign accountant') && $step === 8,
-            'disburse' => $user->can('disburse loan') && $step === 9 && $loan->officer_id === $user->id,
+            'disburse' => $user->can('disburse loan')
+                && $step === 9
+                && $status === 'ready_for_disbursement'
+                && $loan->officer_id === $user->id,
             'rollback_step' => $this->canRollback($user, $loan),
             default => false,
         };
@@ -47,6 +50,10 @@ class WorkflowAuthorizationService
 
         if ($user->hasRole(['admin', 'super_admin'])) {
             return true;
+        }
+
+        if ($user->hasRole(['chief', 'accountant'])) {
+            return false;
         }
 
         if (! $user->can('rollback workflow step')) {

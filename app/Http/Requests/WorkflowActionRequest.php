@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests;
 
+use App\Support\IdentityNormalizer;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
@@ -10,6 +11,21 @@ class WorkflowActionRequest extends FormRequest
     public function authorize(): bool
     {
         return true;
+    }
+
+    protected function prepareForValidation(): void
+    {
+        $merge = [];
+
+        foreach (['proposed_amount', 'disbursed_amount'] as $field) {
+            if ($this->has($field)) {
+                $merge[$field] = IdentityNormalizer::normalizeAmount($this->input($field));
+            }
+        }
+
+        if ($merge !== []) {
+            $this->merge($merge);
+        }
     }
 
     public function rules(): array
@@ -31,17 +47,20 @@ class WorkflowActionRequest extends FormRequest
                 'min:1',
             ],
             'disbursed_amount' => [
-                Rule::requiredIf($action === 'disburse'),
-                'nullable',
-                'numeric',
-                'min:1',
+                'prohibited',
             ],
             'accountant_id' => [
                 Rule::requiredIf($action === 'assign_accountant'),
                 'nullable',
                 'exists:users,id',
             ],
-            'attachment' => 'nullable|file|max:5120',
+            'attachment' => [
+                Rule::requiredIf(in_array($action, ['forward_ministry', 'forward_ass_dir'], true)),
+                'nullable',
+                'file',
+                'mimes:pdf,doc,docx',
+                'max:1024',
+            ],
         ];
     }
 }

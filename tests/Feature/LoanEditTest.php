@@ -33,14 +33,14 @@ class LoanEditTest extends TestCase
         $response->assertSee('"selectedStreet":"'.$loan->businessDetails->street_id.'"', false);
     }
 
-    public function test_applicant_can_edit_received_application(): void
+    public function test_applicant_cannot_edit_received_application(): void
     {
         $loan = $this->loanByTrack('WL000002');
         $user = User::findOrFail($loan->user_id);
 
         $this->actingAs($user)
             ->get(route('loan-applications.edit', $loan))
-            ->assertOk();
+            ->assertForbidden();
     }
 
     public function test_applicant_cannot_edit_once_processing_started(): void
@@ -72,7 +72,7 @@ class LoanEditTest extends TestCase
             'business_type' => 'Retail',
             'tin_number' => '12345678901',
             'requested_amount' => 4200000,
-            'bank_name' => 'NMB',
+            'bank_name' => 'NMB Bank Plc (National Microfinance Bank)',
             'bank_number' => '9876543210',
             'has_disability' => '1',
             'is_widowed' => '0',
@@ -85,7 +85,7 @@ class LoanEditTest extends TestCase
         $loan->refresh();
         $this->assertSame('4200000.00', $loan->requested_amount);
         $this->assertSame('Updated Shop Name', $loan->businessDetails->business_name);
-        $this->assertSame('NMB', $loan->bank_name);
+        $this->assertSame('NMB Bank Plc (National Microfinance Bank)', $loan->bank_name);
         $this->assertTrue($loan->has_disability);
         $this->assertFalse($loan->is_widowed);
     }

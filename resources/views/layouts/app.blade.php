@@ -7,6 +7,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{{ __('nav.welcome') }} | @yield('title', __('nav.dashboard'))</title>
+    <link rel="icon" href="{{ asset('images/nembo2.png') }}" type="image/png">
     <script>
         (function(){var d=localStorage.getItem('theme')==='dark';if(d)document.documentElement.classList.add('dark')})();
     </script>
@@ -38,9 +39,8 @@
                     <svg x-show="dark" x-cloak class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"/></svg>
                 </button>
 
-                <div class="hidden sm:flex items-center gap-1 text-xs">
-                    <a href="{{ route('locale.switch', 'en') }}" class="px-2 py-1 rounded-lg {{ app()->getLocale() === 'en' ? 'bg-indigo-100 dark:bg-indigo-500/15 text-indigo-700 dark:text-indigo-300 font-semibold' : 'text-slate-500 dark:text-zinc-400 hover:bg-slate-100 dark:hover:bg-white/5' }}">{{ __('nav.english') }}</a>
-                    <a href="{{ route('locale.switch', 'sw') }}" class="px-2 py-1 rounded-lg {{ app()->getLocale() === 'sw' ? 'bg-indigo-100 dark:bg-indigo-500/15 text-indigo-700 dark:text-indigo-300 font-semibold' : 'text-slate-500 dark:text-zinc-400 hover:bg-slate-100 dark:hover:bg-white/5' }}">{{ __('nav.swahili') }}</a>
+                <div class="hidden sm:flex items-center">
+                    @include('partials.locale-flags')
                 </div>
 
                 <div class="relative" x-data="{ open: false }">
@@ -82,6 +82,7 @@
         </main>
     </div>
 </div>
+@include('partials.document-viewer')
 @vite(['resources/js/app.js'])
 @stack('scripts')
 </body>

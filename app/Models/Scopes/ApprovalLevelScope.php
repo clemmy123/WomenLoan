@@ -45,10 +45,6 @@ class ApprovalLevelScope implements Scope
                 }
             });
 
-            if ($user->hasRole('cdo_ward')) {
-                $builder->whereIn('current_step', WorkflowSteps::ROLE_STEP_MAP['cdo_ward']);
-            }
-
             return;
         }
 

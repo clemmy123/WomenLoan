@@ -7,6 +7,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{{ __('nav.welcome') }} | {{ __('nav.login') }}</title>
+    <link rel="icon" href="{{ asset('images/nembo2.png') }}" type="image/png">
     <script>
         (function(){var d=localStorage.getItem('theme')==='dark';if(d)document.documentElement.classList.add('dark')})();
     </script>
@@ -28,9 +29,8 @@
             <p class="text-sm text-slate-500 dark:text-zinc-400">{{ __('nav.platform') }}</p>
         </div>
         @yield('content')
-        <div class="mt-6 flex justify-center gap-3 text-xs">
-            <a href="{{ route('locale.switch', 'en') }}" class="px-3 py-1 rounded-full {{ app()->getLocale() === 'en' ? 'bg-indigo-100 dark:bg-indigo-500/15 text-indigo-700 dark:text-indigo-300 font-semibold' : 'text-slate-500 dark:text-zinc-400 hover:bg-slate-100 dark:hover:bg-white/5' }}">{{ __('nav.english') }}</a>
-            <a href="{{ route('locale.switch', 'sw') }}" class="px-3 py-1 rounded-full {{ app()->getLocale() === 'sw' ? 'bg-indigo-100 dark:bg-indigo-500/15 text-indigo-700 dark:text-indigo-300 font-semibold' : 'text-slate-500 dark:text-zinc-400 hover:bg-slate-100 dark:hover:bg-white/5' }}">{{ __('nav.swahili') }}</a>
+        <div class="mt-6 flex justify-center">
+            @include('partials.locale-flags')
         </div>
     </div>
     @vite(['resources/js/app.js'])

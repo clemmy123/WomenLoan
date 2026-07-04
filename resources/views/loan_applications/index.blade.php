@@ -44,7 +44,7 @@
                     @foreach($loans as $loan)
                         <tr>
                             <td>
-                                <a href="{{ route('loan-applications.show', $loan) }}" class="app-table-link">{{ $loan->loan_track_id }}</a>
+                                @include('partials.track-id-chip', ['trackId' => $loan->loan_track_id])
                             </td>
                             <td>{{ loan_type_label($loan->loan_type) }}</td>
                             <td>{{ format_tzs($loan->requested_amount) }}</td>
@@ -55,13 +55,7 @@
                                 </div>
                             </td>
                             <td>{{ $loan->created_at->translatedFormat('d M Y') }}</td>
-                            <td>
-                                @if($loan->isEditableByApplicant())
-                                    <a href="{{ route('loan-applications.edit', $loan) }}" class="text-sm font-semibold text-indigo-600 hover:text-indigo-500 dark:text-indigo-400">{{ __('common.edit') }}</a>
-                                @else
-                                    <span class="text-slate-400 dark:text-zinc-500 text-sm">—</span>
-                                @endif
-                            </td>
+                            <td>@include('partials.loan-row-actions', ['loan' => $loan])</td>
                         </tr>
                     @endforeach
                 </tbody>

@@ -22,7 +22,13 @@
         </div>
         <div>
             <label class="block text-xs font-semibold text-slate-600 dark:text-zinc-400 mb-1">{{ __('auth.phone') }}</label>
-            <input type="text" name="phone" value="{{ old('phone') }}" required class="w-full rounded-xl border border-slate-200 dark:border-white/10 bg-white dark:bg-dm-800 text-slate-900 dark:text-white px-4 py-2.5 text-sm focus:ring-2 focus:ring-indigo-500">
+            @include('partials.inputs.phone-input', [
+                'name' => 'phone',
+                'value' => old('phone'),
+                'required' => true,
+                'class' => '',
+            ])
+            @error('phone') <p class="mt-1.5 text-xs font-medium text-red-600">{{ $message }}</p> @enderror
         </div>
         <div>
             <label class="block text-xs font-semibold text-slate-600 dark:text-zinc-400 mb-1">{{ __('common.password') }}</label>

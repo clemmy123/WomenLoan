@@ -18,6 +18,8 @@ class Gurantor extends Model
         'relationship',
         'id_number',
         'occupation',
+        'guarantor_letter',
+        'sex',
         
         // Geolocation Matrix Tracking Keys
         'guarantor_region_id',

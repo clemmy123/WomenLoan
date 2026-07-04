@@ -108,7 +108,7 @@
 
             <div class="app-card app-card-padded">
                 <h3 class="text-sm font-semibold tracking-wide uppercase text-indigo-600 border-b border-slate-100 dark:border-white/10 pb-2 mb-5">{{ __('loans.supporting_documents') }}</h3>
-                <div class="detail-grid">
+                <div class="doc-attachments-grid">
                     @include('partials.detail-field-file', ['label' => __('loans.business_proposal'), 'path' => $business->business_proposal_document])
                     @include('partials.detail-field-file', ['label' => __('loans.business_registration'), 'path' => $business->business_registration_attachment])
                     @include('partials.detail-field-file', ['label' => __('loans.proof_address'), 'path' => $business->proof_address_attachment])
@@ -179,6 +179,17 @@
                         @include('partials.detail-field', ['label' => __('loans.guarantor_nin'), 'value' => $guarantor->id_number, 'mono' => true])
                         @include('partials.detail-field', ['label' => __('loans.guarantor_relationship'), 'value' => $guarantor->relationship])
                         @include('partials.detail-field', ['label' => __('loans.guarantor_occupation'), 'value' => $guarantor->occupation])
+                        @include('partials.detail-field', [
+                            'label' => __('loans.guarantor_sex'),
+                            'value' => match ($guarantor->sex) {
+                                'Male' => __('applicants.male'),
+                                'Female' => __('applicants.female'),
+                                default => null,
+                            },
+                        ])
+                        @if($guarantor->guarantor_letter)
+                            @include('partials.detail-field-file', ['label' => __('loans.guarantor_letter'), 'path' => $guarantor->guarantor_letter])
+                        @endif
                         @include('partials.detail-field', ['label' => __('geo.region'), 'value' => $guarantor->region?->name])
                         @include('partials.detail-field', ['label' => __('geo.district'), 'value' => $guarantor->district?->name])
                         @include('partials.detail-field', ['label' => __('geo.council'), 'value' => $guarantor->council?->name])
@@ -208,7 +219,10 @@
                             @endif
                             @if($level->attachment_path)
                                 <div class="mt-2">
-                                    @include('partials.detail-field-file', ['label' => __('common.attachment'), 'path' => $level->attachment_path])
+                                    @include('partials.detail-field-file', [
+                                        'label' => workflow_attachment_label($level->action_taken),
+                                        'path' => $level->attachment_path,
+                                    ])
                                 </div>
                             @endif
                         </div>

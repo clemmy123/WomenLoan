@@ -19,6 +19,7 @@ class LoanGroupMember extends Model
         'email',
         'phone',
         'sex',
+        'marital_status',
         'is_group_leader',
     ];
 

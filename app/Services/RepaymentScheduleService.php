@@ -38,11 +38,11 @@ class RepaymentScheduleService
         ]);
     }
 
-    public function recordPayment(LoanPayment $payment, float $amount, ?string $reference = null, ?string $method = null): void
+    public function recordPayment(LoanPayment $payment, float $amount, ?string $reference = null, ?string $method = null): array
     {
         $amount = round($amount, 2);
         if ($amount <= 0) {
-            return;
+            return ['transaction_index' => null];
         }
 
         $outstanding = (float) $payment->outstanding_debt;
@@ -71,18 +71,35 @@ class RepaymentScheduleService
             $remaining -= $pay;
         }
 
+        $receiptNumber = sprintf(
+            'RCP-%s-%03d',
+            $payment->loan?->loan_track_id ?? $payment->id,
+            count($history['transactions']) + 1
+        );
+
         $history['transactions'][] = [
             'date' => now()->toDateString(),
             'amount' => $applied,
             'reference' => $reference,
             'method' => $method ?? 'Bank Transfer',
+            'receipt_number' => $receiptNumber,
+            'outstanding_before' => $outstanding,
+            'outstanding_after' => round(max(0, $outstanding - $applied), 2),
         ];
+
+        $transactionIndex = count($history['transactions']) - 1;
 
         $payment->update([
             'payment_history' => $history,
             'amount_paid' => round((float) $payment->amount_paid + $applied, 2),
             'outstanding_debt' => round(max(0, $outstanding - $applied), 2),
         ]);
+
+        return [
+            'transaction_index' => $transactionIndex,
+            'receipt_number' => $receiptNumber,
+            'amount' => $applied,
+        ];
     }
 
     public function installmentSchedule(LoanPayment $payment): array

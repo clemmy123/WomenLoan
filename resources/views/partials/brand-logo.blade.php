@@ -8,4 +8,4 @@
     $class = $sizes[$size] ?? $sizes['header'];
 @endphp
 
-<img src="{{ asset('images/logo.png') }}" alt="{{ __('nav.welcome') }}" {{ $attributes->merge(['class' => $class]) }} decoding="async">
+<img src="{{ asset('images/nembo2.png') }}" alt="{{ __('nav.welcome') }}" {{ $attributes->merge(['class' => $class]) }} decoding="async">

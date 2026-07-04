@@ -13,6 +13,8 @@
         'nin' => $m->nin,
         'age' => $m->age,
         'sex' => $m->sex,
+        'marital_status' => $m->marital_status,
+        'marital_status_label' => $m->marital_status ? __('applicants.marital_statuses.'.$m->marital_status) : __('common.na'),
         'phone' => $m->phone,
         'email' => $m->email,
         'is_group_leader' => (bool) $m->is_group_leader,
@@ -64,6 +66,7 @@
                         <th>{{ __('applicants.nin') }}</th>
                         <th>{{ __('groups.member_age') }}</th>
                         <th>{{ __('applicants.sex') }}</th>
+                        <th>{{ __('applicants.marital_status') }}</th>
                         <th>{{ __('common.phone') }}</th>
                         <th>{{ __('common.email') }}</th>
                         <th>{{ __('groups.role') }}</th>
@@ -80,6 +83,7 @@
                         <td class="font-mono text-xs whitespace-nowrap">{{ $member->nin }}</td>
                         <td>{{ $member->age ?? __('common.na') }}</td>
                         <td>{{ $member->sex ?? __('common.na') }}</td>
+                        <td>{{ $member->marital_status ? __('applicants.marital_statuses.'.$member->marital_status) : __('common.na') }}</td>
                         <td class="whitespace-nowrap">{{ $member->phone }}</td>
                         <td class="max-w-[160px] truncate" title="{{ $member->email }}">{{ $member->email ?? __('common.na') }}</td>
                         <td>
@@ -131,6 +135,10 @@
                         <dd>{{ $member->sex ?? __('common.na') }}</dd>
                     </div>
                     <div>
+                        <dt class="text-[10px] uppercase tracking-wide text-slate-400">{{ __('applicants.marital_status') }}</dt>
+                        <dd>{{ $member->marital_status ? __('applicants.marital_statuses.'.$member->marital_status) : __('common.na') }}</dd>
+                    </div>
+                    <div>
                         <dt class="text-[10px] uppercase tracking-wide text-slate-400">{{ __('common.phone') }}</dt>
                         <dd class="break-all">{{ $member->phone }}</dd>
                     </div>
@@ -171,6 +179,7 @@
                         <div><dt class="text-xs text-slate-500 uppercase">{{ __('applicants.nin') }}</dt><dd class="font-mono text-sm" x-text="member?.nin"></dd></div>
                         <div><dt class="text-xs text-slate-500 uppercase">{{ __('groups.member_age') }}</dt><dd x-text="member?.age ?? '—'"></dd></div>
                         <div><dt class="text-xs text-slate-500 uppercase">{{ __('applicants.sex') }}</dt><dd x-text="member?.sex ?? '—'"></dd></div>
+                        <div><dt class="text-xs text-slate-500 uppercase">{{ __('applicants.marital_status') }}</dt><dd x-text="member?.marital_status_label ?? '—'"></dd></div>
                         <div><dt class="text-xs text-slate-500 uppercase">{{ __('common.phone') }}</dt><dd x-text="member?.phone"></dd></div>
                         <div class="md:col-span-2"><dt class="text-xs text-slate-500 uppercase">{{ __('common.email') }}</dt><dd x-text="member?.email || '—'"></dd></div>
                     </dl>
@@ -205,10 +214,7 @@
                             </div>
                             <div class="wizard-field">
                                 <label class="app-label">{{ __('applicants.sex') }}</label>
-                                <select name="sex" class="app-select" required>
-                                    <option value="Female" :selected="member?.sex === 'Female'">{{ __('groups.sex_female') }}</option>
-                                    <option value="Male" :selected="member?.sex === 'Male'">{{ __('groups.sex_male') }}</option>
-                                </select>
+                                @include('partials.inputs.female-sex-field')
                             </div>
                             <div class="flex justify-end gap-2">
                                 <button type="button" class="app-btn app-btn-secondary" @click="modal = null">{{ __('common.cancel') }}</button>
@@ -243,9 +249,16 @@
                                 </div>
                                 <div class="wizard-field">
                                     <label class="app-label">{{ __('applicants.sex') }}</label>
-                                    <select name="sex" class="app-select" required>
-                                        <option value="Female" :selected="member?.sex === 'Female'">{{ __('groups.sex_female') }}</option>
-                                        <option value="Male" :selected="member?.sex === 'Male'">{{ __('groups.sex_male') }}</option>
+                                    <input type="hidden" name="sex" value="Female">
+                                    <input type="text" value="{{ __('applicants.female') }}" readonly
+                                        class="app-input bg-gray-100 border-gray-200 text-gray-600 cursor-not-allowed">
+                                </div>
+                                <div class="wizard-field">
+                                    <label class="app-label">{{ __('applicants.marital_status') }}</label>
+                                    <select name="marital_status" class="app-select" required>
+                                        @foreach(\App\Models\Applicant::MARITAL_STATUSES as $status)
+                                            <option value="{{ $status }}" :selected="member?.marital_status === '{{ $status }}'">{{ __('applicants.marital_statuses.'.$status) }}</option>
+                                        @endforeach
                                     </select>
                                 </div>
                                 <div class="wizard-field">

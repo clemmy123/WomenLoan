@@ -8,6 +8,7 @@ use App\Models\DraftLoan;
 use App\Models\Loan;
 use App\Models\LoanGroup;
 use App\Services\ApplicantGroupService;
+use App\Services\BusinessSectorService;
 use App\Services\GeoHierarchyService;
 use App\Services\LoanApplicationService;
 use App\Services\LoanQueryService;
@@ -20,6 +21,7 @@ class LoanApplicationController extends Controller
         private LoanApplicationService $applications,
         private LoanQueryService $loans,
         private GeoHierarchyService $geo,
+        private BusinessSectorService $businessSectors,
         private ApplicantGroupService $applicantGroups,
     ) {}
 
@@ -95,11 +97,13 @@ class LoanApplicationController extends Controller
                 ->withInput($request->except([
                     'business_proposal_document',
                     'business_registration_attachment',
+                    'proof_address_attachment',
                     'application_letter',
                     'bank_statement',
                     'group_constitution',
                     'group_muhtasari',
                     'group_certificate',
+                    'guarantor_letter',
                     '_token',
                 ]));
         }
@@ -196,6 +200,8 @@ class LoanApplicationController extends Controller
         }
 
         $regions = $this->geo->regions();
+        $businessSectors = $this->businessSectors->sectors();
+        $banks = config('banks.names', []);
         $groups = LoanGroup::query()->orderBy('name')->get(['id', 'name']);
         $applicant = $user->applicant;
         $userGroup = $editing
@@ -204,25 +210,35 @@ class LoanApplicationController extends Controller
         $canSetupGroup = $this->applicantGroups->canSetupGroup($user);
 
         $wizardConfig = [
-            'step' => (int) old('step', $formData['step'] ?? 1),
+            'step' => (int) old('step', request()->query('wizard_step', $formData['step'] ?? 1)),
             'totalSteps' => 7,
             'selectedRegion' => $this->stringOrNull(old('region_id', $formData['region_id'] ?? null)),
             'selectedDistrict' => $this->stringOrNull(old('district_id', $formData['district_id'] ?? null)),
             'selectedCouncil' => $this->stringOrNull(old('council_id', $formData['council_id'] ?? null)),
             'selectedWard' => $this->stringOrNull(old('ward_id', $formData['ward_id'] ?? null)),
             'selectedStreet' => $this->stringOrNull(old('street_id', $formData['street_id'] ?? null)),
+            'guarantorRegion' => $this->stringOrNull(old('guarantor_region_id', $formData['guarantor_region_id'] ?? null)),
+            'guarantorDistrict' => $this->stringOrNull(old('guarantor_district_id', $formData['guarantor_district_id'] ?? null)),
+            'guarantorCouncil' => $this->stringOrNull(old('guarantor_council_id', $formData['guarantor_council_id'] ?? null)),
+            'guarantorWard' => $this->stringOrNull(old('guarantor_ward_id', $formData['guarantor_ward_id'] ?? null)),
+            'guarantorStreet' => $this->stringOrNull(old('guarantor_street_id', $formData['guarantor_street_id'] ?? null)),
             'loanType' => old('loan_type', $formData['loan_type'] ?? ''),
+            'selectedBusinessSector' => old('business_sector', $formData['business_sector'] ?? ''),
+            'selectedBusinessType' => old('business_type', $formData['business_type'] ?? ''),
+            'businessCatalog' => $this->businessSectors->wizardCatalog(),
             'geoApi' => GeoHierarchyService::apiUrls(),
             'i18n' => [
                 'load_failed' => __('loans.load_failed'),
                 'loading' => __('loans.loading_data'),
                 'step' => __('common.step_n_of', ['step' => ':step', 'total' => 7]),
                 'step_required' => __('loans.step_required'),
+                'document_required' => __('common.document_required'),
+                'file_too_large' => __('common.file_too_large', ['max' => '1MB']),
             ],
         ];
 
         return compact(
-            'regions', 'groups', 'trackId', 'applicant', 'wizardConfig', 'formData',
+            'regions', 'businessSectors', 'banks', 'groups', 'trackId', 'applicant', 'wizardConfig', 'formData',
             'editing', 'editingLoan', 'userGroup', 'canSetupGroup',
         );
     }

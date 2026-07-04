@@ -122,6 +122,7 @@ class ApplicantGroupService
             'email' => $data['email'] ?? null,
             'phone' => $data['phone'],
             'sex' => $data['sex'],
+            'marital_status' => $data['marital_status'],
         ]);
 
         return $member->fresh();
@@ -174,6 +175,7 @@ class ApplicantGroupService
             'email' => $applicant->email,
             'phone' => $applicant->phone,
             'sex' => $leader['sex'] ?? $applicant->sex,
+            'marital_status' => $applicant->marital_status,
             'is_group_leader' => true,
         ]);
     }
@@ -195,6 +197,7 @@ class ApplicantGroupService
             'email' => $row['email'] ?? null,
             'phone' => $row['phone'],
             'sex' => $row['sex'] ?? null,
+            'marital_status' => $row['marital_status'] ?? null,
             'is_group_leader' => false,
         ]);
     }

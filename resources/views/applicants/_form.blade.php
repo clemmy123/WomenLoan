@@ -38,7 +38,11 @@
     <div class="grid grid-cols-1 sm:grid-cols-2 gap-5 pt-2">
         <div>
             <label for="nin" class="block text-xs font-semibold text-gray-700 uppercase tracking-wider mb-2">{{ __('applicants.nin') }}</label>
-            <input type="text" name="nin" id="nin" value="{{ old('nin', $applicant?->nin ?? '') }}" class="w-full bg-gray-50 border @error('nin') border-red-500 @else border-gray-300 @enderror rounded-lg px-4 py-2.5 text-sm font-mono tracking-widest text-gray-900 focus:outline-none focus:ring-2 focus:ring-indigo-500">
+            @include('partials.inputs.nin-input', [
+                'name' => 'nin',
+                'value' => old('nin', $applicant?->nin ?? ''),
+                'class' => 'w-full bg-gray-50 border rounded-lg px-4 py-2.5 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-indigo-500 '.($errors->has('nin') ? 'border-red-500' : 'border-gray-300'),
+            ])
             @error('nin') <p class="mt-1.5 text-xs font-medium text-red-600">{{ $message }}</p> @enderror
         </div>
 
@@ -50,7 +54,12 @@
 
         <div>
             <label for="phone" class="block text-xs font-semibold text-gray-700 uppercase tracking-wider mb-2">{{ __('applicants.phone_hint') }}</label>
-            <input type="text" name="phone" id="phone" value="{{ old('phone', $applicant?->phone ?? '') }}" placeholder="0712345678" @readonly($lockRegistrationFields) class="w-full border @error('phone') border-red-500 @else border-gray-300 @enderror rounded-lg px-4 py-2.5 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-indigo-500 {{ $lockRegistrationFields ? $lockedInputClass : 'bg-gray-50' }}">
+            @include('partials.inputs.phone-input', [
+                'name' => 'phone',
+                'value' => old('phone', $applicant?->phone ?? ''),
+                'readonly' => $lockRegistrationFields,
+                'class' => '',
+            ])
             @error('phone') <p class="mt-1.5 text-xs font-medium text-red-600">{{ $message }}</p> @enderror
         </div>
 
@@ -68,11 +77,9 @@
     <div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
         <div>
             <label for="sex" class="block text-xs font-semibold text-gray-700 uppercase tracking-wider mb-2">{{ __('applicants.sex') }}</label>
-            <select name="sex" id="sex" class="app-select @error('sex') app-select-error @enderror">
-                <option value="">{{ __('applicants.select_sex') }}</option>
-                <option value="Male" @selected(old('sex', $applicant?->sex ?? '') === 'Male')>{{ __('applicants.male') }}</option>
-                <option value="Female" @selected(old('sex', $applicant?->sex ?? '') === 'Female')>{{ __('applicants.female') }}</option>
-            </select>
+            @include('partials.inputs.female-sex-field', [
+                'class' => 'w-full border rounded-lg px-4 py-2.5 text-sm '.($errors->has('sex') ? 'border-red-500' : 'border-gray-300'),
+            ])
             @error('sex') <p class="mt-1.5 text-xs font-medium text-red-600">{{ $message }}</p> @enderror
         </div>
 

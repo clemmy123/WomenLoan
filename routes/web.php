@@ -31,8 +31,8 @@ Route::middleware('guest')->group(function () {
 Route::post('/logout', [AuthController::class, 'logout'])->name('logout')->middleware('auth');
 
 Route::get('/', function () {
-    return auth()->check() ? redirect()->route('dashboard') : redirect()->route('login');
-});
+    return auth()->check() ? redirect()->route('dashboard') : view('home');
+})->name('home');
 
 Route::middleware(['auth'])->group(function () {
     Route::get('/dashboard', [DashboardController::class, 'index'])
@@ -77,6 +77,9 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/repayments/{payment}', [LoanPaymentController::class, 'show'])
         ->middleware('can:view repayments')
         ->name('repayments.show');
+    Route::get('/repayments/{payment}/receipt/{transaction}', [LoanPaymentController::class, 'receipt'])
+        ->middleware('can:view repayments')
+        ->name('repayments.receipt');
     Route::post('/repayments/{payment}/pay', [LoanPaymentController::class, 'pay'])
         ->middleware('can:record repayment')
         ->name('repayments.pay');

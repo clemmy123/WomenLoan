@@ -44,6 +44,7 @@ class GroupSetupTest extends TestCase
                     'phone' => '0755111222',
                     'email' => 'asha@test.com',
                     'sex' => 'Female',
+                    'marital_status' => 'Married',
                 ],
             ],
         ]);
@@ -77,6 +78,7 @@ class GroupSetupTest extends TestCase
                     'age' => 28,
                     'phone' => '0755333444',
                     'sex' => 'Female',
+                    'marital_status' => 'Single',
                 ],
             ],
         ])->assertRedirect();
@@ -111,6 +113,7 @@ class GroupSetupTest extends TestCase
                     'age' => 32,
                     'phone' => '0755111222',
                     'sex' => 'Female',
+                    'marital_status' => 'Single',
                 ],
             ],
         ])->assertRedirect();
@@ -125,13 +128,14 @@ class GroupSetupTest extends TestCase
                 'age' => 33,
                 'phone' => '0755999888',
                 'sex' => 'Female',
+                'marital_status' => 'Married',
             ])
             ->assertRedirect(route('my-group.show'))
             ->assertSessionHas('success');
 
         $member->refresh();
         $this->assertSame(33, $member->age);
-        $this->assertSame('0755999888', $member->phone);
+        $this->assertSame('255755999888', $member->phone);
 
         $this->actingAs($user)
             ->delete(route('my-group.members.destroy', $member))

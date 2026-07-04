@@ -4,14 +4,17 @@
 
     $canReceive = $user->can('receive application') && $step === 1 && $loan->status === 'pending';
     $canForwardMinistry = $user->can('forward to ministry') && $step === 1 && $loan->status === 'received';
-    $canProposeAmount = $user->can('propose loan amount') && in_array($step, [2, 4], true);
+    $canProposeAmount = $user->can('propose loan amount') && $step === 2;
     $canApplicantRespond = $user->hasRole('applicant') && $step === 3;
     $canForwardAssDir = $user->can('forward to assistant director') && $step === 4;
     $canForwardDirector = $user->can('forward to director') && $step === 5;
     $canForwardKm = $user->can('forward to km') && $step === 6;
     $canApproveKm = $user->can('approve as km') && $step === 7;
     $canAssignAccountant = $user->can('assign accountant') && $step === 8;
-    $canDisburse = $user->can('disburse loan') && $step === 9 && $loan->officer_id === $user->id;
+    $canDisburse = $user->can('disburse loan')
+        && $step === 9
+        && $loan->status === 'ready_for_disbursement'
+        && $loan->officer_id === $user->id;
     $canRollback = app(\App\Services\WorkflowAuthorizationService::class)->canPerform($user, $loan, 'rollback_step');
 @endphp
 

@@ -63,7 +63,8 @@ class ApplicantProfilePrefillTest extends TestCase
         $response->assertSee('value="Mary"', false);
         $response->assertSee('value="Kimaro"', false);
         $response->assertSee('value="anna.kimaro@example.com"', false);
-        $response->assertSee('value="0712345678"', false);
+        $response->assertSee('value="255712345678"', false);
+        $response->assertSee('value="712345678"', false);
         $response->assertSee('readonly', false);
         $response->assertSee(__('applicants.registration_fields_locked'), false);
     }
@@ -97,7 +98,7 @@ class ApplicantProfilePrefillTest extends TestCase
             'middle_name' => 'Mary',
             'last_name' => 'Kimaro',
             'email' => 'anna.kimaro@example.com',
-            'phone' => '0712345678',
+            'phone' => '255712345678',
         ]);
     }
 

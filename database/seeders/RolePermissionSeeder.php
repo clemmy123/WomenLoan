@@ -95,12 +95,12 @@ class RolePermissionSeeder extends Seeder
                 'view loan by track id', 'view repayments', 'view reports',
             ],
             'chief' => [
-                'view dashboard', 'view all loans', 'assign accountant', 'rollback workflow step',
+                'view dashboard', 'view all loans', 'assign accountant',
                 'view loan by track id', 'view repayments', 'view reports',
             ],
             'accountant' => [
                 'view dashboard', 'view all loans', 'disburse loan', 'record repayment',
-                'rollback workflow step', 'view loan by track id', 'view repayments', 'view reports',
+                'view loan by track id', 'view repayments', 'view reports',
             ],
         ];
 

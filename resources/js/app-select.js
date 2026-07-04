@@ -1,5 +1,24 @@
+import { preserveScroll } from './preserve-scroll';
+
 const WRAP_CLASS = 'app-select-wrap';
 const OPEN_WRAPS = new Set();
+
+function scrollOptionIntoPanel(panelInner, selected) {
+    if (!selected || !panelInner) {
+        return;
+    }
+
+    const optionTop = selected.offsetTop;
+    const optionBottom = optionTop + selected.offsetHeight;
+    const viewTop = panelInner.scrollTop;
+    const viewBottom = viewTop + panelInner.clientHeight;
+
+    if (optionTop < viewTop) {
+        panelInner.scrollTop = optionTop;
+    } else if (optionBottom > viewBottom) {
+        panelInner.scrollTop = optionBottom - panelInner.clientHeight;
+    }
+}
 
 function closeAllAppSelects(exceptWrap = null) {
     OPEN_WRAPS.forEach((wrap) => {
@@ -50,10 +69,12 @@ function rebuildPanelOptions(select, panelInner, onSelect) {
                 return;
             }
 
-            select.value = option.value;
-            select.dispatchEvent(new Event('input', { bubbles: true }));
-            select.dispatchEvent(new Event('change', { bubbles: true }));
-            onSelect();
+            preserveScroll(() => {
+                select.value = option.value;
+                select.dispatchEvent(new Event('input', { bubbles: true }));
+                select.dispatchEvent(new Event('change', { bubbles: true }));
+                onSelect();
+            });
         });
 
         panelInner.appendChild(btn);
@@ -187,20 +208,23 @@ export function enhanceAppSelect(select) {
 
         requestAnimationFrame(() => {
             positionPanel();
-            requestAnimationFrame(() => positionPanel());
+            requestAnimationFrame(() => {
+                positionPanel();
+                const selected = panelInner.querySelector('.app-select-option.is-selected');
+                scrollOptionIntoPanel(panelInner, selected);
+            });
         });
-
-        const selected = panelInner.querySelector('.app-select-option.is-selected');
-        selected?.scrollIntoView({ block: 'nearest' });
     };
 
     const refresh = () => {
-        rebuildPanelOptions(select, panelInner, () => {
+        preserveScroll(() => {
+            rebuildPanelOptions(select, panelInner, () => {
+                syncTriggerFromSelect(select, trigger, valueEl, panelInner);
+                close();
+            });
+            updateHeader();
             syncTriggerFromSelect(select, trigger, valueEl, panelInner);
-            close();
         });
-        updateHeader();
-        syncTriggerFromSelect(select, trigger, valueEl, panelInner);
     };
 
     trigger.addEventListener('click', (event) => {

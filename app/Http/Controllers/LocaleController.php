@@ -15,6 +15,25 @@ class LocaleController extends Controller
         session(['locale' => $locale]);
         app()->setLocale($locale);
 
-        return back();
+        return redirect()->to($this->intendedRedirect($request));
+    }
+
+    private function intendedRedirect(Request $request): string
+    {
+        $redirect = $request->query('redirect');
+
+        if (is_string($redirect) && $redirect !== '' && str_starts_with($redirect, '/') && ! str_starts_with($redirect, '//')) {
+            return $redirect;
+        }
+
+        $previous = url()->previous();
+
+        if ($previous && $previous !== $request->fullUrl()) {
+            return $previous;
+        }
+
+        return $request->user()
+            ? route('dashboard')
+            : route('login');
     }
 }

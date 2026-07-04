@@ -6,6 +6,7 @@ use App\Models\Applicant;
 use App\Models\Concerns\HasDisplayName;
 use App\Models\LoanGroup;
 use App\Models\User;
+use App\Support\IdentityNormalizer;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Database\Eloquent\Collection;
 
@@ -38,7 +39,7 @@ class ApplicantService
             'middle_name' => $nameParts['middle_name'],
             'last_name' => $nameParts['last_name'],
             'email' => $user->email,
-            'phone' => $user->phone,
+            'phone' => IdentityNormalizer::normalizePhone($user->phone),
         ];
     }
 
@@ -56,6 +57,9 @@ class ApplicantService
         );
         $validated['user_id'] = $userId ?? auth()->id();
         $validated['nationality'] = $validated['nationality'] ?? 'Tanzanian';
+        $validated['phone'] = IdentityNormalizer::normalizePhone($validated['phone'] ?? '');
+        $validated['nin'] = IdentityNormalizer::normalizeNin($validated['nin'] ?? '');
+        $validated['email'] = IdentityNormalizer::normalizeEmail($validated['email'] ?? '');
 
         return Applicant::create($validated);
     }
@@ -67,6 +71,9 @@ class ApplicantService
             $validated['middle_name'] ?? null,
             $validated['last_name']
         );
+        $validated['phone'] = IdentityNormalizer::normalizePhone($validated['phone'] ?? '');
+        $validated['nin'] = IdentityNormalizer::normalizeNin($validated['nin'] ?? '');
+        $validated['email'] = IdentityNormalizer::normalizeEmail($validated['email'] ?? '');
 
         $applicant->update($validated);
 

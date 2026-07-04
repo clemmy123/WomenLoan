@@ -15,7 +15,7 @@ return [
     'new_application' => 'Omba Mkopo Mpya',
     'my_loans' => 'Mikopo Yangu',
     'loan_groups' => 'Vikundi vya Mikopo',
-    'repayments' => 'Ratiba ya Malipo',
+    'repayments' => 'Marejesho',
     'reports' => 'Ripoti',
     'track_loan' => 'Fuatilia Mkopo',
     'pending_review' => 'Inasubiri Ukaguzi',

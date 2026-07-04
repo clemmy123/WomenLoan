@@ -1,3 +1,5 @@
+import { captureScrollPosition, restoreScrollPosition } from '../preserve-scroll';
+
 document.addEventListener('alpine:init', () => {
     Alpine.data('reportFilters', (config) => ({
         selectedRegion: config.selectedRegion ?? '',
@@ -30,7 +32,22 @@ document.addEventListener('alpine:init', () => {
             const response = await fetch(url, { headers: { Accept: 'application/json' } });
             const data = await response.json();
             this[target] = data?.data ?? data;
-            queueMicrotask(() => window.AppSelect?.enhanceAllAppSelects());
+
+            const scrollPosition = captureScrollPosition();
+
+            queueMicrotask(() => {
+                ['region_id', 'district_id', 'council_id', 'ward_id', 'street_id'].forEach((id) => {
+                    const select = document.getElementById(id);
+                    if (select) {
+                        window.AppSelect?.refreshAppSelect(select);
+                    }
+                });
+
+                requestAnimationFrame(() => {
+                    restoreScrollPosition(scrollPosition);
+                    requestAnimationFrame(() => restoreScrollPosition(scrollPosition));
+                });
+            });
         },
 
         async loadDistricts(regionId) {
