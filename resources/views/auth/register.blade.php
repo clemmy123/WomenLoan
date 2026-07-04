@@ -1,51 +1,112 @@
-@extends('layouts.guest')
+@extends('layouts.auth-form')
+
+@section('auth_title', __('nav.register'))
 
 @section('content')
-<div class="bg-white dark:dark-surface rounded-3xl  border border-slate-100 dark:border-white/[0.08] p-8">
-    <h2 class="text-lg font-bold text-slate-900 dark:text-white mb-6">{{ __('auth.register_title') }}</h2>
+<div class="auth-split-form-wrap auth-form-wrap">
+    <div class="auth-split-form-header">
+        <h2 class="auth-split-form-title">{{ __('auth.register_title') }}</h2>
+        <p class="auth-split-form-subtitle">{{ __('auth.register_subtitle') }}</p>
+    </div>
 
     @if($errors->any())
-        <div class="mb-4 w-fit max-w-full rounded-xl bg-red-50 dark:bg-red-500/10 border border-red-200 dark:border-red-500/20 px-4 py-2.5 text-sm text-red-700 dark:text-red-300">
-            <ul class="list-disc list-inside space-y-0.5">@foreach($errors->all() as $e)<li>{{ $e }}</li>@endforeach</ul>
+        <div class="auth-split-alert" role="alert">
+            <ul class="auth-form-error-list">
+                @foreach($errors->all() as $error)
+                    <li>{{ $error }}</li>
+                @endforeach
+            </ul>
         </div>
     @endif
 
-    <form method="POST" action="{{ route('register') }}" class="space-y-4">
+    <form method="POST" action="{{ route('register') }}" class="auth-split-form">
         @csrf
-        <div>
-            <label class="block text-xs font-semibold text-slate-600 dark:text-zinc-400 mb-1">{{ __('auth.full_name') }}</label>
-            <input type="text" name="name" value="{{ old('name') }}" required class="w-full rounded-xl border border-slate-200 dark:border-white/10 bg-white dark:bg-dm-800 text-slate-900 dark:text-white px-4 py-2.5 text-sm focus:ring-2 focus:ring-indigo-500">
+
+        <div class="auth-split-field">
+            <label class="auth-split-label" for="name">{{ __('auth.full_name') }}</label>
+            <div class="auth-split-input-wrap">
+                <span class="auth-split-input-icon" aria-hidden="true">
+                    <svg viewBox="0 0 24 24" fill="none"><circle cx="12" cy="8" r="3.5" stroke="currentColor" stroke-width="1.75"/><path d="M5 19c0-3.3 3.1-5 7-5s7 1.7 7 5" stroke="currentColor" stroke-width="1.75" stroke-linecap="round"/></svg>
+                </span>
+                <input type="text" name="name" id="name" value="{{ old('name') }}" required autofocus class="auth-split-input" placeholder="{{ __('auth.full_name') }}">
+            </div>
         </div>
-        <div>
-            <label class="block text-xs font-semibold text-slate-600 dark:text-zinc-400 mb-1">{{ __('common.email') }}</label>
-            <input type="email" name="email" value="{{ old('email') }}" required class="w-full rounded-xl border border-slate-200 dark:border-white/10 bg-white dark:bg-dm-800 text-slate-900 dark:text-white px-4 py-2.5 text-sm focus:ring-2 focus:ring-indigo-500">
+
+        <div class="auth-split-field">
+            <label class="auth-split-label" for="email">{{ __('common.email') }}</label>
+            <div class="auth-split-input-wrap">
+                <span class="auth-split-input-icon" aria-hidden="true">
+                    <svg viewBox="0 0 24 24" fill="none"><path d="M4 6h16v12H4V6z" stroke="currentColor" stroke-width="1.75"/><path d="m4 7 8 6 8-6" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                </span>
+                <input type="email" name="email" id="email" value="{{ old('email') }}" required class="auth-split-input" placeholder="you@example.com">
+            </div>
         </div>
-        <div>
-            <label class="block text-xs font-semibold text-slate-600 dark:text-zinc-400 mb-1">{{ __('auth.phone') }}</label>
+
+        <div class="auth-split-field">
+            <label class="auth-split-label" for="phone_local">{{ __('auth.phone') }}</label>
             @include('partials.inputs.phone-input', [
                 'name' => 'phone',
+                'id' => 'phone_local',
                 'value' => old('phone'),
                 'required' => true,
-                'class' => '',
+                'class' => 'auth-form-phone-local',
             ])
-            @error('phone') <p class="mt-1.5 text-xs font-medium text-red-600">{{ $message }}</p> @enderror
         </div>
-        <div>
-            <label class="block text-xs font-semibold text-slate-600 dark:text-zinc-400 mb-1">{{ __('common.password') }}</label>
-            <input type="password" name="password" required class="w-full rounded-xl border border-slate-200 dark:border-white/10 bg-white dark:bg-dm-800 text-slate-900 dark:text-white px-4 py-2.5 text-sm focus:ring-2 focus:ring-indigo-500">
+
+        <div class="auth-split-field" x-data="{ showPassword: false }">
+            <label class="auth-split-label" for="password">{{ __('common.password') }}</label>
+            <div class="auth-split-input-wrap">
+                <span class="auth-split-input-icon" aria-hidden="true">
+                    <svg viewBox="0 0 24 24" fill="none"><rect x="5" y="11" width="14" height="10" rx="2" stroke="currentColor" stroke-width="1.75"/><path d="M8 11V8a4 4 0 118 0v3" stroke="currentColor" stroke-width="1.75" stroke-linecap="round"/></svg>
+                </span>
+                <input :type="showPassword ? 'text' : 'password'" name="password" id="password" required class="auth-split-input auth-split-input--password" placeholder="••••••••">
+                <button type="button" @click="showPassword = !showPassword" class="auth-split-password-toggle"
+                    :aria-label="showPassword ? @json(__('auth.hide_password')) : @json(__('auth.show_password'))">
+                    <svg x-show="!showPassword" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
+                    </svg>
+                    <svg x-show="showPassword" x-cloak class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21"/>
+                    </svg>
+                </button>
+            </div>
         </div>
-        <div>
-            <label class="block text-xs font-semibold text-slate-600 dark:text-zinc-400 mb-1">{{ __('common.confirm_password') }}</label>
-            <input type="password" name="password_confirmation" required class="w-full rounded-xl border border-slate-200 dark:border-white/10 bg-white dark:bg-dm-800 text-slate-900 dark:text-white px-4 py-2.5 text-sm focus:ring-2 focus:ring-indigo-500">
+
+        <div class="auth-split-field" x-data="{ showPassword: false }">
+            <label class="auth-split-label" for="password_confirmation">{{ __('common.confirm_password') }}</label>
+            <div class="auth-split-input-wrap">
+                <span class="auth-split-input-icon" aria-hidden="true">
+                    <svg viewBox="0 0 24 24" fill="none"><rect x="5" y="11" width="14" height="10" rx="2" stroke="currentColor" stroke-width="1.75"/><path d="M8 11V8a4 4 0 118 0v3" stroke="currentColor" stroke-width="1.75" stroke-linecap="round"/></svg>
+                </span>
+                <input :type="showPassword ? 'text' : 'password'" name="password_confirmation" id="password_confirmation" required class="auth-split-input auth-split-input--password" placeholder="••••••••">
+                <button type="button" @click="showPassword = !showPassword" class="auth-split-password-toggle"
+                    :aria-label="showPassword ? @json(__('auth.hide_password')) : @json(__('auth.show_password'))">
+                    <svg x-show="!showPassword" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
+                    </svg>
+                    <svg x-show="showPassword" x-cloak class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21"/>
+                    </svg>
+                </button>
+            </div>
         </div>
-        <button type="submit" class="app-btn app-btn-primary app-btn-block">
-            {{ __('nav.register') }}
+
+        <button type="submit" class="auth-split-submit">
+            <span>{{ __('nav.register') }}</span>
+            <svg class="auth-split-submit-icon" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                <path d="M14 4h4v4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                <path d="M10 14 18 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                <path d="M18 6h-5M18 6v5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                <path d="M6 8v10a2 2 0 002 2h8" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+            </svg>
         </button>
     </form>
 
-    <p class="mt-6 text-center text-xs text-slate-500">
-        {{ __('auth.login_prompt') }}
-        <a href="{{ route('login') }}" class="text-indigo-600 font-semibold hover:underline">{{ __('nav.login') }}</a>
-    </p>
+    <div class="auth-split-footer-link">
+        <span>{{ __('auth.login_prompt') }}</span>
+        <a href="{{ route('login') }}">{{ __('home.sign_in') }}</a>
+    </div>
 </div>
 @endsection

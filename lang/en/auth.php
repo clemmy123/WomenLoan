@@ -12,6 +12,7 @@ return [
     'show_password' => 'Show password',
     'hide_password' => 'Hide password',
     'login_subtitle' => 'Welcome! Sign in to access your account, track applications, and manage your loan journey.',
+    'register_subtitle' => 'Enter your details below to create your account and start your application.',
     'login_welcome_title' => 'Welcome to the Women Development Fund',
     'login_kicker' => 'Women Development Fund',
     'login_brand_lead' => 'Access affordable loans, build your business, and grow with confidence through a simple guided process.',

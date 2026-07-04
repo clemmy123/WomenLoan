@@ -12,6 +12,7 @@ return [
     'show_password' => 'Onyesha nenosiri',
     'hide_password' => 'Ficha nenosiri',
     'login_subtitle' => 'Karibu! Ingia ili kufikia akaunti yako, kufuatilia maombi, na kusimamia safari yako ya mkopo.',
+    'register_subtitle' => 'Weka taarifa zako hapa chini kuunda akaunti na kuanza ombi lako.',
     'login_welcome_title' => 'Karibu kwenye Mfuko wa Maendeleo ya Wanawake',
     'login_kicker' => 'Mfuko wa Maendeleo ya Wanawake',
     'login_brand_lead' => 'Pata mikopo nafuu, jenga biashara yako, na kukua kwa ujasiri kupitia mchakato rahisi unaongozwa.',
