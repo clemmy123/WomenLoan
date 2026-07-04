@@ -22,4 +22,9 @@ return [
     'feature_tracking' => 'Loan Tracking',
     'dark_mode' => 'Switch to dark mode',
     'light_mode' => 'Switch to light mode',
+    'forgot_password' => 'Forgot password?',
+    'forgot_password_subtitle' => 'Enter your email address and we will send you a link to reset your password.',
+    'send_reset_link' => 'Send reset link',
+    'reset_password' => 'Reset password',
+    'reset_password_subtitle' => 'Choose a new password for your account.',
 ];

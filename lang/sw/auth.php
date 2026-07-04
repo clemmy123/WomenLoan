@@ -22,4 +22,9 @@ return [
     'feature_tracking' => 'Ufuatiliaji wa Mkopo',
     'dark_mode' => 'Badili hali ya giza',
     'light_mode' => 'Badili hali ya mwanga',
+    'forgot_password' => 'Umesahau nenosiri?',
+    'forgot_password_subtitle' => 'Weka barua pepe yako na tutakutumia kiungo cha kuweka upya nenosiri.',
+    'send_reset_link' => 'Tuma kiungo cha kuweka upya',
+    'reset_password' => 'Weka upya nenosiri',
+    'reset_password_subtitle' => 'Chagua nenosiri jipya la akaunti yako.',
 ];
