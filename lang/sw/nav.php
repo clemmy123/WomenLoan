@@ -16,7 +16,7 @@ return [
     'my_loans' => 'Mikopo Yangu',
     'loan_groups' => 'Vikundi vya Mikopo',
     'repayments' => 'Marejesho',
-    'reports' => 'Ripoti',
+    'reports' => 'Ripoti za Jumla',
     'track_loan' => 'Fuatilia Mkopo',
     'pending_review' => 'Inasubiri Ukaguzi',
     'disbursements' => 'Utoaji wa Fedha',

@@ -1,7 +1,7 @@
 <?php
 
 return [
-    'title' => 'Reports',
+    'title' => 'General Reports',
     'subtitle' => 'Filter disbursements and repayments across time, location, and demographics.',
     'filters' => 'Report Filters',
     'apply_filters' => 'Apply Filters',

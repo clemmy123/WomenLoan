@@ -16,7 +16,7 @@ return [
     'my_loans' => 'My Loans',
     'loan_groups' => 'Loan Groups',
     'repayments' => 'Repayments',
-    'reports' => 'Reports',
+    'reports' => 'General Reports',
     'track_loan' => 'Track Loan',
     'pending_review' => 'Pending Review',
     'disbursements' => 'Disbursements',

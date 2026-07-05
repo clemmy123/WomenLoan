@@ -1,7 +1,7 @@
 <?php
 
 return [
-    'title' => 'Ripoti',
+    'title' => 'Ripoti za Jumla',
     'subtitle' => 'Chuja malipo na marejesho kwa muda, eneo, na idadi ya watu.',
     'filters' => 'Vichujio vya Ripoti',
     'apply_filters' => 'Tumia Vichujio',
