@@ -95,6 +95,12 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/reports/applications', [ReportController::class, 'applications'])
         ->middleware('can:view reports')
         ->name('reports.applications.index');
+    Route::get('/reports/applications/export/excel', [ReportController::class, 'exportApplicationsExcel'])
+        ->middleware('can:view reports')
+        ->name('reports.applications.export.excel');
+    Route::get('/reports/applications/export/pdf', [ReportController::class, 'exportApplicationsPdf'])
+        ->middleware('can:view reports')
+        ->name('reports.applications.export.pdf');
     Route::get('/reports/export/excel', [ReportController::class, 'exportExcel'])
         ->middleware('can:view reports')
         ->name('reports.export.excel');

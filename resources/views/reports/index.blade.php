@@ -20,12 +20,10 @@
             <p class="page-subtitle">{{ __('reports.subtitle') }}</p>
         </div>
         <div class="flex flex-wrap items-center gap-2">
-            <a href="{{ route('reports.export.excel', request()->query()) }}" class="app-btn app-btn-secondary text-sm">
-                {{ __('reports.export_excel') }}
-            </a>
-            <a href="{{ route('reports.export.pdf', request()->query()) }}" class="app-btn app-btn-secondary text-sm">
-                {{ __('reports.export_pdf') }}
-            </a>
+            @include('partials.report-export-buttons', [
+                'excelRoute' => route('reports.export.excel', request()->query()),
+                'pdfRoute' => route('reports.export.pdf', request()->query()),
+            ])
             <a href="{{ route('dashboard') }}" class="text-sm font-semibold text-indigo-600 dark:text-indigo-400 hover:underline">← {{ __('nav.dashboard') }}</a>
         </div>
     </div>

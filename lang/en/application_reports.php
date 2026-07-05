@@ -20,4 +20,6 @@ return [
     'amount_repaid' => 'Amount Repaid',
     'detail_table' => 'Application Details',
     'no_results' => 'No applications match the selected filters.',
+    'export_excel' => 'Export Excel',
+    'export_pdf' => 'Export PDF',
 ];

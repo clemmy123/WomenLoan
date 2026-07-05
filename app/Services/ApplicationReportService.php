@@ -6,6 +6,7 @@ use App\Models\Loan;
 use App\Models\Scopes\ApprovalLevelScope;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Auth;
 
 class ApplicationReportService
@@ -53,6 +54,20 @@ class ApplicationReportService
             ->paginate($perPage)
             ->withQueryString()
             ->through(fn (Loan $loan) => $this->mapRow($loan));
+    }
+
+    public function allRows(array $filters): Collection
+    {
+        return $this->baseQuery($filters)
+            ->latest('created_at')
+            ->latest('id')
+            ->get()
+            ->map(fn (Loan $loan) => $this->mapRow($loan));
+    }
+
+    public function exportFilename(string $extension): string
+    {
+        return 'wdf-application-reports-'.now()->format('Y-m-d-His').'.'.$extension;
     }
 
     protected function baseQuery(array $filters): Builder

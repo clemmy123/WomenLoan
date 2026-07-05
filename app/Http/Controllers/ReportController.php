@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Exports\ApplicationReportsExport;
 use App\Exports\ReportsExport;
 use App\Services\ApplicationReportService;
 use App\Services\ReportService;
@@ -63,6 +64,28 @@ class ReportController extends Controller
             ->download($this->reports->exportFilename('pdf'));
     }
 
+    public function exportApplicationsExcel(Request $request): BinaryFileResponse
+    {
+        $this->authorize('view reports');
+
+        $data = $this->applicationExportData($request);
+
+        return Excel::download(
+            new ApplicationReportsExport($data['rows'], $data['filters']),
+            $this->applicationReports->exportFilename('xlsx')
+        );
+    }
+
+    public function exportApplicationsPdf(Request $request)
+    {
+        $this->authorize('view reports');
+
+        $data = $this->applicationExportData($request);
+
+        return Pdf::loadView('reports.applications.export-pdf', $data)
+            ->download($this->applicationReports->exportFilename('pdf'));
+    }
+
     protected function exportData(Request $request): array
     {
         $filters = $this->reports->normalizeFilters($request->all());
@@ -71,6 +94,16 @@ class ReportController extends Controller
             'filters' => $filters,
             'summary' => $this->reports->summary($filters),
             'rows' => $this->reports->allRows($filters),
+        ];
+    }
+
+    protected function applicationExportData(Request $request): array
+    {
+        $filters = $this->applicationReports->normalizeFilters($request->all());
+
+        return [
+            'filters' => $filters,
+            'rows' => $this->applicationReports->allRows($filters),
         ];
     }
 }

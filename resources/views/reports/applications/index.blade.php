@@ -13,6 +13,12 @@
             <p class="page-subtitle">{{ __('application_reports.subtitle') }}</p>
         </div>
         <div class="flex flex-wrap items-center gap-2">
+            @include('partials.report-export-buttons', [
+                'excelRoute' => route('reports.applications.export.excel', request()->query()),
+                'pdfRoute' => route('reports.applications.export.pdf', request()->query()),
+                'excelLabel' => __('application_reports.export_excel'),
+                'pdfLabel' => __('application_reports.export_pdf'),
+            ])
             <a href="{{ route('reports.index') }}" class="text-sm font-semibold text-indigo-600 dark:text-indigo-400 hover:underline">← {{ __('nav.reports') }}</a>
             <a href="{{ route('dashboard') }}" class="text-sm font-semibold text-indigo-600 dark:text-indigo-400 hover:underline">← {{ __('nav.dashboard') }}</a>
         </div>

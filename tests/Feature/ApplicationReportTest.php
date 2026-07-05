@@ -54,4 +54,40 @@ class ApplicationReportTest extends TestCase
         $response->assertOk();
         $response->assertSee('WL000011');
     }
+
+    public function test_application_reports_show_export_buttons(): void
+    {
+        $response = $this->actingAsRole('ministry@wdf.go.tz')
+            ->get(route('reports.applications.index', ['period' => 'monthly']));
+
+        $response->assertOk();
+        $response->assertSee(__('application_reports.export_excel'), false);
+        $response->assertSee(__('application_reports.export_pdf'), false);
+    }
+
+    public function test_ministry_can_export_application_reports_excel(): void
+    {
+        $response = $this->actingAsRole('ministry@wdf.go.tz')
+            ->get(route('reports.applications.export.excel', ['period' => 'monthly']));
+
+        $response->assertOk();
+        $response->assertDownload();
+        $this->assertStringContainsString(
+            'wdf-application-reports-',
+            $response->headers->get('content-disposition') ?? ''
+        );
+    }
+
+    public function test_ministry_can_export_application_reports_pdf(): void
+    {
+        $response = $this->actingAsRole('ministry@wdf.go.tz')
+            ->get(route('reports.applications.export.pdf', ['period' => 'monthly']));
+
+        $response->assertOk();
+        $response->assertDownload();
+        $this->assertStringContainsString(
+            'wdf-application-reports-',
+            $response->headers->get('content-disposition') ?? ''
+        );
+    }
 }

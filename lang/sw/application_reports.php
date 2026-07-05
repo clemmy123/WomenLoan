@@ -20,4 +20,6 @@ return [
     'amount_repaid' => 'Kiasi Kilichorejeshwa',
     'detail_table' => 'Maelezo ya Maombi',
     'no_results' => 'Hakuna maombi yanayolingana na vichujio.',
+    'export_excel' => 'Pakua Excel',
+    'export_pdf' => 'Pakua PDF',
 ];

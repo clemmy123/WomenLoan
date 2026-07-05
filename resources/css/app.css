@@ -1089,6 +1089,34 @@
         background: linear-gradient(135deg, rgba(255, 255, 255, 0.18) 0%, rgba(255, 255, 255, 0.1) 55%, rgba(255, 255, 255, 0.06) 100%);
     }
 
+    .app-export-btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.45rem;
+    }
+
+    .app-export-icon {
+        width: 1rem;
+        height: 1rem;
+        flex-shrink: 0;
+    }
+
+    .app-export-icon--excel {
+        color: #15803d;
+    }
+
+    .app-export-icon--pdf {
+        color: #dc2626;
+    }
+
+    .dark .app-export-icon--excel {
+        color: #4ade80;
+    }
+
+    .dark .app-export-icon--pdf {
+        color: #f87171;
+    }
+
     .app-btn-outline {
         color: #4338ca;
         background: linear-gradient(135deg, #ffffff 0%, #eef2ff 100%);
