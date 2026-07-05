@@ -1,0 +1,23 @@
+<?php
+
+return [
+    'title' => 'Ripoti za Maombi',
+    'subtitle' => 'Chuja maombi ya mkopo kwa hali na kipindi.',
+    'filters' => 'Vichujio vya Ripoti',
+    'apply_filters' => 'Tumia Vichujio',
+    'reset_filters' => 'Weka Upya',
+    'period' => 'Kipindi',
+    'date_from' => 'Tarehe ya Kuanzia',
+    'date_to' => 'Tarehe ya Mwisho',
+    'status' => 'Hali',
+    'all_statuses' => 'Hali Zote',
+    'track_id' => 'Kitambulisho cha Ufuatiliaji',
+    'full_name' => 'Majina Kamili',
+    'amount_requested' => 'Kiasi Kilichoombwa',
+    'amount_disbursed' => 'Kiasi Kilichotolewa',
+    'bank_name' => 'Jina la Benki',
+    'outstanding' => 'Deni Lililodaiwa',
+    'amount_repaid' => 'Kiasi Kilichorejeshwa',
+    'detail_table' => 'Maelezo ya Maombi',
+    'no_results' => 'Hakuna maombi yanayolingana na vichujio.',
+];
