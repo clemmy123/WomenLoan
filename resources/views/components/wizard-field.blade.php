@@ -3,7 +3,7 @@
 <div {{ $attributes->merge(['class' => 'wizard-field']) }}>
     <label @if($for) for="{{ $for }}" @endif class="app-label">
         {{ $label }}
-        @if($required)<span class="text-red-500">*</span>@endif
+        @if($required) @include('partials.required-mark') @endif
     </label>
     {{ $slot }}
 </div>

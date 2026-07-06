@@ -41,13 +41,23 @@
                 <h2 class="text-sm font-semibold tracking-wide uppercase text-indigo-600 border-b border-slate-100 dark:border-white/10 pb-2 mb-5">{{ __('applicants.section_demographics') }}</h2>
                 <div class="detail-grid">
                     @include('partials.detail-field', ['label' => __('applicants.sex'), 'value' => $applicant->sex])
-                    @include('partials.detail-field', ['label' => __('applicants.marital_status'), 'value' => $applicant->marital_status])
+                    @include('partials.detail-field', ['label' => __('applicants.marital_status'), 'value' => $applicant->marital_status ? __('applicants.marital_statuses.'.$applicant->marital_status) : null])
+                    @include('partials.detail-field', ['label' => __('applicants.has_disability'), 'value' => $applicant->has_disability === null ? null : ($applicant->has_disability ? __('common.yes') : __('common.no'))])
                     @include('partials.detail-field', ['label' => __('applicants.nationality'), 'value' => $applicant->nationality])
+                    @include('partials.detail-field', ['label' => __('applicants.preferred_loan_type'), 'value' => $applicant->preferred_loan_type ? __('applicants.loan_types.'.$applicant->preferred_loan_type) : null])
+                </div>
+            </section>
+
+            <section>
+                <h2 class="text-sm font-semibold tracking-wide uppercase text-indigo-600 border-b border-slate-100 dark:border-white/10 pb-2 mb-5">{{ __('applicants.section_residential_address') }}</h2>
+                <div class="detail-grid">
                     @include('partials.detail-field', ['label' => __('geo.region'), 'value' => $region?->name])
                     @include('partials.detail-field', ['label' => __('geo.district'), 'value' => $district?->name])
                     @include('partials.detail-field', ['label' => __('geo.council'), 'value' => $council?->name])
                     @include('partials.detail-field', ['label' => __('geo.ward'), 'value' => $ward?->name])
                     @include('partials.detail-field', ['label' => __('geo.street'), 'value' => $location?->name])
+                    @include('partials.detail-field', ['label' => __('applicants.postal_code'), 'value' => $applicant->postal_code])
+                    @include('partials.detail-field', ['label' => __('applicants.po_box'), 'value' => $applicant->po_box])
                 </div>
             </section>
         </div>

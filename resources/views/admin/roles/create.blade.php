@@ -17,7 +17,7 @@
     <div class="bg-white dark:dark-surface rounded-2xl border border-slate-200 dark:border-white/[0.08] p-6 mb-6">
         <h3 class="font-bold text-slate-900 dark:text-white mb-4">{{ __('admin.role_details') }}</h3>
         <div class="max-w-md">
-            <label class="app-label" for="name">{{ __('admin.role_key') }}</label>
+            <label class="app-label" for="name">{{ __('admin.role_key') }} @include('partials.required-mark')</label>
             <input type="text" name="name" id="name" value="{{ old('name') }}" required
                 pattern="[a-z][a-z0-9_]*"
                 placeholder="e.g. field_officer"

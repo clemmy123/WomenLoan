@@ -33,6 +33,10 @@ class ApplicantGroupService
             return false;
         }
 
+        if (! $user->applicant->prefersGroupLoan()) {
+            return false;
+        }
+
         return ! $this->groupForUser($user);
     }
 
@@ -101,8 +105,9 @@ class ApplicantGroupService
 
         if ($member->is_group_leader) {
             $member->update([
-                'age' => $data['age'],
+                'dob' => $data['dob'],
                 'sex' => $data['sex'],
+                'leadership_role' => $this->leadershipRoleFromRow($data),
             ]);
 
             return $member->fresh();
@@ -118,11 +123,12 @@ class ApplicantGroupService
                 $data['last_name'],
             ),
             'nin' => $data['nin'],
-            'age' => $data['age'],
+            'dob' => $data['dob'],
             'email' => $data['email'] ?? null,
             'phone' => $data['phone'],
             'sex' => $data['sex'],
             'marital_status' => $data['marital_status'],
+            'leadership_role' => $this->leadershipRoleFromRow($data),
         ]);
 
         return $member->fresh();
@@ -171,12 +177,13 @@ class ApplicantGroupService
             'last_name' => $applicant->last_name,
             'full_name' => $applicant->full_name,
             'nin' => $applicant->nin,
-            'age' => $leader['age'] ?? $this->ageFromApplicant($applicant),
+            'dob' => $leader['dob'] ?? $applicant->dob,
             'email' => $applicant->email,
             'phone' => $applicant->phone,
             'sex' => $leader['sex'] ?? $applicant->sex,
             'marital_status' => $applicant->marital_status,
             'is_group_leader' => true,
+            'leadership_role' => $this->leadershipRoleFromRow($leader),
         ]);
     }
 
@@ -193,22 +200,25 @@ class ApplicantGroupService
                 $row['last_name'],
             ),
             'nin' => $row['nin'],
-            'age' => $row['age'] ?? null,
+            'dob' => $row['dob'] ?? null,
             'email' => $row['email'] ?? null,
             'phone' => $row['phone'],
             'sex' => $row['sex'] ?? null,
             'marital_status' => $row['marital_status'] ?? null,
             'is_group_leader' => false,
+            'leadership_role' => $this->leadershipRoleFromRow($row),
         ]);
+    }
+
+    protected function leadershipRoleFromRow(array $row): ?string
+    {
+        $role = $row['leadership_role'] ?? null;
+
+        return filled($role) ? $role : null;
     }
 
     protected function isLeaderRow(array $row, Applicant $applicant): bool
     {
         return isset($row['nin']) && $row['nin'] === $applicant->nin;
-    }
-
-    protected function ageFromApplicant(Applicant $applicant): ?int
-    {
-        return $applicant->dob?->age;
     }
 }

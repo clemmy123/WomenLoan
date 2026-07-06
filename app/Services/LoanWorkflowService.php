@@ -21,7 +21,6 @@ class LoanWorkflowService
             $user = Auth::user();
 
             match ($action) {
-                'receive' => $this->wardReceive($loan, $user, $data),
                 'forward_ministry' => $this->forward($loan, $user, 2, 'forwarded_to_ministry', $data),
                 'propose_amount' => $this->proposeAmount($loan, $user, $data),
                 'send_to_applicant' => $this->forward($loan, $user, 3, 'sent_to_applicant', $data),
@@ -64,12 +63,6 @@ class LoanWorkflowService
             'comments' => $data['comments'] ?? null,
         ];
         $loan->update(['approval_history' => $history]);
-    }
-
-    protected function wardReceive(Loan $loan, User $user, array $data): void
-    {
-        $this->logAction($loan, $user, 1, 'received', $data);
-        $loan->update(['status' => 'received']);
     }
 
     protected function forward(Loan $loan, User $user, int $nextStep, string $action, array $data): void
@@ -147,7 +140,11 @@ class LoanWorkflowService
 
         [$previousStep, $status] = $this->rollbackTarget($loan);
 
-        $this->logAction($loan, $user, $loan->current_step, 'rolled_back', $data);
+        $action = ($loan->current_step === 1 && $loan->status === 'received')
+            ? 'rolled_back_to_applicant'
+            : 'rolled_back';
+
+        $this->logAction($loan, $user, $loan->current_step, $action, $data);
 
         $updates = [
             'current_step' => $previousStep,
@@ -171,6 +168,10 @@ class LoanWorkflowService
 
     protected function rollbackTarget(Loan $loan): array
     {
+        if ($loan->current_step === 1 && $loan->status === 'received') {
+            return [1, 'pending'];
+        }
+
         return match ($loan->current_step) {
             2 => [1, 'received'],
             3 => [2, 'in_review'],

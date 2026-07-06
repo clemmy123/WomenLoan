@@ -2,7 +2,7 @@
     @csrf
     <input type="hidden" name="action" value="decline_amount">
     <div>
-        <label class="app-label">{{ __('workflow.decline_reason') }}</label>
+        <label class="app-label">{{ __('workflow.decline_reason') }} @include('partials.required-mark')</label>
         <textarea name="comments" rows="3" required class="app-textarea" placeholder="{{ __('workflow.decline_reason') }}"></textarea>
     </div>
     <div class="flex justify-end gap-2">

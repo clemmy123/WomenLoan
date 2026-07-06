@@ -2,7 +2,7 @@
     @csrf
     <input type="hidden" name="action" value="forward_km">
     <div>
-        <label class="app-label">{{ __('workflow.director_comment') }}</label>
+        <label class="app-label">{{ __('workflow.director_comment') }} @include('partials.required-mark')</label>
         <textarea name="comments" rows="3" required class="app-textarea" placeholder="{{ __('workflow.director_comment') }}"></textarea>
     </div>
     <div class="flex justify-end gap-2">

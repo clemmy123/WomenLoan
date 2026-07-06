@@ -14,7 +14,7 @@
 
         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
-                <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{{ __('groups.group_name') }}</label>
+                <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{{ __('groups.group_name') }} @include('partials.required-mark')</label>
                 <input type="text" name="name" class="w-full mt-1 p-3 rounded-xl border border-slate-200 focus:ring-2 focus:ring-indigo-500 outline-none text-sm" required>
             </div>
             <div>

@@ -20,7 +20,11 @@
     </div>
 
     @if(session('success'))
-        <div class="app-alert app-alert-success print:hidden">{{ session('success') }}</div>
+        @include('partials.status-card', [
+            'type' => 'success',
+            'message' => session('success'),
+            'class' => 'print:hidden',
+        ])
     @endif
 
     <div class="payment-receipt">

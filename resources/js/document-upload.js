@@ -1,5 +1,15 @@
 const MAX_FILE_BYTES = 1024 * 1024;
 
+function isPdfFile(file) {
+    const name = file.name.toLowerCase();
+
+    return name.endsWith('.pdf') || file.type === 'application/pdf';
+}
+
+function pdfOnlyMessage(input) {
+    return input.dataset.pdfOnlyMessage ?? 'Only PDF files are allowed.';
+}
+
 function fileTooLargeMessage(input) {
     const maxKb = Number.parseInt(input.dataset.maxKb ?? '1024', 10);
 
@@ -175,6 +185,14 @@ document.addEventListener('change', (event) => {
     }
 
     const file = input.files?.[0];
+
+    if (file && !isPdfFile(file)) {
+        setFileFieldError(input, pdfOnlyMessage(input));
+        input.value = '';
+        updateUploadStatus(input);
+
+        return;
+    }
 
     if (file && file.size > MAX_FILE_BYTES) {
         setFileFieldError(input, fileTooLargeMessage(input));

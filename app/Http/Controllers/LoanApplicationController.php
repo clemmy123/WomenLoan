@@ -12,6 +12,7 @@ use App\Services\BusinessSectorService;
 use App\Services\GeoHierarchyService;
 use App\Services\LoanApplicationService;
 use App\Services\LoanQueryService;
+use App\Support\LoanWizardFieldMap;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
@@ -34,8 +35,9 @@ class LoanApplicationController extends Controller
             && ! $this->loans->userHasLoanApplication(Auth::user());
         $userGroup = $this->applicantGroups->groupForUser(Auth::user());
         $canSetupGroup = $this->applicantGroups->canSetupGroup(Auth::user());
+        $preferredLoanType = Auth::user()->applicant?->preferred_loan_type;
 
-        return view('loan_applications.index', compact('loans', 'drafts', 'canStartNew', 'userGroup', 'canSetupGroup'));
+        return view('loan_applications.index', compact('loans', 'drafts', 'canStartNew', 'userGroup', 'canSetupGroup', 'preferredLoanType'));
     }
 
     public function create(Request $request)
@@ -62,6 +64,7 @@ class LoanApplicationController extends Controller
         return view('loan_applications.apply', $this->wizardViewData(
             formData: $draft?->form_data ?? [],
             trackId: $trackId ?? $this->applications->nextTrackId(),
+            isDraft: $draft !== null,
         ));
     }
 
@@ -91,8 +94,13 @@ class LoanApplicationController extends Controller
 
             $this->applications->saveDraft($request, $user->id, $trackId);
 
+            $savedStep = max(1, min(6, (int) $request->input('step', 1)));
+
             return redirect()
-                ->route('loan-applications.create', ['resume_track_id' => $trackId])
+                ->route('loan-applications.create', [
+                    'resume_track_id' => $trackId,
+                    'wizard_step' => $savedStep,
+                ])
                 ->with('success', __('messages.draft_saved'))
                 ->withInput($request->except([
                     'business_proposal_document',
@@ -143,6 +151,13 @@ class LoanApplicationController extends Controller
 
         $this->applications->update($formRequest, $loan);
 
+        if ($request->input('form_action') === 'submit_to_ward') {
+            $this->applications->markSubmittedToWard($loan);
+
+            return redirect()->route('loan-applications.index')
+                ->with('success', __('messages.application_submitted'));
+        }
+
         return redirect()->route('loan-applications.show', $loan)
             ->with('success', __('messages.application_updated'));
     }
@@ -190,6 +205,7 @@ class LoanApplicationController extends Controller
         ?Loan $editingLoan = null,
         ?string $trackId = null,
         array $formData = [],
+        bool $isDraft = false,
     ): array {
         $user = Auth::user();
         $editing = $editingLoan !== null;
@@ -197,6 +213,20 @@ class LoanApplicationController extends Controller
         if ($editing) {
             $trackId = $editingLoan->loan_track_id;
             $formData = $this->applications->formDataFromLoan($editingLoan);
+        }
+
+        $wizardStep = max(1, min(6, (int) old(
+            'step',
+            request()->query('wizard_step', $formData['step'] ?? 1),
+        )));
+
+        $validationStepHint = $this->validationStepHint();
+        if ($validationStepHint !== null) {
+            $wizardStep = $validationStepHint['step'];
+        }
+
+        if ($editing && $editingLoan?->status === 'pending' && ! request()->has('wizard_step') && ! old('step') && $validationStepHint === null) {
+            $wizardStep = 6;
         }
 
         $regions = $this->geo->regions();
@@ -208,10 +238,13 @@ class LoanApplicationController extends Controller
             ? $editingLoan?->group?->load('members')
             : $this->applicantGroups->groupForUser($user);
         $canSetupGroup = $this->applicantGroups->canSetupGroup($user);
+        $canSubmitToWard = ! $editing || $editingLoan?->status === 'pending';
 
         $wizardConfig = [
-            'step' => (int) old('step', request()->query('wizard_step', $formData['step'] ?? 1)),
-            'totalSteps' => 7,
+            'step' => $wizardStep,
+            'totalSteps' => 6,
+            'editing' => $editing,
+            'isDraft' => $isDraft,
             'selectedRegion' => $this->stringOrNull(old('region_id', $formData['region_id'] ?? null)),
             'selectedDistrict' => $this->stringOrNull(old('district_id', $formData['district_id'] ?? null)),
             'selectedCouncil' => $this->stringOrNull(old('council_id', $formData['council_id'] ?? null)),
@@ -222,7 +255,7 @@ class LoanApplicationController extends Controller
             'guarantorCouncil' => $this->stringOrNull(old('guarantor_council_id', $formData['guarantor_council_id'] ?? null)),
             'guarantorWard' => $this->stringOrNull(old('guarantor_ward_id', $formData['guarantor_ward_id'] ?? null)),
             'guarantorStreet' => $this->stringOrNull(old('guarantor_street_id', $formData['guarantor_street_id'] ?? null)),
-            'loanType' => old('loan_type', $formData['loan_type'] ?? ''),
+            'loanType' => old('loan_type', $formData['loan_type'] ?? $applicant?->preferred_loan_type ?? ($editingLoan?->loan_type ?? '')),
             'selectedBusinessSector' => old('business_sector', $formData['business_sector'] ?? ''),
             'selectedBusinessType' => old('business_type', $formData['business_type'] ?? ''),
             'businessCatalog' => $this->businessSectors->wizardCatalog(),
@@ -230,17 +263,60 @@ class LoanApplicationController extends Controller
             'i18n' => [
                 'load_failed' => __('loans.load_failed'),
                 'loading' => __('loans.loading_data'),
-                'step' => __('common.step_n_of', ['step' => ':step', 'total' => 7]),
+                'step' => __('common.step_n_of', ['step' => ':step', 'total' => 6]),
                 'step_required' => __('loans.step_required'),
                 'document_required' => __('common.document_required'),
                 'file_too_large' => __('common.file_too_large', ['max' => '1MB']),
+                'business_proposal' => __('loans.business_proposal'),
+                'business_registration' => __('loans.business_registration'),
+                'proof_address' => __('loans.proof_address'),
+                'application_letter' => __('loans.application_letter'),
+                'bank_statement' => __('loans.bank_statement'),
+                'guarantor_letter' => __('loans.guarantor_letter'),
+                'group_constitution' => __('loans.group_constitution'),
+                'group_muhtasari' => __('loans.group_muhtasari'),
+                'group_certificate' => __('loans.group_certificate'),
+                'yes' => __('common.yes'),
+                'no' => __('common.no'),
+                'preview_status_draft' => __('loans.preview_status_draft'),
+                'preview_status_pending' => __('loans.preview_status_pending'),
+                'loan_type_individual' => __('loans.continue_as_individual'),
+                'loan_type_group' => __('loans.continue_as_group'),
+                'declaration_confirmed' => __('loans.declaration_confirmed'),
             ],
         ];
 
         return compact(
             'regions', 'businessSectors', 'banks', 'groups', 'trackId', 'applicant', 'wizardConfig', 'formData',
-            'editing', 'editingLoan', 'userGroup', 'canSetupGroup',
+            'editing', 'editingLoan', 'userGroup', 'canSetupGroup', 'isDraft', 'wizardStep', 'canSubmitToWard',
+            'validationStepHint',
         );
+    }
+
+    private function validationStepHint(): ?array
+    {
+        $errors = session('errors');
+
+        if (! $errors || ! $errors->any()) {
+            return null;
+        }
+
+        $firstField = $errors->keys()[0] ?? null;
+
+        if ($firstField === null || $firstField === 'error') {
+            return null;
+        }
+
+        $step = LoanWizardFieldMap::stepForField($firstField);
+
+        return [
+            'step' => $step,
+            'message' => __('messages.validation_check_step', [
+                'step' => $step,
+                'title' => __('loans.wizard_steps.'.$step),
+                'field' => __("validation.attributes.{$firstField}", str_replace('_', ' ', $firstField)),
+            ]),
+        ];
     }
 
     private function stringOrNull(mixed $value): ?string

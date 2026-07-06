@@ -2,7 +2,7 @@
     @csrf
     <input type="hidden" name="action" value="assign_accountant">
     <div>
-        <label class="app-label">{{ __('workflow.select_accountant') }}</label>
+        <label class="app-label">{{ __('workflow.select_accountant') }} @include('partials.required-mark')</label>
         <select name="accountant_id" required class="app-select">
             <option value="">{{ __('workflow.select_accountant') }}</option>
             @foreach($accountants as $acc)

@@ -2,12 +2,18 @@
 
 namespace App\Http\Requests\Loan\Concerns;
 
+use App\Models\Applicant;
+use App\Models\Scopes\ApplicantAccess;
 use App\Rules\TanzaniaPhone;
 use App\Rules\TanzanianNin;
 use App\Rules\UniqueNin;
 use App\Rules\UniquePhone;
+use App\Rules\UniqueTin;
 use App\Support\IdentityNormalizer;
+use App\Support\LoanWizardFieldMap;
+use Illuminate\Contracts\Validation\Validator;
 use Illuminate\Validation\Rule;
+use Illuminate\Validation\ValidationException;
 
 trait ValidatesLoanApplication
 {
@@ -15,7 +21,7 @@ trait ValidatesLoanApplication
 
     protected function prepareForValidation(): void
     {
-        if ($this->filled('guarantor_name') && ! $this->filled('guarantor_relationship')) {
+        if ($this->filled('guarantor_first_name') && ! $this->filled('guarantor_relationship')) {
             $this->merge(['guarantor_relationship' => 'Other']);
         }
 
@@ -37,8 +43,37 @@ trait ValidatesLoanApplication
             $merge['requested_amount'] = IdentityNormalizer::normalizeAmount($this->input('requested_amount'));
         }
 
+        if ($this->has('tin_number')) {
+            $merge['tin_number'] = trim((string) $this->input('tin_number'));
+        }
+
         if ($merge !== []) {
             $this->merge($merge);
+        }
+
+        /** @var Applicant|null $applicant */
+        $applicant = $this->user()
+            ?->applicant()
+            ->withoutGlobalScope(ApplicantAccess::class)
+            ->first();
+
+        if ($applicant instanceof Applicant) {
+            $profileMerge = [
+                'has_disability' => $applicant->has_disability === null
+                    ? $this->input('has_disability')
+                    : ($applicant->has_disability ? '1' : '0'),
+                'is_widowed' => $applicant->isWidowed() ? '1' : '0',
+            ];
+
+            $loan = $this->route('loan');
+
+            if ($loan) {
+                $profileMerge['loan_type'] = $this->input('loan_type', $loan->loan_type);
+            } elseif ($applicant->preferred_loan_type) {
+                $profileMerge['loan_type'] = $applicant->preferred_loan_type;
+            }
+
+            $this->merge($profileMerge);
         }
     }
 
@@ -120,10 +155,17 @@ trait ValidatesLoanApplication
             'street_id' => 'nullable|exists:streets,id',
             'business_sector' => 'nullable|string|max:255',
             'business_type' => 'nullable|string|max:255',
-            'tin_number' => 'nullable|string|max:50',
+            'tin_number' => [
+                'required',
+                'string',
+                'max:50',
+                new UniqueTin($updating ? $this->route('loan')?->businessDetails?->id : null),
+            ],
             'has_disability' => 'required|in:0,1',
             'is_widowed' => 'required|in:0,1',
-            'guarantor_name' => [$updating ? 'nullable' : 'required', 'string', 'max:255'],
+            'guarantor_first_name' => [$updating ? 'nullable' : 'required', 'string', 'max:100', 'min:2'],
+            'guarantor_middle_name' => 'nullable|string|max:100',
+            'guarantor_last_name' => [$updating ? 'nullable' : 'required', 'string', 'max:100', 'min:2'],
             'guarantor_phone' => ['nullable', 'string', new TanzaniaPhone, new UniquePhone],
             'guarantor_nin' => ['nullable', 'string', new TanzanianNin, new UniqueNin],
             'guarantor_relationship' => 'nullable|string|max:50',
@@ -142,6 +184,33 @@ trait ValidatesLoanApplication
             ),
             'bank_name' => ['nullable', 'string', Rule::in(config('banks.names', []))],
             'bank_number' => 'nullable|string|max:255',
+        ];
+    }
+
+    protected function requiredBusinessLocationRules(): array
+    {
+        return [
+            'region_id' => 'required|exists:regions,id',
+            'district_id' => 'required|exists:districts,id',
+            'council_id' => 'required|exists:councils,id',
+            'ward_id' => 'required|exists:wards,id',
+            'street_id' => 'required|exists:streets,id',
+        ];
+    }
+
+    protected function requiredGuarantorRules(): array
+    {
+        return [
+            'guarantor_first_name' => 'required|string|max:100|min:2',
+            'guarantor_last_name' => 'required|string|max:100|min:2',
+            'guarantor_phone' => ['required', 'string', new TanzaniaPhone, new UniquePhone],
+            'guarantor_nin' => ['required', 'string', new TanzanianNin, new UniqueNin],
+            'guarantor_sex' => 'required|string|in:Male,Female',
+            'guarantor_region_id' => 'required|exists:regions,id',
+            'guarantor_district_id' => 'required|exists:districts,id',
+            'guarantor_council_id' => 'required|exists:councils,id',
+            'guarantor_ward_id' => 'required|exists:wards,id',
+            'guarantor_street_id' => 'required|exists:streets,id',
         ];
     }
 
@@ -176,8 +245,20 @@ trait ValidatesLoanApplication
             }),
             'nullable',
             'file',
-            'mimes:pdf,docx,doc',
+            'mimes:pdf',
             'max:'.self::DOCUMENT_MAX_KB,
         ];
+    }
+
+    protected function failedValidation(Validator $validator): void
+    {
+        $firstField = collect($validator->errors()->keys())->first();
+        $step = LoanWizardFieldMap::stepForField($firstField);
+        $url = $this->getRedirectUrl();
+        $separator = str_contains($url, '?') ? '&' : '?';
+
+        throw (new ValidationException($validator))
+            ->errorBag($this->errorBag)
+            ->redirectTo($url.$separator.'wizard_step='.$step);
     }
 }

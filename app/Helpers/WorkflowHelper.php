@@ -14,8 +14,7 @@ if (! function_exists('loan_has_workflow_actions')) {
 
         $step = $loan->current_step;
 
-        return ($user->can('receive application') && $step === 1 && $loan->status === 'pending')
-            || ($user->can('forward to ministry') && $step === 1 && $loan->status === 'received')
+        return ($user->can('forward to ministry') && $step === 1 && $loan->status === 'received')
             || ($user->can('propose loan amount') && $step === 2)
             || ($user->hasRole('applicant') && $step === 3)
             || ($user->can('forward to assistant director') && $step === 4)

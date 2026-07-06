@@ -18,10 +18,11 @@ class ApplicantGroupController extends Controller
     {
         $this->authorize('create loan application');
 
-        $group = $this->groups->groupForUser(Auth::user());
+        $user = Auth::user();
+        $group = $this->groups->groupForUser($user);
 
         if (! $group) {
-            if ($this->groups->canSetupGroup(Auth::user())) {
+            if ($user->applicant?->prefersGroupLoan() && $this->groups->canSetupGroup($user)) {
                 return redirect()->route('my-group.create');
             }
 
@@ -54,6 +55,10 @@ class ApplicantGroupController extends Controller
                 ->withErrors(['error' => __('messages.already_has_application')]);
         }
 
+        if ($user->applicant?->prefersIndividualLoan()) {
+            return redirect()->route('loan-applications.index');
+        }
+
         if (! $this->groups->canSetupGroup($user)) {
             return redirect()->route('my-group.show')
                 ->with('success', __('messages.group_already_registered'));
@@ -67,11 +72,12 @@ class ApplicantGroupController extends Controller
                     'middle_name' => '',
                     'last_name' => '',
                     'nin' => '',
-                    'age' => '',
+                    'dob' => '',
                     'phone' => '',
                     'email' => '',
                     'sex' => '',
                     'marital_status' => '',
+                    'leadership_role' => '',
                 ],
             ]),
         ]);

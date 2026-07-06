@@ -12,6 +12,7 @@ use App\Http\Controllers\LoanApplicationController;
 use App\Http\Controllers\LoanGroupController;
 use App\Http\Controllers\LoanPaymentController;
 use App\Http\Controllers\LocaleController;
+use App\Http\Controllers\ProfilePasswordController;
 use App\Http\Controllers\RegionController;
 use App\Http\Controllers\RoleController;
 use App\Http\Controllers\StreetController;
@@ -44,6 +45,9 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/dashboard', [DashboardController::class, 'index'])
         ->middleware('can:view dashboard')
         ->name('dashboard');
+
+    Route::get('/profile/password', [ProfilePasswordController::class, 'edit'])->name('profile.password.edit');
+    Route::put('/profile/password', [ProfilePasswordController::class, 'update'])->name('profile.password.update');
 
     Route::get('/track', [WorkflowController::class, 'track'])
         ->middleware('can:view loan by track id')

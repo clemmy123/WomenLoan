@@ -9,31 +9,43 @@
         <p class="auth-split-form-subtitle">{{ __('auth.register_subtitle') }}</p>
     </div>
 
-    @if($errors->any())
-        <div class="auth-split-alert" role="alert">
-            <ul class="auth-form-error-list">
-                @foreach($errors->all() as $error)
-                    <li>{{ $error }}</li>
-                @endforeach
-            </ul>
-        </div>
-    @endif
+    @include('partials.auth-flash-messages')
 
     <form method="POST" action="{{ route('register') }}" class="auth-split-form">
         @csrf
 
-        <div class="auth-split-field">
-            <label class="auth-split-label" for="name">{{ __('auth.full_name') }}</label>
-            <div class="auth-split-input-wrap">
-                <span class="auth-split-input-icon" aria-hidden="true">
-                    <svg viewBox="0 0 24 24" fill="none"><circle cx="12" cy="8" r="3.5" stroke="currentColor" stroke-width="1.75"/><path d="M5 19c0-3.3 3.1-5 7-5s7 1.7 7 5" stroke="currentColor" stroke-width="1.75" stroke-linecap="round"/></svg>
-                </span>
-                <input type="text" name="name" id="name" value="{{ old('name') }}" required autofocus class="auth-split-input" placeholder="{{ __('auth.full_name') }}">
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            <div class="auth-split-field">
+                <label class="auth-split-label" for="first_name">{{ __('applicants.first_name') }} @include('partials.required-mark')</label>
+                <div class="auth-split-input-wrap">
+                    <span class="auth-split-input-icon" aria-hidden="true">
+                        <svg viewBox="0 0 24 24" fill="none"><circle cx="12" cy="8" r="3.5" stroke="currentColor" stroke-width="1.75"/><path d="M5 19c0-3.3 3.1-5 7-5s7 1.7 7 5" stroke="currentColor" stroke-width="1.75" stroke-linecap="round"/></svg>
+                    </span>
+                    <input type="text" name="first_name" id="first_name" value="{{ old('first_name') }}" required autofocus class="auth-split-input" placeholder="{{ __('applicants.first_name') }}">
+                </div>
+            </div>
+            <div class="auth-split-field">
+                <label class="auth-split-label" for="middle_name">{{ __('applicants.middle_name') }}</label>
+                <div class="auth-split-input-wrap">
+                    <span class="auth-split-input-icon" aria-hidden="true">
+                        <svg viewBox="0 0 24 24" fill="none"><circle cx="12" cy="8" r="3.5" stroke="currentColor" stroke-width="1.75"/><path d="M5 19c0-3.3 3.1-5 7-5s7 1.7 7 5" stroke="currentColor" stroke-width="1.75" stroke-linecap="round"/></svg>
+                    </span>
+                    <input type="text" name="middle_name" id="middle_name" value="{{ old('middle_name') }}" class="auth-split-input" placeholder="{{ __('applicants.middle_name') }}">
+                </div>
+            </div>
+            <div class="auth-split-field">
+                <label class="auth-split-label" for="last_name">{{ __('applicants.last_name') }} @include('partials.required-mark')</label>
+                <div class="auth-split-input-wrap">
+                    <span class="auth-split-input-icon" aria-hidden="true">
+                        <svg viewBox="0 0 24 24" fill="none"><circle cx="12" cy="8" r="3.5" stroke="currentColor" stroke-width="1.75"/><path d="M5 19c0-3.3 3.1-5 7-5s7 1.7 7 5" stroke="currentColor" stroke-width="1.75" stroke-linecap="round"/></svg>
+                    </span>
+                    <input type="text" name="last_name" id="last_name" value="{{ old('last_name') }}" required class="auth-split-input" placeholder="{{ __('applicants.last_name') }}">
+                </div>
             </div>
         </div>
 
         <div class="auth-split-field">
-            <label class="auth-split-label" for="email">{{ __('common.email') }}</label>
+            <label class="auth-split-label" for="email">{{ __('common.email') }} @include('partials.required-mark')</label>
             <div class="auth-split-input-wrap">
                 <span class="auth-split-input-icon" aria-hidden="true">
                     <svg viewBox="0 0 24 24" fill="none"><path d="M4 6h16v12H4V6z" stroke="currentColor" stroke-width="1.75"/><path d="m4 7 8 6 8-6" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"/></svg>
@@ -43,7 +55,7 @@
         </div>
 
         <div class="auth-split-field">
-            <label class="auth-split-label" for="phone_local">{{ __('auth.phone') }}</label>
+            <label class="auth-split-label" for="phone_local">{{ __('auth.phone') }} @include('partials.required-mark')</label>
             @include('partials.inputs.phone-input', [
                 'name' => 'phone',
                 'id' => 'phone_local',
@@ -54,7 +66,7 @@
         </div>
 
         <div class="auth-split-field" x-data="{ showPassword: false }">
-            <label class="auth-split-label" for="password">{{ __('common.password') }}</label>
+            <label class="auth-split-label" for="password">{{ __('common.password') }} @include('partials.required-mark')</label>
             <div class="auth-split-input-wrap">
                 <span class="auth-split-input-icon" aria-hidden="true">
                     <svg viewBox="0 0 24 24" fill="none"><rect x="5" y="11" width="14" height="10" rx="2" stroke="currentColor" stroke-width="1.75"/><path d="M8 11V8a4 4 0 118 0v3" stroke="currentColor" stroke-width="1.75" stroke-linecap="round"/></svg>
@@ -74,7 +86,7 @@
         </div>
 
         <div class="auth-split-field" x-data="{ showPassword: false }">
-            <label class="auth-split-label" for="password_confirmation">{{ __('common.confirm_password') }}</label>
+            <label class="auth-split-label" for="password_confirmation">{{ __('common.confirm_password') }} @include('partials.required-mark')</label>
             <div class="auth-split-input-wrap">
                 <span class="auth-split-input-icon" aria-hidden="true">
                     <svg viewBox="0 0 24 24" fill="none"><rect x="5" y="11" width="14" height="10" rx="2" stroke="currentColor" stroke-width="1.75"/><path d="M8 11V8a4 4 0 118 0v3" stroke="currentColor" stroke-width="1.75" stroke-linecap="round"/></svg>

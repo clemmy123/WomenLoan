@@ -22,7 +22,8 @@ class IdentityValidationTest extends TestCase
         $existing = User::where('email', 'test@example.com')->firstOrFail();
 
         $this->post(route('register'), [
-            'name' => 'Another User',
+            'first_name' => 'Another',
+            'last_name' => 'User',
             'email' => $existing->email,
             'phone' => '255712399999',
             'password' => 'password',
@@ -35,7 +36,8 @@ class IdentityValidationTest extends TestCase
         $existing = $this->applicantWithoutLoan();
 
         $this->post(route('register'), [
-            'name' => 'Another User',
+            'first_name' => 'Another',
+            'last_name' => 'User',
             'email' => 'new.user@example.com',
             'phone' => IdentityNormalizer::formatPhone($existing->phone),
             'password' => 'password',
@@ -83,6 +85,8 @@ class IdentityValidationTest extends TestCase
             'phone' => '255712399998',
             'sex' => 'Female',
             'marital_status' => 'Single',
+            'preferred_loan_type' => 'individual',
+            'has_disability' => '0',
             'nationality' => 'Tanzanian',
             'location_id' => 1,
         ], $overrides);

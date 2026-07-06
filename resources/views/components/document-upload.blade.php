@@ -2,7 +2,7 @@
     'name',
     'title',
     'id' => null,
-    'accept' => '.pdf,.doc,.docx',
+    'accept' => '.pdf',
     'required' => false,
     'existing' => null,
     'hint' => null,
@@ -34,7 +34,7 @@
         <span class="doc-attachment-body">
             <span class="doc-attachment-title">
                 {{ $title }}
-                @if($required)<span class="doc-attachment-required">*</span>@endif
+                @if($required) @include('partials.required-mark') @endif
             </span>
             <span class="doc-attachment-hint" data-doc-hint>{{ $hintText }}</span>
             <span class="doc-attachment-uploaded" data-doc-uploaded @unless($hasExisting) hidden @endunless>
@@ -52,7 +52,7 @@
             id="{{ $inputId }}"
             accept="{{ $accept }}"
             class="doc-attachment-input"
-            data-max-kb="{{ $maxKb }}"
+            data-pdf-only-message="{{ __('common.file_must_be_pdf') }}"
             @if($required) data-doc-required="true" @endif
             @if($hasExisting) data-has-existing="true" data-existing-name="{{ $existingName }}" @endif
             @if(empty(trim($inputAttributes ?? '')) && $required) required @endif

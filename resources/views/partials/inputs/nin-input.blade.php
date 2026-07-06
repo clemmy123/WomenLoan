@@ -3,6 +3,7 @@
     'id' => null,
     'value' => '',
     'readonly' => false,
+    'required' => false,
     'class' => '',
     'placeholder' => '19000000-00000-00000-00',
 ])
@@ -25,5 +26,6 @@
     maxlength="23"
     data-nin-input
     @readonly($readonly)
+    @required($required && ! $readonly)
     {{ $attributes->merge(['class' => trim('app-nin-input '.$class)]) }}
 >

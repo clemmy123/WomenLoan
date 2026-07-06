@@ -5,6 +5,7 @@ namespace App\Services;
 use App\Http\Requests\Loan\StoreLoanApplicationRequest;
 use App\Http\Requests\Loan\UpdateLoanApplicationRequest;
 use App\Models\Applicant;
+use App\Models\Concerns\HasDisplayName;
 use App\Models\Loan;
 use App\Models\LoanGroup;
 use App\Models\User;
@@ -82,30 +83,35 @@ class LoanApplicationService
                 'group_certificate' => $request->file('group_certificate')?->store('group-documents', 'public'),
             ]);
 
-            if ($request->filled('guarantor_name')) {
-                $loan->guarantors()->create([
-                    'applicant_id' => $applicant->id,
-                    'name' => $request->guarantor_name,
-                    'phone' => $request->guarantor_phone,
-                    'id_number' => $request->guarantor_nin,
-                    'relationship' => $this->resolveGuarantorRelationship($request),
-                    'occupation' => $request->guarantor_occupation,
-                    'sex' => $request->guarantor_sex,
-                    'guarantor_region_id' => $request->guarantor_region_id,
-                    'guarantor_district_id' => $request->guarantor_district_id,
-                    'guarantor_council_id' => $request->guarantor_council_id,
-                    'guarantor_ward_id' => $request->guarantor_ward_id,
-                    'guarantor_street_id' => $request->guarantor_street_id,
-                    'guarantor_letter' => $request->file('guarantor_letter')?->store('guarantor-letters', 'public'),
-                ]);
+            if ($request->filled('guarantor_first_name') && $request->filled('guarantor_last_name')) {
+                $guarantorData = array_merge(
+                    $this->guarantorIdentityFromRequest($request),
+                    ['applicant_id' => $applicant->id],
+                );
+
+                if ($request->hasFile('guarantor_letter')) {
+                    $guarantorData['guarantor_letter'] = $request->file('guarantor_letter')
+                        ->store('guarantor-letters', 'public');
+                }
+
+                $loan->guarantors()->create($guarantorData);
             }
 
             $this->drafts->deleteByTrackId($trackId);
 
+            $this->markSubmittedToWard($loan);
+
             DashboardStatsService::flushForUser($user->id);
 
-            return $loan;
+            return $loan->fresh();
         });
+    }
+
+    public function markSubmittedToWard(Loan $loan): Loan
+    {
+        $loan->update(['status' => 'received']);
+
+        return $loan->fresh();
     }
 
     public function formDataFromLoan(Loan $loan): array
@@ -128,7 +134,9 @@ class LoanApplicationService
             'business_sector' => $business?->business_sector,
             'business_type' => $business?->business_type,
             'tin_number' => $business?->tin_number,
-            'guarantor_name' => $guarantor?->name,
+            'guarantor_first_name' => $guarantor?->first_name ?? HasDisplayName::splitFullName($guarantor?->name ?? '')['first_name'],
+            'guarantor_middle_name' => $guarantor?->middle_name ?? HasDisplayName::splitFullName($guarantor?->name ?? '')['middle_name'],
+            'guarantor_last_name' => $guarantor?->last_name ?? HasDisplayName::splitFullName($guarantor?->name ?? '')['last_name'],
             'guarantor_phone' => $guarantor?->phone,
             'guarantor_nin' => $guarantor?->id_number,
             'guarantor_relationship' => $guarantor?->relationship,
@@ -166,12 +174,14 @@ class LoanApplicationService
                 'bank_number' => $request->bank_number,
             ]);
 
+            $existingBusiness = $loan->businessDetails;
+
             $businessData = [
-                'region_id' => $request->region_id,
-                'district_id' => $request->district_id,
-                'council_id' => $request->council_id,
-                'ward_id' => $request->ward_id,
-                'street_id' => $request->street_id,
+                'region_id' => $this->resolvedRequestId($request->region_id, $existingBusiness?->region_id),
+                'district_id' => $this->resolvedRequestId($request->district_id, $existingBusiness?->district_id),
+                'council_id' => $this->resolvedRequestId($request->council_id, $existingBusiness?->council_id),
+                'ward_id' => $this->resolvedRequestId($request->ward_id, $existingBusiness?->ward_id),
+                'street_id' => $this->resolvedRequestId($request->street_id, $existingBusiness?->street_id),
                 'business_name' => $request->business_name,
                 'business_phone' => $request->business_phone,
                 'business_email' => $request->business_email,
@@ -225,21 +235,11 @@ class LoanApplicationService
                 $businessData,
             );
 
-            if ($request->filled('guarantor_name')) {
-                $guarantorData = [
-                    'applicant_id' => $loan->applicant_id,
-                    'name' => $request->guarantor_name,
-                    'phone' => $request->guarantor_phone,
-                    'id_number' => $request->guarantor_nin,
-                    'relationship' => $this->resolveGuarantorRelationship($request),
-                    'occupation' => $request->guarantor_occupation,
-                    'sex' => $request->guarantor_sex,
-                    'guarantor_region_id' => $request->guarantor_region_id,
-                    'guarantor_district_id' => $request->guarantor_district_id,
-                    'guarantor_council_id' => $request->guarantor_council_id,
-                    'guarantor_ward_id' => $request->guarantor_ward_id,
-                    'guarantor_street_id' => $request->guarantor_street_id,
-                ];
+            if ($request->filled('guarantor_first_name') && $request->filled('guarantor_last_name')) {
+                $guarantorData = array_merge(
+                    $this->guarantorIdentityFromRequest($request),
+                    ['applicant_id' => $loan->applicant_id],
+                );
 
                 if ($request->hasFile('guarantor_letter')) {
                     $guarantorData['guarantor_letter'] = $request->file('guarantor_letter')
@@ -289,5 +289,34 @@ class LoanApplicationService
         $relationship = trim((string) $request->input('guarantor_relationship', ''));
 
         return $relationship !== '' ? $relationship : 'Other';
+    }
+
+    private function guarantorIdentityFromRequest(Request $request): array
+    {
+        $firstName = trim((string) $request->input('guarantor_first_name'));
+        $middleName = trim((string) $request->input('guarantor_middle_name', ''));
+        $lastName = trim((string) $request->input('guarantor_last_name'));
+
+        return [
+            'first_name' => $firstName,
+            'middle_name' => $middleName !== '' ? $middleName : null,
+            'last_name' => $lastName,
+            'name' => HasDisplayName::buildFullName($firstName, $middleName !== '' ? $middleName : null, $lastName),
+            'phone' => $request->guarantor_phone,
+            'id_number' => $request->guarantor_nin,
+            'relationship' => $this->resolveGuarantorRelationship($request),
+            'occupation' => $request->guarantor_occupation,
+            'sex' => $request->guarantor_sex,
+            'guarantor_region_id' => $request->guarantor_region_id,
+            'guarantor_district_id' => $request->guarantor_district_id,
+            'guarantor_council_id' => $request->guarantor_council_id,
+            'guarantor_ward_id' => $request->guarantor_ward_id,
+            'guarantor_street_id' => $request->guarantor_street_id,
+        ];
+    }
+
+    private function resolvedRequestId(mixed $incoming, mixed $fallback): mixed
+    {
+        return filled($incoming) ? $incoming : $fallback;
     }
 }

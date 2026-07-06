@@ -29,4 +29,9 @@ class DraftLoan extends Model
     {
         return $this->belongsTo(User::class);
     }
+
+    public function wizardStep(): int
+    {
+        return max(1, min(6, (int) ($this->form_data['step'] ?? 1)));
+    }
 }

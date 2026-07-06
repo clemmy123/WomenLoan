@@ -1,8 +1,8 @@
 <form action="{{ $action }}" method="POST" class="space-y-4">
     @csrf
-    <div class="wizard-form-grid wizard-form-grid-2">
+    <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
         <div class="wizard-field">
-            <label class="app-label">{{ __('applicants.first_name') }} <span class="text-red-500">*</span></label>
+            <label class="app-label">{{ __('applicants.first_name') }} @include('partials.required-mark')</label>
             <input type="text" name="first_name" value="{{ old('first_name') }}" required class="app-input">
         </div>
         <div class="wizard-field">
@@ -10,11 +10,13 @@
             <input type="text" name="middle_name" value="{{ old('middle_name') }}" class="app-input">
         </div>
         <div class="wizard-field">
-            <label class="app-label">{{ __('applicants.last_name') }} <span class="text-red-500">*</span></label>
+            <label class="app-label">{{ __('applicants.last_name') }} @include('partials.required-mark')</label>
             <input type="text" name="last_name" value="{{ old('last_name') }}" required class="app-input">
         </div>
+    </div>
+    <div class="wizard-form-grid wizard-form-grid-2">
         <div class="wizard-field">
-            <label class="app-label">{{ __('applicants.nin') }} <span class="text-red-500">*</span></label>
+            <label class="app-label">{{ __('applicants.nin') }} @include('partials.required-mark')</label>
             @include('partials.inputs.nin-input', [
                 'name' => 'nin',
                 'value' => old('nin'),
@@ -22,19 +24,19 @@
             ])
         </div>
         <div class="wizard-field">
-            <label class="app-label">{{ __('groups.member_age') }} <span class="text-red-500">*</span></label>
-            <input type="number" name="age" min="18" max="120" value="{{ old('age') }}" required class="app-input">
+            <label class="app-label">{{ __('applicants.dob') }} @include('partials.required-mark')</label>
+            <input type="date" name="dob" value="{{ old('dob') }}" required class="app-input">
         </div>
         <div class="wizard-field">
-            <label class="app-label">{{ __('applicants.sex') }} <span class="text-red-500">*</span></label>
+            <label class="app-label">{{ __('applicants.sex') }} @include('partials.required-mark')</label>
             @include('partials.inputs.female-sex-field')
         </div>
         <div class="wizard-field">
-            <label class="app-label">{{ __('applicants.marital_status') }} <span class="text-red-500">*</span></label>
+            <label class="app-label">{{ __('applicants.marital_status') }} @include('partials.required-mark')</label>
             @include('partials.inputs.marital-status-select', ['required' => true])
         </div>
         <div class="wizard-field">
-            <label class="app-label">{{ __('common.phone') }} <span class="text-red-500">*</span></label>
+            <label class="app-label">{{ __('common.phone') }} @include('partials.required-mark')</label>
             @include('partials.inputs.phone-input', [
                 'name' => 'phone',
                 'value' => old('phone'),
@@ -44,9 +46,10 @@
             <label class="app-label">{{ __('common.email') }}</label>
             <input type="email" name="email" value="{{ old('email') }}" class="app-input">
         </div>
+        @include('partials.inputs.leadership-role-select')
     </div>
     <div class="flex justify-end gap-2">
         <button type="button" @click="modal = null" class="app-btn app-btn-secondary">{{ __('common.cancel') }}</button>
-        <button type="submit" class="app-btn app-btn-primary">{{ __('groups.add_member') }}</button>
+        <button type="submit" class="app-btn app-btn-primary">{{ __('common.save') }}</button>
     </div>
 </form>

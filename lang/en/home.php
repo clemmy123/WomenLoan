@@ -8,7 +8,7 @@ return [
     'register_here' => 'Register here',
     'headline' => 'Empower and Elevate Women Economically',
     'subheadline' => 'Access affordable loans, build your business, and grow with confidence through the Women Development Fund — designed to support women entrepreneurs across Tanzania.',
-    'prompt_text' => 'Join thousands of women who are transforming their livelihoods. Create your account today, complete your profile, and apply for individual or group loans with a simple guided process.',
+    'prompt_text' => 'Join thousands of women who are transforming their livelihoods. Create your account today, complete your information, and apply for individual or group loans with a simple guided process.',
     'slides' => [
         [
             'title' => 'Business Growth',
@@ -34,6 +34,6 @@ return [
     'help_title' => 'Need Help?',
     'help_text' => 'Contact your ward CDO office or call the WDF support line for assistance with registration, applications, and repayments.',
     'guide_title' => 'User Guide',
-    'guide_text' => 'Register as an applicant, complete your profile, submit a loan application with supporting documents, and track your status through every approval step until disbursement.',
+    'guide_text' => 'Register as an applicant, complete your information, submit a loan application with supporting documents, and track your status through every approval step until disbursement.',
     'footer_copyright' => 'All Rights Reserved © MoCDGWSG 2026',
 ];

@@ -118,6 +118,8 @@ class DummyDataSeeder extends Seeder
                     'dob' => '1990-05-15',
                     'sex' => 'Female',
                     'marital_status' => 'Married',
+                    'preferred_loan_type' => 'individual',
+                    'has_disability' => false,
                     'nationality' => 'Tanzanian',
                     'phone' => $p['phone'],
                     'email' => $p['email'],
@@ -269,6 +271,11 @@ class DummyDataSeeder extends Seeder
                     'business_sector' => ['Trade', 'Services', 'Agriculture', 'Manufacturing', 'Food'][$i % 5],
                     'business_type' => 'Sole Proprietor',
                     'tin_number' => '100' . str_pad((string) ($i + 1), 7, '0', STR_PAD_LEFT),
+                    'business_proposal_document' => 'proposals/demo-proposal.pdf',
+                    'business_registration_attachment' => 'registrations/demo-registration.pdf',
+                    'proof_address_attachment' => 'proof-of-address/demo-proof.pdf',
+                    'application_letter' => 'application-letters/demo-letter.pdf',
+                    'bank_statement' => 'bank-statements/demo-statement.pdf',
                 ]
             );
 
@@ -276,6 +283,9 @@ class DummyDataSeeder extends Seeder
                 ['loan_id' => $loan->id, 'id_number' => '1985010112345000' . str_pad((string) ($i + 1), 4, '0', STR_PAD_LEFT)],
                 [
                     'applicant_id' => $applicant->id,
+                    'first_name' => 'Guarantor',
+                    'middle_name' => null,
+                    'last_name' => (string) ($i + 1),
                     'name' => 'Guarantor ' . ($i + 1),
                     'phone' => '255713' . str_pad((string) ($i + 1), 6, '0', STR_PAD_LEFT),
                     'relationship' => 'Spouse',
@@ -285,6 +295,7 @@ class DummyDataSeeder extends Seeder
                     'guarantor_council_id' => $this->council->id,
                     'guarantor_ward_id' => $this->ward->id,
                     'guarantor_street_id' => $this->street->id,
+                    'guarantor_letter' => 'guarantor-letters/demo-guarantor.pdf',
                 ]
             );
 
@@ -350,7 +361,7 @@ class DummyDataSeeder extends Seeder
                         'business_name' => 'Fatuma Catering Services',
                         'region_id' => $this->region->id,
                         'ward_id' => $this->ward->id,
-                        'step' => 3,
+                        'step' => 1,
                     ],
                 ]
             );

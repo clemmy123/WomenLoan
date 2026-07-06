@@ -20,11 +20,14 @@ class Applicant extends Model
 
     public const MARITAL_STATUSES = ['Single', 'Married', 'Divorced', 'Widowed'];
 
+    public const LOAN_TYPES = ['individual', 'group'];
+
     protected $fillable = [
         'nin', 'first_name', 'middle_name', 'last_name', 'full_name',
-        'dob', 'sex', 'marital_status', 'nationality', 'phone', 'email',
+        'dob', 'sex', 'marital_status', 'preferred_loan_type', 'has_disability',
+        'nationality', 'phone', 'email',
         'photo_path', 'signature_path', 'nida_verified', 'nida_verified_at',
-        'issuer_date', 'location_id', 'attachment', 'user_id',
+        'issuer_date', 'location_id', 'postal_code', 'po_box', 'attachment', 'user_id',
     ];
 
     protected $casts = [
@@ -32,7 +35,23 @@ class Applicant extends Model
         'issuer_date' => 'date',
         'nida_verified' => 'boolean',
         'nida_verified_at' => 'datetime',
+        'has_disability' => 'boolean',
     ];
+
+    public function isWidowed(): bool
+    {
+        return $this->marital_status === 'Widowed';
+    }
+
+    public function prefersGroupLoan(): bool
+    {
+        return $this->preferred_loan_type === 'group';
+    }
+
+    public function prefersIndividualLoan(): bool
+    {
+        return $this->preferred_loan_type === 'individual';
+    }
 
     public function getRegionIdAttribute(): ?int
     {

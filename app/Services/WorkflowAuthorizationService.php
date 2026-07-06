@@ -17,7 +17,6 @@ class WorkflowAuthorizationService
         $status = $loan->status;
 
         return match ($action) {
-            'receive' => $user->can('receive application') && $step === 1 && $status === 'pending',
             'forward_ministry' => $user->can('forward to ministry') && $step === 1 && $status === 'received',
             'propose_amount', 'send_to_applicant' => $user->can('propose loan amount') && $step === 2,
             'accept_amount', 'decline_amount' => $user->hasRole('applicant') && $step === 3,
@@ -44,12 +43,12 @@ class WorkflowAuthorizationService
 
     protected function canRollback(User $user, Loan $loan): bool
     {
-        if ($loan->status === 'disbursed' || $loan->current_step <= 1) {
+        if ($loan->status === 'disbursed') {
             return false;
         }
 
         if ($user->hasRole(['admin', 'super_admin'])) {
-            return true;
+            return ! ($loan->current_step === 1 && $loan->status === 'pending');
         }
 
         if ($user->hasRole(['chief', 'accountant'])) {
@@ -57,6 +56,14 @@ class WorkflowAuthorizationService
         }
 
         if (! $user->can('rollback workflow step')) {
+            return false;
+        }
+
+        if ($loan->current_step === 1 && $loan->status === 'received') {
+            return $user->can('forward to ministry');
+        }
+
+        if ($loan->current_step <= 1) {
             return false;
         }
 

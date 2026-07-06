@@ -22,7 +22,7 @@ class AppServiceProvider extends ServiceProvider
             return $user->hasRole('super_admin') ? true : null;
         });
 
-        View::composer(['layouts.app', 'partials.sidebar'], function ($view) {
+        View::composer(['layouts.app', 'partials.sidebar', 'partials.user-profile-menu'], function ($view) {
             if (! auth()->check()) {
                 return;
             }

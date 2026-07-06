@@ -57,6 +57,9 @@ class ApplicantService
         );
         $validated['user_id'] = $userId ?? auth()->id();
         $validated['nationality'] = $validated['nationality'] ?? 'Tanzanian';
+        $validated['postal_code'] = filled($validated['postal_code'] ?? null) ? $validated['postal_code'] : null;
+        $validated['po_box'] = filled($validated['po_box'] ?? null) ? $validated['po_box'] : null;
+        $validated['has_disability'] = (bool) ($validated['has_disability'] ?? false);
         $validated['phone'] = IdentityNormalizer::normalizePhone($validated['phone'] ?? '');
         $validated['nin'] = IdentityNormalizer::normalizeNin($validated['nin'] ?? '');
         $validated['email'] = IdentityNormalizer::normalizeEmail($validated['email'] ?? '');
@@ -74,6 +77,9 @@ class ApplicantService
         $validated['phone'] = IdentityNormalizer::normalizePhone($validated['phone'] ?? '');
         $validated['nin'] = IdentityNormalizer::normalizeNin($validated['nin'] ?? '');
         $validated['email'] = IdentityNormalizer::normalizeEmail($validated['email'] ?? '');
+        $validated['postal_code'] = filled($validated['postal_code'] ?? null) ? $validated['postal_code'] : null;
+        $validated['po_box'] = filled($validated['po_box'] ?? null) ? $validated['po_box'] : null;
+        $validated['has_disability'] = (bool) ($validated['has_disability'] ?? false);
 
         $applicant->update($validated);
 

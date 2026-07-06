@@ -22,7 +22,7 @@ return [
     'date' => 'Date',
     'view_all' => 'View all',
     'no_data' => 'No data yet',
-    'complete_profile' => 'Complete your applicant profile to apply for a loan.',
+    'complete_profile' => 'Complete your applicant information to apply for a loan.',
     'this_month' => 'this month',
     'live' => 'Live',
 ];

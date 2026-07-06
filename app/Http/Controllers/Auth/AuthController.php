@@ -2,8 +2,9 @@
 
 namespace App\Http\Controllers\Auth;
 
-use App\Http\Requests\Auth\RegisterRequest;
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Auth\RegisterRequest;
+use App\Models\Concerns\HasDisplayName;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -47,7 +48,11 @@ class AuthController extends Controller
         $validated = $request->validated();
 
         $user = User::create([
-            'name' => $validated['name'],
+            'name' => HasDisplayName::buildFullName(
+                $validated['first_name'],
+                $validated['middle_name'] ?? null,
+                $validated['last_name']
+            ),
             'email' => $validated['email'],
             'phone' => $validated['phone'],
             'password' => $validated['password'],

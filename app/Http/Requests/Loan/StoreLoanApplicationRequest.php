@@ -16,6 +16,8 @@ class StoreLoanApplicationRequest extends FormRequest
 
     public function rules(): array
     {
-        return $this->loanApplicationRules();
+        return array_merge($this->loanApplicationRules(), $this->requiredBusinessLocationRules(), $this->requiredGuarantorRules(), [
+            'declaration' => 'accepted',
+        ]);
     }
 }

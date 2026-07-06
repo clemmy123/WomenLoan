@@ -21,7 +21,8 @@ class ApplicantProfilePrefillTest extends TestCase
     public function test_registration_redirects_to_dashboard(): void
     {
         $response = $this->post(route('register'), [
-            'name' => 'John Doe',
+            'first_name' => 'John',
+            'last_name' => 'Doe',
             'email' => 'john.doe@example.com',
             'phone' => '0712345678',
             'password' => 'password',
@@ -87,6 +88,9 @@ class ApplicantProfilePrefillTest extends TestCase
             'nin' => '12345678901234567890',
             'dob' => '1990-01-01',
             'sex' => 'Female',
+            'preferred_loan_type' => 'individual',
+            'has_disability' => '0',
+            'marital_status' => 'Single',
             'location_id' => Street::query()->value('id'),
         ]);
 

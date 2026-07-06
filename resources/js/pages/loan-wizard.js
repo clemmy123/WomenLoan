@@ -43,7 +43,11 @@ document.addEventListener('alpine:init', () => {
 
         return {
             step: config.step ?? 1,
-            totalSteps: config.totalSteps ?? 7,
+            totalSteps: config.totalSteps ?? 6,
+            editing: config.editing ?? false,
+            isDraft: config.isDraft ?? false,
+            submitModal: false,
+            preview: { documents: [] },
             selectedRegion: normalizeId(config.selectedRegion),
             selectedDistrict: normalizeId(config.selectedDistrict),
             selectedCouncil: normalizeId(config.selectedCouncil),
@@ -141,6 +145,10 @@ document.addEventListener('alpine:init', () => {
                 }
 
                 queueMicrotask(() => this.refreshBusinessSelects());
+
+                if (this.step === this.totalSteps) {
+                    this.refreshPreview();
+                }
             },
 
             async fetchData(url, target, options = {}) {
@@ -413,6 +421,8 @@ document.addEventListener('alpine:init', () => {
                     return;
                 }
 
+                this.syncFormFieldsForSubmit(form);
+
                 form.querySelectorAll('[data-loan-scope="group"] input, [data-loan-scope="group"] select, [data-loan-scope="group"] textarea').forEach((field) => {
                     field.disabled = this.loanType !== 'group';
                 });
@@ -423,6 +433,35 @@ document.addEventListener('alpine:init', () => {
                 }
             },
 
+            syncFormFieldsForSubmit(form) {
+                const geoFields = {
+                    region_id: this.selectedRegion,
+                    district_id: this.selectedDistrict,
+                    council_id: this.selectedCouncil,
+                    ward_id: this.selectedWard,
+                    street_id: this.selectedStreet,
+                    guarantor_region_id: this.guarantorRegion,
+                    guarantor_district_id: this.guarantorDistrict,
+                    guarantor_council_id: this.guarantorCouncil,
+                    guarantor_ward_id: this.guarantorWard,
+                    guarantor_street_id: this.guarantorStreet,
+                };
+
+                Object.entries(geoFields).forEach(([name, value]) => {
+                    const field = form.querySelector(`[name="${name}"]`);
+
+                    if (!field) {
+                        return;
+                    }
+
+                    if (value !== '' && value != null) {
+                        field.value = String(value);
+                    }
+
+                    field.disabled = false;
+                });
+            },
+
             nextStep() {
                 if (!this.validateStep(this.step)) {
                     return;
@@ -430,7 +469,217 @@ document.addEventListener('alpine:init', () => {
 
                 if (this.step < this.totalSteps) {
                     this.step++;
+
+                    if (this.step === this.totalSteps) {
+                        this.refreshPreview();
+                    }
                 }
+            },
+
+            formValue(name) {
+                const form = this.$root.querySelector('form');
+                const field = form?.querySelector(`[name="${name}"]`);
+
+                if (!field) {
+                    return '';
+                }
+
+                if (field.type === 'checkbox') {
+                    return field.checked ? field.value : '';
+                }
+
+                return String(field.value ?? '').trim();
+            },
+
+            selectLabel(name) {
+                const form = this.$root.querySelector('form');
+                const field = form?.querySelector(`[name="${name}"]`);
+
+                if (!field || field.tagName !== 'SELECT') {
+                    return this.formValue(name);
+                }
+
+                const option = field.options[field.selectedIndex];
+
+                return option?.value ? String(option.text).trim() : '';
+            },
+
+            documentAttached(name) {
+                const form = this.$root.querySelector('form');
+                const field = form?.querySelector(`[name="${name}"]`);
+
+                if (!field) {
+                    return false;
+                }
+
+                return Boolean(field.files?.[0]) || field.dataset.hasExisting === 'true';
+            },
+
+            formatPreviewAmount(value) {
+                const amount = Number(String(value).replace(/[^\d.]/g, ''));
+
+                if (!Number.isFinite(amount) || amount <= 0) {
+                    return '';
+                }
+
+                return `TZS ${amount.toLocaleString()}`;
+            },
+
+            geoLabel(collection, selectedId, fieldName) {
+                const fromSelect = this.selectLabel(fieldName);
+
+                if (fromSelect && !fromSelect.startsWith('--')) {
+                    return fromSelect;
+                }
+
+                const item = this[collection]?.find((entry) => String(entry.id) === String(selectedId));
+
+                return item?.name ?? '';
+            },
+
+            joinLocation(parts) {
+                return parts.filter((part) => part && part.trim() !== '').join(' → ');
+            },
+
+            yesNoLabel(value) {
+                if (value === '1' || value === 1 || value === true) {
+                    return this.i18n.yes ?? 'Yes';
+                }
+
+                if (value === '0' || value === 0 || value === false) {
+                    return this.i18n.no ?? 'No';
+                }
+
+                return '';
+            },
+
+            refreshPreview() {
+                const region = this.geoLabel('regions', this.selectedRegion, 'region_id');
+                const district = this.geoLabel('districts', this.selectedDistrict, 'district_id');
+                const council = this.geoLabel('councils', this.selectedCouncil, 'council_id');
+                const ward = this.geoLabel('wards', this.selectedWard, 'ward_id');
+                const street = this.geoLabel('streets', this.selectedStreet, 'street_id');
+
+                const guarantorRegion = this.geoLabel('guarantorRegions', this.guarantorRegion, 'guarantor_region_id')
+                    || this.geoLabel('regions', this.guarantorRegion, 'guarantor_region_id');
+                const guarantorDistrict = this.geoLabel('guarantorDistricts', this.guarantorDistrict, 'guarantor_district_id');
+                const guarantorCouncil = this.geoLabel('guarantorCouncils', this.guarantorCouncil, 'guarantor_council_id');
+                const guarantorWard = this.geoLabel('guarantorWards', this.guarantorWard, 'guarantor_ward_id');
+                const guarantorStreet = this.geoLabel('guarantorStreets', this.guarantorStreet, 'guarantor_street_id');
+
+                const middleName = this.formValue('guarantor_middle_name');
+
+                this.preview = {
+                    loan_type_label: this.loanType === 'group'
+                        ? (this.i18n.loan_type_group ?? 'Group')
+                        : (this.i18n.loan_type_individual ?? 'Individual'),
+                    status_label: this.isDraft
+                        ? (this.i18n.preview_status_draft ?? 'Draft')
+                        : (this.i18n.preview_status_pending ?? 'Pending'),
+                    business_name: this.formValue('business_name'),
+                    business_phone: this.formValue('business_phone'),
+                    business_email: this.formValue('business_email'),
+                    business_sector: this.selectLabel('business_sector'),
+                    business_type: this.selectLabel('business_type'),
+                    tin_number: this.formValue('tin_number'),
+                    business_location: this.joinLocation([region, district, council, ward, street]),
+                    guarantor_first_name: this.formValue('guarantor_first_name'),
+                    guarantor_middle_name: middleName || (this.i18n.no ?? '—'),
+                    guarantor_last_name: this.formValue('guarantor_last_name'),
+                    guarantor_phone: this.formValue('guarantor_phone'),
+                    guarantor_nin: this.formValue('guarantor_nin'),
+                    guarantor_relationship: this.selectLabel('guarantor_relationship'),
+                    guarantor_occupation: this.formValue('guarantor_occupation'),
+                    guarantor_sex: this.selectLabel('guarantor_sex'),
+                    guarantor_location: this.joinLocation([
+                        guarantorRegion,
+                        guarantorDistrict,
+                        guarantorCouncil,
+                        guarantorWard,
+                        guarantorStreet,
+                    ]),
+                    requested_amount: this.formatPreviewAmount(this.formValue('requested_amount')),
+                    has_disability: this.yesNoLabel(this.formValue('has_disability')),
+                    is_widowed: this.yesNoLabel(this.formValue('is_widowed')),
+                    bank_name: this.selectLabel('bank_name'),
+                    bank_number: this.formValue('bank_number'),
+                    declaration: this.formValue('declaration') === '1'
+                        ? (this.i18n.declaration_confirmed ?? 'Confirmed')
+                        : (this.i18n.no ?? 'No'),
+                    documents: [
+                        { label: this.i18n.business_proposal ?? 'Business Proposal', attached: this.documentAttached('business_proposal_document') },
+                        { label: this.i18n.business_registration ?? 'Business Registration', attached: this.documentAttached('business_registration_attachment') },
+                        { label: this.i18n.proof_address ?? 'Proof of Address', attached: this.documentAttached('proof_address_attachment') },
+                        { label: this.i18n.application_letter ?? 'Application Letter', attached: this.documentAttached('application_letter') },
+                        { label: this.i18n.bank_statement ?? 'Bank Statement', attached: this.documentAttached('bank_statement') },
+                        { label: this.i18n.guarantor_letter ?? 'Guarantor Letter', attached: this.documentAttached('guarantor_letter') },
+                    ],
+                };
+
+                if (this.loanType === 'group') {
+                    this.preview.documents.push(
+                        { label: this.i18n.group_constitution ?? 'Group Constitution', attached: this.documentAttached('group_constitution') },
+                        { label: this.i18n.group_muhtasari ?? 'Group Summary', attached: this.documentAttached('group_muhtasari') },
+                        { label: this.i18n.group_certificate ?? 'Group Certificate', attached: this.documentAttached('group_certificate') },
+                    );
+                }
+            },
+
+            validateAllSteps() {
+                for (let current = 1; current <= 5; current += 1) {
+                    if (!this.validateStep(current)) {
+                        this.step = current;
+
+                        return false;
+                    }
+                }
+
+                return true;
+            },
+
+            openSubmitConfirm() {
+                const form = this.$root.querySelector('form');
+
+                if (form) {
+                    this.syncFormFieldsForSubmit(form);
+                }
+
+                if (!this.validateAllSteps()) {
+                    return;
+                }
+
+                this.refreshPreview();
+                this.submitModal = true;
+            },
+
+            confirmSubmit() {
+                this.submitModal = false;
+
+                const form = this.$root.querySelector('form');
+                const submitButton = this.$refs.finalSubmit;
+
+                if (!form || !submitButton) {
+                    return;
+                }
+
+                this.syncFormFieldsForSubmit(form);
+
+                let actionInput = form.querySelector('input[name="form_action"]');
+
+                if (this.editing) {
+                    if (!actionInput) {
+                        actionInput = document.createElement('input');
+                        actionInput.type = 'hidden';
+                        actionInput.name = 'form_action';
+                        form.appendChild(actionInput);
+                    }
+
+                    actionInput.value = 'submit_to_ward';
+                } else if (actionInput) {
+                    actionInput.remove();
+                }
+
+                form.requestSubmit(submitButton);
             },
 
             prepareDraftSubmit() {

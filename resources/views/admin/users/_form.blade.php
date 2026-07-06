@@ -4,11 +4,11 @@
     <div class="app-card app-card-padded space-y-4">
         <h3 class="font-bold text-slate-900">{{ __('admin.account_details') }}</h3>
         <div>
-            <label class="app-label">{{ __('admin.full_name') }}</label>
+            <label class="app-label">{{ __('admin.full_name') }} @include('partials.required-mark')</label>
             <input type="text" name="name" value="{{ old('name', $user?->name) }}" required class="app-input">
         </div>
         <div>
-            <label class="app-label">{{ __('common.email') }}</label>
+            <label class="app-label">{{ __('common.email') }} @include('partials.required-mark')</label>
             <input type="email" name="email" value="{{ old('email', $user?->email) }}" required class="app-input">
         </div>
         <div>
@@ -16,17 +16,17 @@
             <input type="text" name="phone" value="{{ old('phone', $user?->phone) }}" class="app-input">
         </div>
         <div>
-            <label class="app-label">{{ __('common.password') }} {{ $user ? __('common.password_keep_blank') : '' }}</label>
+            <label class="app-label">{{ __('common.password') }} {{ $user ? __('common.password_keep_blank') : '' }} @unless($user) @include('partials.required-mark') @endunless</label>
             <input type="password" name="password" {{ $user ? '' : 'required' }} class="app-input">
         </div>
         @if($user)
         <div>
-            <label class="app-label">{{ __('common.confirm_password') }}</label>
+            <label class="app-label">{{ __('common.confirm_password') }} @unless($user) @include('partials.required-mark') @endunless</label>
             <input type="password" name="password_confirmation" class="app-input">
         </div>
         @else
         <div>
-            <label class="app-label">{{ __('common.confirm_password') }}</label>
+            <label class="app-label">{{ __('common.confirm_password') }} @unless($user) @include('partials.required-mark') @endunless</label>
             <input type="password" name="password_confirmation" required class="app-input">
         </div>
         @endif

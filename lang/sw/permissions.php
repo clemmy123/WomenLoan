@@ -39,7 +39,7 @@ return [
     'approve as km' => 'Idhinisha kama usimamizi wa maarifa',
     'assign accountant' => 'Weka mhasibu',
     'disburse loan' => 'Toa mkopo',
-    'rollback workflow step' => 'Rudisha ombi hatua iliyotangulia',
+    'rollback workflow step' => 'Rollback hatua ya ombi la mkopo',
     'view repayments' => 'Tazama marejesho',
     'record repayment' => 'Rekodi malipo ya mkopo',
     'view reports' => 'Tazama ripoti',

@@ -13,6 +13,9 @@ class Gurantor extends Model
     protected $fillable = [
         'loan_id',
         'applicant_id',
+        'first_name',
+        'middle_name',
+        'last_name',
         'name',
         'phone',
         'relationship',

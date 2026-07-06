@@ -82,7 +82,7 @@ class LoanApplicationAccessTest extends TestCase
             ->get(route('loan-applications.index'))
             ->assertOk()
             ->assertDontSee(__('groups.setup_title'), false)
-            ->assertDontSee(__('loans.start_new'), false);
+            ->assertDontSee(__('loans.continue_as_individual'), false);
 
         $this->actingAs($user)
             ->get(route('my-group.create'))
@@ -96,6 +96,6 @@ class LoanApplicationAccessTest extends TestCase
         $this->actingAs($user)
             ->get(route('loan-applications.index'))
             ->assertOk()
-            ->assertDontSee(__('loans.start_new'), false);
+            ->assertDontSee(__('loans.continue_as_individual'), false);
     }
 }

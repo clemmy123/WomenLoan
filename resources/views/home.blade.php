@@ -6,6 +6,7 @@
     <meta name="google" content="notranslate">
     <title>{{ __('home.portal_name') }} | {{ __('nav.welcome') }}</title>
     <link rel="icon" href="{{ asset('images/nembo2.png') }}" type="image/png">
+    @include('partials.accessibility-head-script')
     @vite(['resources/css/app.css', 'resources/js/pages/landing.js'])
 </head>
 <body class="landing-page min-h-screen flex flex-col" x-data="landingHeader()" x-init="init()" @scroll.window.passive="onScroll()">
@@ -31,6 +32,7 @@
             </nav>
 
             <div class="landing-nav-actions">
+                @include('partials.accessibility-panel', ['variant' => 'landing'])
                 <div class="landing-nav-locale" aria-label="{{ __('nav.language') }}">
                     @include('partials.locale-flags')
                 </div>

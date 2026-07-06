@@ -22,7 +22,7 @@ return [
     'date' => 'Tarehe',
     'view_all' => 'Angalia zote',
     'no_data' => 'Hakuna data bado',
-    'complete_profile' => 'Kamilisha wasifu wako wa mwombaji ili kuomba mkopo.',
+    'complete_profile' => 'Kamilisha taarifa zako za mwombaji ili kuomba mkopo.',
     'this_month' => 'mwezi huu',
     'live' => 'Moja kwa moja',
 ];

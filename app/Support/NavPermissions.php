@@ -2,11 +2,11 @@
 
 namespace App\Support;
 
-use Illuminate\Contracts\Auth\Authenticatable;
+use App\Models\User;
 
 class NavPermissions
 {
-    public static function for(Authenticatable $user): array
+    public static function for(User $user): array
     {
         return [
             'viewDashboard' => $user->can('view dashboard'),
@@ -15,6 +15,13 @@ class NavPermissions
             'createLoan' => $user->can('create loan application')
                 && $user->hasCompletedProfile()
                 && ! $user->hasLoanApplication(),
+            'preferredLoanType' => $user->applicant?->preferred_loan_type,
+            'newApplicationLabel' => match ($user->applicant?->preferred_loan_type) {
+                'group' => __('loans.continue_as_group'),
+                'individual' => __('loans.continue_as_individual'),
+                default => __('loans.start_new'),
+            },
+            'showGroupActions' => $user->applicant?->prefersGroupLoan() ?? false,
             'registerApplicant' => $user->can('register applicant'),
             'manageApplicants' => $user->can('manage applicants') && ! $user->hasRole('applicant'),
             'viewStaffLoans' => $user->can('view ward loans')

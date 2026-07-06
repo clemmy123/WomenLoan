@@ -18,22 +18,16 @@ class WorkflowTest extends TestCase
         $this->seedApplication();
     }
 
-    public function test_ward_receives_pending_application(): void
+    public function test_ward_cannot_receive_application(): void
     {
-        $loan = $this->loanByTrack('WL000001');
+        $loan = $this->loanByTrack('WL000002');
 
-        $response = $this->actingAsRole('ward.cdo@wdf.go.tz')
+        $this->actingAsRole('ward.cdo@wdf.go.tz')
             ->post(route('loans.workflow', $loan->hashid), [
                 'action' => 'receive',
-                'comments' => 'Received at ward.',
-            ]);
-
-        $response->assertRedirect(route('loan-applications.show', $loan->hashid));
-        $response->assertSessionHas('success');
-
-        $loan->refresh();
-        $this->assertSame('received', $loan->status);
-        $this->assertSame(1, $loan->current_step);
+                'comments' => 'Should not be allowed.',
+            ])
+            ->assertForbidden();
     }
 
     public function test_ward_forwards_received_application_to_ministry(): void
@@ -283,6 +277,44 @@ class WorkflowTest extends TestCase
         $loan->refresh();
         $this->assertSame(3, $loan->current_step);
         $this->assertSame('awaiting_applicant', $loan->status);
+        $this->assertDatabaseHas('approval_levels', [
+            'loan_id' => $loan->id,
+            'action_taken' => 'rolled_back',
+        ]);
+    }
+
+    public function test_ward_cdo_can_rollback_received_application_to_applicant(): void
+    {
+        $loan = $this->loanByTrack('WL000002');
+
+        $this->actingAsRole('ward.cdo@wdf.go.tz')
+            ->get(route('loan-applications.show', $loan->hashid))
+            ->assertOk()
+            ->assertSee(__('workflow.buttons.rollback_to_applicant'), false);
+
+        $response = $this->actingAsRole('ward.cdo@wdf.go.tz')
+            ->post(route('loans.workflow', $loan->hashid), [
+                'action' => 'rollback_step',
+                'comments' => 'Missing guarantor documents.',
+            ]);
+
+        $response->assertRedirect(route('loan-applications.show', $loan->hashid));
+        $loan->refresh();
+        $loan->load('user');
+        $this->assertSame(1, $loan->current_step);
+        $this->assertSame('pending', $loan->status);
+        $owner = $loan->user;
+        $this->assertNotNull($owner);
+        $this->assertTrue($loan->isEditableByApplicant($owner));
+        $this->assertDatabaseHas('approval_levels', [
+            'loan_id' => $loan->id,
+            'action_taken' => 'rolled_back_to_applicant',
+        ]);
+
+        $this->actingAs($owner)
+            ->get(route('loan-applications.show', $loan->hashid))
+            ->assertOk()
+            ->assertSee(__('loans.edit_application'), false);
     }
 
     public function test_unauthorized_workflow_action_is_forbidden(): void

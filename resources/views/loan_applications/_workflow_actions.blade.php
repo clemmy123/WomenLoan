@@ -2,7 +2,6 @@
     $user = auth()->user();
     $step = $loan->current_step;
 
-    $canReceive = $user->can('receive application') && $step === 1 && $loan->status === 'pending';
     $canForwardMinistry = $user->can('forward to ministry') && $step === 1 && $loan->status === 'received';
     $canProposeAmount = $user->can('propose loan amount') && $step === 2;
     $canApplicantRespond = $user->hasRole('applicant') && $step === 3;
@@ -16,6 +15,10 @@
         && $loan->status === 'ready_for_disbursement'
         && $loan->officer_id === $user->id;
     $canRollback = app(\App\Services\WorkflowAuthorizationService::class)->canPerform($user, $loan, 'rollback_step');
+    $rollbackToApplicant = $canRollback && $step === 1 && $loan->status === 'received';
+    $rollbackLabel = $rollbackToApplicant
+        ? __('workflow.buttons.rollback_to_applicant')
+        : __('workflow.buttons.rollback_step');
 @endphp
 
 @if(loan_has_workflow_actions($loan, $user))
@@ -23,9 +26,6 @@
     <h3 class="font-bold text-slate-900 dark:text-white mb-4">{{ __('workflow.title') }}</h3>
 
     <div class="space-y-2">
-        @if($canReceive)
-            <button type="button" @click="modal = 'receive'" class="app-btn app-btn-success app-btn-block">{{ __('workflow.buttons.receive') }}</button>
-        @endif
         @if($canForwardMinistry)
             <button type="button" @click="modal = 'forward_ministry'" class="app-btn app-btn-primary app-btn-block">{{ __('workflow.buttons.forward_ministry') }}</button>
         @endif
@@ -56,17 +56,9 @@
             <button type="button" @click="modal = 'disburse'" class="app-btn app-btn-success app-btn-block">{{ __('workflow.buttons.disburse', ['amount' => format_tzs($loan->proposed_amount)]) }}</button>
         @endif
         @if($canRollback)
-            <button type="button" @click="modal = 'rollback_step'" class="app-btn app-btn-danger app-btn-block">{{ __('workflow.buttons.rollback_step') }}</button>
+            <button type="button" @click="modal = 'rollback_step'" class="app-btn app-btn-danger app-btn-block">{{ $rollbackLabel }}</button>
         @endif
     </div>
-
-    @if($canReceive)
-        @include('partials.modal', [
-            'name' => 'receive',
-            'title' => __('workflow.buttons.receive'),
-            'body' => view('loan_applications._workflow_forms.receive', compact('loan'))->render(),
-        ])
-    @endif
 
     @if($canForwardMinistry)
         @include('partials.modal', [
@@ -148,8 +140,8 @@
     @if($canRollback)
         @include('partials.modal', [
             'name' => 'rollback_step',
-            'title' => __('workflow.buttons.rollback_step'),
-            'body' => view('loan_applications._workflow_forms.rollback_step', compact('loan'))->render(),
+            'title' => $rollbackLabel,
+            'body' => view('loan_applications._workflow_forms.rollback_step', compact('loan', 'rollbackToApplicant', 'rollbackLabel'))->render(),
         ])
     @endif
 </div>

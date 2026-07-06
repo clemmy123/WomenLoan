@@ -42,9 +42,13 @@ class UpdateApplicantRequest extends FormRequest
             'email' => ['required', 'email', 'max:255', new UniqueEmail($userId, $applicant->id)],
             'phone' => ['required', 'string', new TanzaniaPhone, new UniquePhone($userId, $applicant->id)],
             'sex' => ['required', 'string', 'in:Female'],
-            'marital_status' => ['nullable', 'string', Rule::in(Applicant::MARITAL_STATUSES)],
+            'marital_status' => ['required', 'string', Rule::in(Applicant::MARITAL_STATUSES)],
+            'preferred_loan_type' => ['required', 'string', Rule::in(Applicant::LOAN_TYPES)],
+            'has_disability' => ['required', 'in:0,1'],
             'nationality' => ['nullable', 'string', 'max:255'],
             'location_id' => ['required', 'integer', 'exists:streets,id'],
+            'postal_code' => ['nullable', 'string', 'max:20'],
+            'po_box' => ['nullable', 'string', 'max:50'],
         ];
     }
 }

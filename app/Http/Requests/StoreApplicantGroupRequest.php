@@ -4,6 +4,8 @@ namespace App\Http\Requests;
 
 use App\Http\Requests\Concerns\EnforcesFemaleOnlySex;
 use App\Http\Requests\Concerns\NormalizesIdentityFields;
+use App\Http\Requests\Concerns\ValidatesGroupLeadershipRole;
+use App\Http\Requests\Concerns\ValidatesGroupMemberDob;
 use App\Models\Applicant;
 use App\Rules\TanzaniaPhone;
 use App\Rules\TanzanianNin;
@@ -12,10 +14,11 @@ use App\Rules\UniqueNin;
 use App\Rules\UniquePhone;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
+use Illuminate\Validation\Validator;
 
 class StoreApplicantGroupRequest extends FormRequest
 {
-    use EnforcesFemaleOnlySex, NormalizesIdentityFields;
+    use EnforcesFemaleOnlySex, NormalizesIdentityFields, ValidatesGroupLeadershipRole, ValidatesGroupMemberDob;
 
     public function authorize(): bool
     {
@@ -26,6 +29,7 @@ class StoreApplicantGroupRequest extends FormRequest
     {
         $this->normalizeIdentityInput(['phone', 'email']);
         $this->normalizeMemberIdentityRows();
+        $this->normalizeLeadershipRoleInput();
         $this->enforceFemaleOnlySex();
     }
 
@@ -36,18 +40,27 @@ class StoreApplicantGroupRequest extends FormRequest
             'registration_number' => 'nullable|string|max:100|unique:loan_groups,registration_number',
             'phone' => ['nullable', 'string', new TanzaniaPhone, new UniquePhone($this->user()?->id)],
             'email' => ['nullable', 'email', 'max:255', new UniqueEmail($this->user()?->id)],
-            'leader.age' => 'required|integer|min:18|max:120',
+            'leader.dob' => $this->memberDobRules(),
             'leader.sex' => 'required|in:Female',
+            'leader.leadership_role' => $this->leadershipRoleFieldRules(),
             'members' => 'required|array|min:1',
             'members.*.first_name' => 'required|string|max:100',
             'members.*.middle_name' => 'nullable|string|max:100',
             'members.*.last_name' => 'required|string|max:100',
             'members.*.nin' => ['required', 'string', new TanzanianNin, new UniqueNin, 'distinct'],
-            'members.*.age' => 'required|integer|min:18|max:120',
+            'members.*.dob' => $this->memberDobRules(),
             'members.*.phone' => ['required', 'string', new TanzaniaPhone, new UniquePhone],
             'members.*.email' => ['nullable', 'email', 'max:255', new UniqueEmail],
             'members.*.sex' => 'required|in:Female',
             'members.*.marital_status' => ['required', 'string', Rule::in(Applicant::MARITAL_STATUSES)],
+            'members.*.leadership_role' => $this->leadershipRoleFieldRules(),
         ];
+    }
+
+    public function withValidator(Validator $validator): void
+    {
+        $validator->after(function (Validator $validator): void {
+            $this->validateUniqueLeadershipRolesAcrossPayload($validator);
+        });
     }
 }

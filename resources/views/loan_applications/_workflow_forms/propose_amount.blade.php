@@ -2,7 +2,7 @@
     @csrf
     <input type="hidden" name="action" value="propose_amount">
     <div>
-        <label class="app-label">{{ __('workflow.proposed_amount_placeholder') }}</label>
+        <label class="app-label">{{ __('workflow.proposed_amount_placeholder') }} @include('partials.required-mark')</label>
         @include('partials.inputs.amount-input', [
             'name' => 'proposed_amount',
             'required' => true,

@@ -39,9 +39,22 @@
             <h2 class="text-sm font-semibold tracking-wide uppercase text-indigo-600">{{ __('groups.group_leader') }}</h2>
             <p class="text-sm text-slate-500 dark:text-zinc-400">{{ __('groups.leader_hint') }}</p>
             <div class="wizard-form-grid wizard-form-grid-2">
-                <x-wizard-field :label="__('common.full_name')">
-                    <input type="text" value="{{ $applicant->full_name }}" class="app-input" readonly>
-                </x-wizard-field>
+                <div class="wizard-field sm:col-span-2">
+                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                        <div>
+                            <label class="app-label">{{ __('applicants.first_name') }}</label>
+                            <input type="text" value="{{ $applicant->first_name }}" class="app-input" readonly>
+                        </div>
+                        <div>
+                            <label class="app-label">{{ __('applicants.middle_name') }}</label>
+                            <input type="text" value="{{ $applicant->middle_name }}" class="app-input" readonly>
+                        </div>
+                        <div>
+                            <label class="app-label">{{ __('applicants.last_name') }}</label>
+                            <input type="text" value="{{ $applicant->last_name }}" class="app-input" readonly>
+                        </div>
+                    </div>
+                </div>
                 <x-wizard-field :label="__('applicants.nin')">
                     <input type="text" value="{{ $applicant->nin }}" class="app-input" readonly>
                 </x-wizard-field>
@@ -54,12 +67,17 @@
                 <x-wizard-field :label="__('applicants.marital_status')" for="leader_marital_status">
                     <input type="text" value="{{ $applicant->marital_status ? __('applicants.marital_statuses.'.$applicant->marital_status) : __('common.na') }}" class="app-input" readonly>
                 </x-wizard-field>
-                <x-wizard-field :label="__('groups.member_age')" for="leader_age" :required="true">
-                    <input type="number" name="leader[age]" id="leader_age" min="18" max="120" value="{{ old('leader.age', $applicant->dob?->age) }}" required class="app-input">
+                <x-wizard-field :label="__('applicants.dob')" for="leader_dob">
+                    <input type="text" id="leader_dob" value="{{ $applicant->dob?->format('Y-m-d') }}" class="app-input" readonly>
+                    <input type="hidden" name="leader[dob]" value="{{ old('leader.dob', $applicant->dob?->format('Y-m-d')) }}">
                 </x-wizard-field>
-                <x-wizard-field :label="__('applicants.sex')" for="leader_sex">
+                <x-wizard-field :label="__('applicants.sex')" for="leader_sex" :required="true">
                     @include('partials.inputs.female-sex-field', ['name' => 'leader[sex]', 'id' => 'leader_sex'])
                 </x-wizard-field>
+                @include('partials.inputs.leadership-role-select', [
+                    'name' => 'leader[leadership_role]',
+                    'value' => old('leader.leadership_role'),
+                ])
             </div>
         </div>
 
@@ -78,34 +96,37 @@
                         <p class="font-semibold text-slate-900 dark:text-white" x-text="memberLabel(index)"></p>
                         <button type="button" @click="removeMember(index)" class="text-sm text-red-600 hover:text-red-500 font-medium" x-show="members.length > 1">{{ __('groups.remove_member') }}</button>
                     </div>
-                    <div class="wizard-form-grid wizard-form-grid-2">
-                        <div class="wizard-field">
-                            <label class="app-label">{{ __('applicants.first_name') }} <span class="text-red-500">*</span></label>
-                            <input type="text" class="app-input" x-model="member.first_name" :name="'members[' + index + '][first_name]'" required>
+                    <div class="space-y-4">
+                        <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                            <div class="wizard-field">
+                                <label class="app-label">{{ __('applicants.first_name') }} @include('partials.required-mark')</label>
+                                <input type="text" class="app-input" x-model="member.first_name" :name="'members[' + index + '][first_name]'" required>
+                            </div>
+                            <div class="wizard-field">
+                                <label class="app-label">{{ __('applicants.middle_name') }}</label>
+                                <input type="text" class="app-input" x-model="member.middle_name" :name="'members[' + index + '][middle_name]'">
+                            </div>
+                            <div class="wizard-field">
+                                <label class="app-label">{{ __('applicants.last_name') }} @include('partials.required-mark')</label>
+                                <input type="text" class="app-input" x-model="member.last_name" :name="'members[' + index + '][last_name]'" required>
+                            </div>
                         </div>
+                        <div class="wizard-form-grid wizard-form-grid-2">
                         <div class="wizard-field">
-                            <label class="app-label">{{ __('applicants.middle_name') }}</label>
-                            <input type="text" class="app-input" x-model="member.middle_name" :name="'members[' + index + '][middle_name]'">
-                        </div>
-                        <div class="wizard-field">
-                            <label class="app-label">{{ __('applicants.last_name') }} <span class="text-red-500">*</span></label>
-                            <input type="text" class="app-input" x-model="member.last_name" :name="'members[' + index + '][last_name]'" required>
-                        </div>
-                        <div class="wizard-field">
-                            <label class="app-label">{{ __('applicants.nin') }} <span class="text-red-500">*</span></label>
+                            <label class="app-label">{{ __('applicants.nin') }} @include('partials.required-mark')</label>
                             <input type="text" class="app-input app-nin-input" data-nin-input :name="'members[' + index + '][nin]'" :value="member.nin" required>
                         </div>
                         <div class="wizard-field">
-                            <label class="app-label">{{ __('groups.member_age') }} <span class="text-red-500">*</span></label>
-                            <input type="number" min="18" max="120" class="app-input" x-model="member.age" :name="'members[' + index + '][age]'" required>
+                            <label class="app-label">{{ __('applicants.dob') }} @include('partials.required-mark')</label>
+                            <input type="date" class="app-input" x-model="member.dob" :name="'members[' + index + '][dob]'" required>
                         </div>
                         <div class="wizard-field">
-                            <label class="app-label">{{ __('applicants.sex') }} <span class="text-red-500">*</span></label>
+                            <label class="app-label">{{ __('applicants.sex') }} @include('partials.required-mark')</label>
                             <input type="hidden" :name="'members[' + index + '][sex]'" value="Female">
                             <input type="text" class="app-input bg-gray-100 cursor-not-allowed" value="{{ __('applicants.female') }}" readonly>
                         </div>
                         <div class="wizard-field">
-                            <label class="app-label">{{ __('common.phone') }} <span class="text-red-500">*</span></label>
+                            <label class="app-label">{{ __('common.phone') }} @include('partials.required-mark')</label>
                             <div class="app-phone-field" data-phone-field>
                                 <span class="app-phone-prefix" aria-hidden="true">
                                     <span class="app-phone-flag">@include('partials.flags.tanzania')</span>
@@ -116,7 +137,7 @@
                             </div>
                         </div>
                         <div class="wizard-field">
-                            <label class="app-label">{{ __('applicants.marital_status') }} <span class="text-red-500">*</span></label>
+                            <label class="app-label">{{ __('applicants.marital_status') }} @include('partials.required-mark')</label>
                             <select class="app-select" x-model="member.marital_status" :name="'members[' + index + '][marital_status]'" required>
                                 <option value="">{{ __('applicants.select_marital_status') }}</option>
                                 @foreach(\App\Models\Applicant::MARITAL_STATUSES as $status)
@@ -127,6 +148,16 @@
                         <div class="wizard-field">
                             <label class="app-label">{{ __('common.email') }}</label>
                             <input type="email" class="app-input" x-model="member.email" :name="'members[' + index + '][email]'">
+                        </div>
+                        <div class="wizard-field">
+                            <label class="app-label">{{ __('groups.leadership') }}</label>
+                            <select class="app-select" x-model="member.leadership_role" :name="'members[' + index + '][leadership_role]'">
+                                <option value="">{{ __('groups.select_leadership') }}</option>
+                                @foreach(\App\Support\GroupLeadershipRole::options() as $key => $label)
+                                    <option value="{{ $key }}">{{ $label }}</option>
+                                @endforeach
+                            </select>
+                        </div>
                         </div>
                     </div>
                 </div>
@@ -165,11 +196,12 @@ document.addEventListener('alpine:init', () => {
                 middle_name: '',
                 last_name: '',
                 nin: '',
-                age: '',
+                dob: '',
                 phone: '',
                 email: '',
                 sex: '',
                 marital_status: '',
+                leadership_role: '',
             });
 
             this.$nextTick(() => window.initIdentityInputs?.(this.$root));

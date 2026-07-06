@@ -1,3 +1,4 @@
+import './accessibility-settings';
 import './locale-switch';
 import './bootstrap';
 import './form-loading';

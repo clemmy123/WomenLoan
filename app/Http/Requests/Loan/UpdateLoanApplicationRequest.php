@@ -18,8 +18,14 @@ class UpdateLoanApplicationRequest extends FormRequest
 
     public function rules(): array
     {
-        return array_merge($this->loanApplicationRules(updating: true), [
+        $rules = array_merge($this->loanApplicationRules(updating: true), [
             'declaration' => 'accepted',
         ]);
+
+        if ($this->input('form_action') === 'submit_to_ward') {
+            $rules = array_merge($rules, $this->requiredBusinessLocationRules(), $this->requiredGuarantorRules());
+        }
+
+        return $rules;
     }
 }

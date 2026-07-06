@@ -58,7 +58,7 @@ class WorkflowActionRequest extends FormRequest
                 Rule::requiredIf(in_array($action, ['forward_ministry', 'forward_ass_dir'], true)),
                 'nullable',
                 'file',
-                'mimes:pdf,doc,docx',
+                'mimes:pdf',
                 'max:1024',
             ],
         ];

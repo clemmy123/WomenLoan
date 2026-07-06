@@ -11,13 +11,17 @@
         </div>
         @can('create loan application')
         <div class="page-actions flex flex-wrap gap-2">
-            @if($canSetupGroup ?? false)
-                <a href="{{ route('my-group.create') }}" class="app-btn app-btn-primary">{{ __('groups.setup_title') }}</a>
-            @elseif($userGroup ?? null)
-                <a href="{{ route('my-group.show') }}" class="app-btn app-btn-secondary">{{ __('groups.my_group') }}</a>
+            @if(($preferredLoanType ?? null) === 'group')
+                @if($canSetupGroup ?? false)
+                    <a href="{{ route('my-group.create') }}" class="app-btn app-btn-primary">{{ __('groups.setup_title') }}</a>
+                @elseif($userGroup ?? null)
+                    <a href="{{ route('my-group.show') }}" class="app-btn app-btn-secondary">{{ __('groups.my_group') }}</a>
+                @endif
             @endif
             @if($canStartNew ?? true)
-                <a href="{{ route('loan-applications.create') }}" class="app-btn app-btn-success">{{ __('loans.start_new') }}</a>
+                <a href="{{ route('loan-applications.create') }}" class="app-btn app-btn-success">
+                    {{ ($preferredLoanType ?? null) === 'group' ? __('loans.continue_as_group') : __('loans.continue_as_individual') }}
+                </a>
             @endif
         </div>
         @endcan
@@ -74,10 +78,15 @@
             @foreach($drafts as $draft)
                 <li class="flex flex-wrap justify-between items-center gap-3 border border-slate-200 dark:border-white/10 p-3 rounded-xl">
                     <div>
-                        <p class="font-bold text-slate-800 dark:text-white">{{ __('dashboard.track_id') }}: {{ $draft->track_id }}</p>
+                        <div class="flex flex-wrap items-center gap-2 mb-1">
+                            <p class="font-bold text-slate-800 dark:text-white">{{ __('dashboard.track_id') }}: {{ $draft->track_id }}</p>
+                            @include('partials.badge', ['variant' => 'warning', 'text' => __('loans.draft_status')])
+                            @include('partials.badge', ['variant' => 'secondary', 'text' => __('loans.draft_step', ['step' => $draft->wizardStep(), 'total' => 6])])
+                        </div>
                         <p class="text-slate-500 dark:text-zinc-400 text-sm">{{ __('loans.saved_on', ['date' => $draft->updated_at->translatedFormat('d M Y, H:i')]) }}</p>
+                        <p class="text-slate-500 dark:text-zinc-400 text-sm">{{ __('loans.draft_not_submitted') }}</p>
                     </div>
-                    <a href="{{ route('loan-applications.create', ['resume_track_id' => $draft->track_id]) }}"
+                    <a href="{{ route('loan-applications.create', ['resume_track_id' => $draft->track_id, 'wizard_step' => $draft->wizardStep()]) }}"
                        class="app-btn app-btn-primary">
                         {{ __('loans.resume') }}
                     </a>

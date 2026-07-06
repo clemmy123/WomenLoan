@@ -4,6 +4,8 @@ namespace App\Http\Requests;
 
 use App\Http\Requests\Concerns\EnforcesFemaleOnlySex;
 use App\Http\Requests\Concerns\NormalizesIdentityFields;
+use App\Http\Requests\Concerns\ValidatesGroupLeadershipRole;
+use App\Http\Requests\Concerns\ValidatesGroupMemberDob;
 use App\Models\Applicant;
 use App\Rules\TanzaniaPhone;
 use App\Rules\TanzanianNin;
@@ -13,10 +15,11 @@ use App\Rules\UniquePhone;
 use App\Services\ApplicantGroupService;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
+use Illuminate\Validation\Validator;
 
 class StoreApplicantGroupMemberRequest extends FormRequest
 {
-    use EnforcesFemaleOnlySex, NormalizesIdentityFields;
+    use EnforcesFemaleOnlySex, NormalizesIdentityFields, ValidatesGroupLeadershipRole, ValidatesGroupMemberDob;
 
     public function authorize(): bool
     {
@@ -26,6 +29,7 @@ class StoreApplicantGroupMemberRequest extends FormRequest
     protected function prepareForValidation(): void
     {
         $this->normalizeIdentityInput(['nin', 'phone', 'email']);
+        $this->normalizeLeadershipRoleInput();
         $this->enforceFemaleOnlySex();
     }
 
@@ -45,11 +49,12 @@ class StoreApplicantGroupMemberRequest extends FormRequest
                 new UniqueNin,
                 Rule::unique('loan_group_members', 'nin')->where('loan_group_id', $groupId),
             ],
-            'age' => 'required|integer|min:18|max:120',
+            'dob' => $this->memberDobRules(),
             'phone' => ['required', 'string', new TanzaniaPhone, new UniquePhone],
             'email' => ['nullable', 'email', 'max:255', new UniqueEmail],
             'sex' => 'required|in:Female',
             'marital_status' => ['required', 'string', Rule::in(Applicant::MARITAL_STATUSES)],
+            'leadership_role' => $this->leadershipRoleFieldRules($groupId),
         ];
     }
 
@@ -58,5 +63,18 @@ class StoreApplicantGroupMemberRequest extends FormRequest
         return [
             'nin.unique' => __('validation.already_used', ['attribute' => __('applicants.nin')]),
         ];
+    }
+
+    public function withValidator(Validator $validator): void
+    {
+        $validator->after(function (Validator $validator): void {
+            $group = app(ApplicantGroupService::class)->groupForUser($this->user());
+
+            $this->assertExclusiveLeadershipRoleAvailable(
+                $validator,
+                $group?->id,
+                $this->input('leadership_role'),
+            );
+        });
     }
 }

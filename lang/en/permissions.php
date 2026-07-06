@@ -39,7 +39,7 @@ return [
     'approve as km' => 'Approve as knowledge management',
     'assign accountant' => 'Assign accountant',
     'disburse loan' => 'Disburse loan',
-    'rollback workflow step' => 'Return application to previous step',
+    'rollback workflow step' => 'Rollback application workflow step',
     'view repayments' => 'View repayments',
     'record repayment' => 'Record loan repayment',
     'view reports' => 'View reports',

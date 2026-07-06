@@ -134,23 +134,29 @@
                     <table class="app-table">
                         <thead>
                             <tr>
-                                <th>{{ __('common.full_name') }}</th>
+                                <th>{{ __('applicants.first_name') }}</th>
+                                <th>{{ __('applicants.middle_name') }}</th>
+                                <th>{{ __('applicants.last_name') }}</th>
                                 <th>{{ __('applicants.nin') }}</th>
-                                <th>{{ __('groups.member_age') }}</th>
+                                <th>{{ __('applicants.dob') }}</th>
                                 <th>{{ __('applicants.sex') }}</th>
                                 <th>{{ __('common.phone') }}</th>
                                 <th>{{ __('common.email') }}</th>
+                                <th>{{ __('groups.leadership') }}</th>
                             </tr>
                         </thead>
                         <tbody>
                             @foreach($loan->group->members as $member)
                             <tr>
-                                <td>{{ $member->full_name }}@if($member->is_group_leader) ({{ __('groups.group_leader') }})@endif</td>
+                                <td>{{ $member->first_name }}@if($member->is_group_leader) ({{ __('groups.group_leader') }})@endif</td>
+                                <td>{{ $member->middle_name ?: __('common.na') }}</td>
+                                <td>{{ $member->last_name }}</td>
                                 <td class="font-mono text-sm">{{ $member->nin }}</td>
-                                <td>{{ $member->age ?? __('common.na') }}</td>
+                                <td>{{ $member->dob?->translatedFormat('d M Y') ?? __('common.na') }}</td>
                                 <td>{{ $member->sex ?? __('common.na') }}</td>
                                 <td>{{ $member->phone }}</td>
                                 <td>{{ $member->email ?? __('common.na') }}</td>
+                                <td>{{ $member->leadershipRoleLabel() ?? __('common.na') }}</td>
                             </tr>
                             @endforeach
                         </tbody>
@@ -170,11 +176,16 @@
             <div class="app-card app-card-padded">
                 <h3 class="text-sm font-semibold tracking-wide uppercase text-indigo-600 border-b border-slate-100 dark:border-white/10 pb-2 mb-5">{{ __('loans.guarantor_information') }}</h3>
                 @forelse($loan->guarantors as $guarantor)
+                    @php
+                        $guarantorNameParts = \App\Models\Concerns\HasDisplayName::splitFullName($guarantor->name ?? '');
+                    @endphp
                     @if(!$loop->first)
                         <hr class="border-slate-100 dark:border-white/10 my-6">
                     @endif
                     <div class="detail-grid">
-                        @include('partials.detail-field', ['label' => __('loans.guarantor_name'), 'value' => $guarantor->name])
+                        @include('partials.detail-field', ['label' => __('applicants.first_name'), 'value' => $guarantor->first_name ?: $guarantorNameParts['first_name']])
+                        @include('partials.detail-field', ['label' => __('applicants.middle_name'), 'value' => $guarantor->middle_name ?: __('common.na')])
+                        @include('partials.detail-field', ['label' => __('applicants.last_name'), 'value' => $guarantor->last_name ?: $guarantorNameParts['last_name']])
                         @include('partials.detail-field', ['label' => __('loans.guarantor_phone'), 'value' => $guarantor->phone])
                         @include('partials.detail-field', ['label' => __('loans.guarantor_nin'), 'value' => $guarantor->id_number, 'mono' => true])
                         @include('partials.detail-field', ['label' => __('loans.guarantor_relationship'), 'value' => $guarantor->relationship])
