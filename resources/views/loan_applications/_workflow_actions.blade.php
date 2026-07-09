@@ -64,6 +64,7 @@
         @include('partials.modal', [
             'name' => 'forward_ministry',
             'title' => __('workflow.buttons.forward_ministry'),
+            'wide' => true,
             'body' => view('loan_applications._workflow_forms.forward_ministry', compact('loan'))->render(),
         ])
     @endif
@@ -72,6 +73,7 @@
         @include('partials.modal', [
             'name' => 'propose_amount',
             'title' => __('workflow.buttons.propose_amount'),
+            'wide' => true,
             'body' => view('loan_applications._workflow_forms.propose_amount', compact('loan'))->render(),
         ])
     @endif
@@ -79,12 +81,13 @@
     @if($canApplicantRespond)
         @include('partials.modal', [
             'name' => 'accept_amount',
-            'title' => __('workflow.buttons.accept_amount'),
+            'wide' => true,
             'body' => view('loan_applications._workflow_forms.accept_amount', compact('loan'))->render(),
         ])
         @include('partials.modal', [
             'name' => 'decline_amount',
             'title' => __('workflow.buttons.decline_amount'),
+            'wide' => true,
             'body' => view('loan_applications._workflow_forms.decline_amount', compact('loan'))->render(),
         ])
     @endif
@@ -93,6 +96,7 @@
         @include('partials.modal', [
             'name' => 'forward_ass_dir',
             'title' => __('workflow.buttons.forward_ass_dir'),
+            'wide' => true,
             'body' => view('loan_applications._workflow_forms.forward_ass_dir', compact('loan'))->render(),
         ])
     @endif
@@ -101,6 +105,7 @@
         @include('partials.modal', [
             'name' => 'forward_director',
             'title' => __('workflow.buttons.forward_director'),
+            'wide' => true,
             'body' => view('loan_applications._workflow_forms.forward_director', compact('loan'))->render(),
         ])
     @endif
@@ -109,6 +114,7 @@
         @include('partials.modal', [
             'name' => 'forward_km',
             'title' => __('workflow.buttons.forward_km'),
+            'wide' => true,
             'body' => view('loan_applications._workflow_forms.forward_km', compact('loan'))->render(),
         ])
     @endif
@@ -116,7 +122,8 @@
     @if($canApproveKm)
         @include('partials.modal', [
             'name' => 'approve_km',
-            'title' => __('workflow.buttons.approve_km'),
+            'title' => __('workflow.approve_confirm_title'),
+            'wide' => true,
             'body' => view('loan_applications._workflow_forms.approve_km', compact('loan'))->render(),
         ])
     @endif
@@ -125,6 +132,7 @@
         @include('partials.modal', [
             'name' => 'assign_accountant',
             'title' => __('workflow.buttons.assign_accountant'),
+            'wide' => true,
             'body' => view('loan_applications._workflow_forms.assign_accountant', compact('loan', 'accountants'))->render(),
         ])
     @endif
@@ -132,7 +140,7 @@
     @if($canDisburse)
         @include('partials.modal', [
             'name' => 'disburse',
-            'title' => __('workflow.buttons.disburse', ['amount' => format_tzs($loan->proposed_amount)]),
+            'wide' => true,
             'body' => view('loan_applications._workflow_forms.disburse', compact('loan'))->render(),
         ])
     @endif
@@ -141,6 +149,7 @@
         @include('partials.modal', [
             'name' => 'rollback_step',
             'title' => $rollbackLabel,
+            'wide' => true,
             'body' => view('loan_applications._workflow_forms.rollback_step', compact('loan', 'rollbackToApplicant', 'rollbackLabel'))->render(),
         ])
     @endif

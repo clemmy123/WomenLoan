@@ -6,6 +6,8 @@ use App\Models\Concerns\HasHashid;
 use App\Models\Concerns\HasDisplayName;
 use App\Models\Concerns\Searchable;
 use App\Models\Scopes\ApplicantAccess;
+use App\Support\AgeCalculator;
+use Carbon\CarbonInterface;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -37,6 +39,11 @@ class Applicant extends Model
         'nida_verified_at' => 'datetime',
         'has_disability' => 'boolean',
     ];
+
+    public function age(?CarbonInterface $asOf = null): ?int
+    {
+        return AgeCalculator::years($this->dob, $asOf);
+    }
 
     public function isWidowed(): bool
     {

@@ -26,8 +26,8 @@ class IdentityValidationTest extends TestCase
             'last_name' => 'User',
             'email' => $existing->email,
             'phone' => '255712399999',
-            'password' => 'password',
-            'password_confirmation' => 'password',
+            'password' => $this->strongPassword(),
+            'password_confirmation' => $this->strongPassword(),
         ])->assertSessionHasErrors('email');
     }
 
@@ -40,9 +40,21 @@ class IdentityValidationTest extends TestCase
             'last_name' => 'User',
             'email' => 'new.user@example.com',
             'phone' => IdentityNormalizer::formatPhone($existing->phone),
+            'password' => $this->strongPassword(),
+            'password_confirmation' => $this->strongPassword(),
+        ])->assertSessionHasErrors('phone');
+    }
+
+    public function test_registration_rejects_weak_password(): void
+    {
+        $this->post(route('register'), [
+            'first_name' => 'Weak',
+            'last_name' => 'Password',
+            'email' => 'weak.password@example.com',
+            'phone' => '255712388888',
             'password' => 'password',
             'password_confirmation' => 'password',
-        ])->assertSessionHasErrors('phone');
+        ])->assertSessionHasErrors('password');
     }
 
     public function test_applicant_profile_rejects_invalid_nin_format(): void

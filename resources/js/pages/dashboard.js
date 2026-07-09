@@ -75,4 +75,16 @@ document.addEventListener('DOMContentLoaded', async () => {
             options: baseOptions('bar'),
         });
     }
+
+    if (window.location.hash === '#recent-applications') {
+        document.getElementById('recent-applications')?.scrollIntoView({
+            behavior: document.documentElement.classList.contains('a11y-reduce-motion') ? 'auto' : 'smooth',
+            block: 'start',
+        });
+    }
+
+    document.querySelectorAll('.dashboard-stat-card').forEach((card) => {
+        card.addEventListener('mouseup', () => card.blur());
+        card.addEventListener('touchend', () => card.blur(), { passive: true });
+    });
 });

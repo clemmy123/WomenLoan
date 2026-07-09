@@ -17,6 +17,16 @@
         <p class="text-xs text-gray-500">{{ __('applicants.registration_fields_locked') }}</p>
     @endif
 
+    <div>
+        <label for="nin" class="block text-xs font-semibold text-gray-700 uppercase tracking-wider mb-2">{{ __('applicants.nin') }} @include('partials.required-mark')</label>
+        @include('partials.inputs.nin-input', [
+            'name' => 'nin',
+            'value' => old('nin', $applicant?->nin ?? ''),
+            'class' => 'w-full bg-gray-50 border rounded-lg px-4 py-2.5 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-indigo-500 '.($errors->has('nin') ? 'border-red-500' : 'border-gray-300'),
+        ])
+        @error('nin') <p class="mt-1.5 text-xs font-medium text-red-600">{{ $message }}</p> @enderror
+    </div>
+
     <div class="grid grid-cols-1 sm:grid-cols-3 gap-5">
         <div>
             <label for="first_name" class="block text-xs font-semibold text-gray-700 uppercase tracking-wider mb-2">{{ __('applicants.first_name') }} @include('partials.required-mark')</label>
@@ -39,18 +49,27 @@
 
     <div class="grid grid-cols-1 sm:grid-cols-2 gap-5 pt-2">
         <div>
-            <label for="nin" class="block text-xs font-semibold text-gray-700 uppercase tracking-wider mb-2">{{ __('applicants.nin') }} @include('partials.required-mark')</label>
-            @include('partials.inputs.nin-input', [
-                'name' => 'nin',
-                'value' => old('nin', $applicant?->nin ?? ''),
-                'class' => 'w-full bg-gray-50 border rounded-lg px-4 py-2.5 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-indigo-500 '.($errors->has('nin') ? 'border-red-500' : 'border-gray-300'),
-            ])
-            @error('nin') <p class="mt-1.5 text-xs font-medium text-red-600">{{ $message }}</p> @enderror
-        </div>
-
-        <div>
             <label for="dob" class="block text-xs font-semibold text-gray-700 uppercase tracking-wider mb-2">{{ __('applicants.dob') }} @include('partials.required-mark')</label>
-            <input type="date" name="dob" id="dob" value="{{ $dobValue }}" class="w-full bg-gray-50 border @error('dob') border-red-500 @else border-gray-300 @enderror rounded-lg px-4 py-2.5 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-indigo-500">
+            <input
+                type="date"
+                name="dob"
+                id="dob"
+                value="{{ $dobValue }}"
+                data-age-display="dob_age"
+                max="{{ now()->subYears(18)->toDateString() }}"
+                class="w-full bg-gray-50 border @error('dob') border-red-500 @else border-gray-300 @enderror rounded-lg px-4 py-2.5 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+            >
+            <p
+                id="dob_age"
+                class="mt-1.5 text-xs font-medium text-indigo-600"
+                data-age-template="{{ __('applicants.age_years', ['age' => ':age']) }}"
+                data-age-empty=""
+                @if(! $dobValue) hidden @endif
+            >
+                @if($dobValue)
+                    {{ __('applicants.age_years', ['age' => \App\Support\AgeCalculator::years(\Carbon\Carbon::parse($dobValue)) ?? '—']) }}
+                @endif
+            </p>
             @error('dob') <p class="mt-1.5 text-xs font-medium text-red-600">{{ $message }}</p> @enderror
         </div>
 

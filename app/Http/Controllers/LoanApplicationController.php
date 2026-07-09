@@ -26,9 +26,14 @@ class LoanApplicationController extends Controller
         private ApplicantGroupService $applicantGroups,
     ) {}
 
-    public function index()
+    public function index(Request $request)
     {
-        $loans = $this->loans->paginatedIndex();
+        $search = $request->query('search');
+        $status = $this->loans->normalizeListStatus($request->query('status'));
+        $sort = 'newest';
+
+        $loans = $this->loans->paginatedIndex($search, $sort, $status);
+        $listStatusOptions = $this->loans->listStatusOptions();
         $drafts = DraftLoan::where('user_id', Auth::id())->latest()->get();
         $canStartNew = Auth::user()->can('create loan application')
             && Auth::user()->hasCompletedProfile()
@@ -37,7 +42,17 @@ class LoanApplicationController extends Controller
         $canSetupGroup = $this->applicantGroups->canSetupGroup(Auth::user());
         $preferredLoanType = Auth::user()->applicant?->preferred_loan_type;
 
-        return view('loan_applications.index', compact('loans', 'drafts', 'canStartNew', 'userGroup', 'canSetupGroup', 'preferredLoanType'));
+        return view('loan_applications.index', compact(
+            'loans',
+            'drafts',
+            'canStartNew',
+            'userGroup',
+            'canSetupGroup',
+            'preferredLoanType',
+            'search',
+            'status',
+            'listStatusOptions',
+        ));
     }
 
     public function create(Request $request)
@@ -314,7 +329,7 @@ class LoanApplicationController extends Controller
             'message' => __('messages.validation_check_step', [
                 'step' => $step,
                 'title' => __('loans.wizard_steps.'.$step),
-                'field' => __("validation.attributes.{$firstField}", str_replace('_', ' ', $firstField)),
+                'field' => validation_attribute_label($firstField),
             ]),
         ];
     }

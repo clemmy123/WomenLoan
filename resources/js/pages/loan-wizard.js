@@ -149,6 +149,10 @@ document.addEventListener('alpine:init', () => {
                 if (this.step === this.totalSteps) {
                     this.refreshPreview();
                 }
+
+                if (this.step > 1) {
+                    queueMicrotask(() => this.scrollToActiveStep({ behavior: 'auto' }));
+                }
             },
 
             async fetchData(url, target, options = {}) {
@@ -462,6 +466,36 @@ document.addEventListener('alpine:init', () => {
                 });
             },
 
+            scrollToActiveStep(options = {}) {
+                const { behavior = 'smooth' } = options;
+
+                this.$nextTick(() => {
+                    const panel = this.$root.querySelector(`[data-wizard-step="${this.step}"]`);
+                    const heading = panel?.querySelector('h3');
+                    const target = heading ?? panel;
+
+                    if (!target) {
+                        return;
+                    }
+
+                    const top = target.getBoundingClientRect().top + window.scrollY - 12;
+
+                    window.scrollTo({
+                        top: Math.max(0, top),
+                        behavior,
+                    });
+                });
+            },
+
+            prevStep() {
+                if (this.step <= 1) {
+                    return;
+                }
+
+                this.step--;
+                this.scrollToActiveStep();
+            },
+
             nextStep() {
                 if (!this.validateStep(this.step)) {
                     return;
@@ -469,6 +503,7 @@ document.addEventListener('alpine:init', () => {
 
                 if (this.step < this.totalSteps) {
                     this.step++;
+                    this.scrollToActiveStep();
 
                     if (this.step === this.totalSteps) {
                         this.refreshPreview();
@@ -629,6 +664,7 @@ document.addEventListener('alpine:init', () => {
                 for (let current = 1; current <= 5; current += 1) {
                     if (!this.validateStep(current)) {
                         this.step = current;
+                        this.scrollToActiveStep();
 
                         return false;
                     }

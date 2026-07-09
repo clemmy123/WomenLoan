@@ -98,4 +98,36 @@ class LoanApplicationAccessTest extends TestCase
             ->assertOk()
             ->assertDontSee(__('loans.continue_as_individual'), false);
     }
+
+    public function test_loan_index_supports_search_and_sort(): void
+    {
+        $user = User::where('email', 'test@example.com')->firstOrFail();
+        $loan = $this->loanByTrack('WL000001');
+
+        $loan->update([
+            'user_id' => $user->id,
+            'applicant_id' => $user->applicant?->id,
+        ]);
+
+        $this->actingAs($user)
+            ->get(route('loan-applications.index', ['search' => 'WL000001']))
+            ->assertOk()
+            ->assertSee('WL000001', false);
+
+        $this->actingAs($user)
+            ->get(route('loan-applications.index', ['search' => 'nonexistent-track-xyz']))
+            ->assertOk()
+            ->assertSee(__('dashboard.no_search_results'), false);
+
+        $this->actingAs($user)
+            ->get(route('loan-applications.index', ['status' => 'pending']))
+            ->assertOk()
+            ->assertSee(__('loans.all_statuses'), false)
+            ->assertSee('WL000001', false);
+
+        $this->actingAs($user)
+            ->get(route('loan-applications.index', ['status' => 'disbursed']))
+            ->assertOk()
+            ->assertDontSee('WL000001', false);
+    }
 }

@@ -83,6 +83,7 @@
                     </svg>
                 </button>
             </div>
+            @include('partials.password-requirements', ['targetId' => 'password', 'variant' => 'auth'])
         </div>
 
         <div class="auth-split-field" x-data="{ showPassword: false }">

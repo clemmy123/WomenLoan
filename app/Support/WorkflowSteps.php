@@ -23,7 +23,7 @@ class WorkflowSteps
         4 => 'Ministry',
         5 => 'Ass. Director',
         6 => 'Director',
-        7 => 'KM',
+        7 => 'Permanent Secretary',
         8 => 'Chief',
         9 => 'Accountant',
     ];

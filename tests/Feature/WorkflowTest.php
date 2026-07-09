@@ -136,8 +136,8 @@ class WorkflowTest extends TestCase
         $this->actingAsRole('ministry@wdf.go.tz')
             ->get(route('loan-applications.show', $loan->hashid))
             ->assertOk()
-            ->assertDontSee(__('workflow.buttons.propose_amount'), false)
-            ->assertSee(__('workflow.buttons.forward_ass_dir'), false);
+            ->assertSee(__('workflow.buttons.submit'), false)
+            ->assertDontSee("modal = 'propose_amount'", false);
 
         $response = $this->actingAsRole('ministry@wdf.go.tz')
             ->post(route('loans.workflow', $loan->hashid), [
@@ -241,6 +241,38 @@ class WorkflowTest extends TestCase
         ]);
     }
 
+    public function test_disburse_syncs_existing_payment_ledger_to_actual_amount(): void
+    {
+        $loan = $this->loanByTrack('WL000010');
+
+        \App\Models\LoanPayment::create([
+            'loan_id' => $loan->id,
+            'amount_requested' => $loan->requested_amount,
+            'amount_disbursed' => 1000,
+            'interest_amount' => 160,
+            'amount_paid' => 0,
+            'outstanding_debt' => 1160,
+            'grace_period_days' => 0,
+            'start_date' => now()->toDateString(),
+            'end_date' => now()->addYear()->toDateString(),
+            'payment_interval' => 'monthly',
+        ]);
+
+        $this->actingAsRole('accountant1@wdf.go.tz')
+            ->post(route('loans.workflow', $loan->hashid), [
+                'action' => 'disburse',
+            ])
+            ->assertRedirect(route('loan-applications.show', $loan->hashid));
+
+        $loan->refresh();
+        $this->assertSame('3800000.00', $loan->disbursed_amount);
+        $this->assertDatabaseHas('loan_payments', [
+            'loan_id' => $loan->id,
+            'amount_disbursed' => 3800000,
+        ]);
+        $this->assertSame(1, $loan->loanPayments()->count());
+    }
+
     public function test_accountant_cannot_disburse_custom_amount(): void
     {
         $loan = $this->loanByTrack('WL000010');
@@ -260,7 +292,7 @@ class WorkflowTest extends TestCase
         $this->actingAsRole('accountant1@wdf.go.tz')
             ->get(route('loan-applications.show', $loan->hashid))
             ->assertOk()
-            ->assertDontSee(__('workflow.buttons.disburse', ['amount' => format_tzs($loan->proposed_amount)]), false);
+            ->assertDontSee("modal = 'disburse'", false);
     }
 
     public function test_ministry_can_rollback_application_to_previous_step(): void

@@ -54,3 +54,42 @@ if (! function_exists('loan_type_label')) {
         return __('loans.types.' . $type, [], ucfirst($type));
     }
 }
+
+if (! function_exists('loan_workflow_step_label')) {
+    function loan_workflow_step_label(int|string|null $step): string
+    {
+        $step = (int) $step;
+
+        if ($step < 1) {
+            return '—';
+        }
+
+        $key = 'loans.workflow_steps.'.$step;
+
+        return \Illuminate\Support\Facades\Lang::has($key)
+            ? __($key)
+            : __('loans.current_step');
+    }
+}
+
+if (! function_exists('loan_display_name')) {
+    function loan_display_name(\App\Models\Loan $loan): string
+    {
+        if ($loan->loan_type === 'group') {
+            return $loan->group?->name ?? __('common.na');
+        }
+
+        return $loan->applicant?->full_name ?? __('common.na');
+    }
+}
+
+if (! function_exists('validation_attribute_label')) {
+    function validation_attribute_label(string $field): string
+    {
+        $key = 'validation.attributes.' . $field;
+
+        return \Illuminate\Support\Facades\Lang::has($key)
+            ? __($key)
+            : str_replace('_', ' ', $field);
+    }
+}

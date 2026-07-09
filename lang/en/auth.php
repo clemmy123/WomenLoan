@@ -27,4 +27,11 @@ return [
     'send_reset_link' => 'Send reset link',
     'reset_password' => 'Reset password',
     'reset_password_subtitle' => 'Choose a new password for your account.',
+    'password_requirements_title' => 'Password must include:',
+    'password_rule_length' => 'At least 8 characters',
+    'password_rule_letter' => 'At least one letter',
+    'password_rule_uppercase' => 'At least one uppercase letter (A–Z)',
+    'password_rule_number' => 'At least one number (0–9)',
+    'password_rule_symbol' => 'At least one special character (!@#$…)',
+    'password_strong' => 'Strong password',
 ];

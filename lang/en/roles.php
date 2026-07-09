@@ -10,7 +10,7 @@ return [
     'cdo_ministry' => 'Ministry Officer',
     'assistant_director' => 'Assistant Director',
     'director' => 'Director',
-    'km' => 'Knowledge Management',
+    'km' => 'Permanent Secretary',
     'chief' => 'Chief Officer',
     'accountant' => 'Accountant',
 ];

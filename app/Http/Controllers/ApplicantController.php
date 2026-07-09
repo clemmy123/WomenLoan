@@ -53,13 +53,9 @@ class ApplicantController extends Controller
 
     public function show(Applicant $applicant)
     {
-        $applicant->load(['groups', 'loans', 'user']);
-        $groups = LoanGroup::query()->orderBy('name')->get(['id', 'name']);
+        $applicant->load(['user']);
 
-        return view('applicants.show', array_merge(
-            $this->applicants->locationContext($applicant),
-            compact('groups')
-        ));
+        return view('applicants.show', $this->applicants->locationContext($applicant));
     }
 
     public function edit(Applicant $applicant)

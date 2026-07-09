@@ -21,6 +21,7 @@ class ApplicationReportsExport implements FromArray, WithTitle
 
         $lines = [
             [__('application_reports.title')],
+            [__('reports.fiscal_year'), $this->filters['fiscal_year'] ?? ''],
             [__('application_reports.status'), $statusLabel],
             [__('application_reports.date_from'), $this->filters['date_from']],
             [__('application_reports.date_to'), $this->filters['date_to']],

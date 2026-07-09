@@ -1,7 +1,7 @@
 <?php
 
 return [
-    'portal_name' => 'Women Loans Portal',
+    'portal_name' => 'Women Loans System',
     'help' => 'Help',
     'user_guide' => 'User Guide',
     'sign_in' => 'Sign In',

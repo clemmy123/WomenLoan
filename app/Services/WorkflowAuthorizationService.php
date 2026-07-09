@@ -17,7 +17,10 @@ class WorkflowAuthorizationService
         $status = $loan->status;
 
         return match ($action) {
-            'forward_ministry' => $user->can('forward to ministry') && $step === 1 && $status === 'received',
+            'forward_ministry' => $user->can('forward to ministry')
+                && $step === 1
+                && $status === 'received'
+                && app(CdoLoanScopeService::class)->canActOnLoan($user, $loan),
             'propose_amount', 'send_to_applicant' => $user->can('propose loan amount') && $step === 2,
             'accept_amount', 'decline_amount' => $user->hasRole('applicant') && $step === 3,
             'forward_ass_dir' => $user->can('forward to assistant director') && $step === 4,
@@ -60,7 +63,8 @@ class WorkflowAuthorizationService
         }
 
         if ($loan->current_step === 1 && $loan->status === 'received') {
-            return $user->can('forward to ministry');
+            return $user->can('forward to ministry')
+                && app(CdoLoanScopeService::class)->canActOnLoan($user, $loan);
         }
 
         if ($loan->current_step <= 1) {

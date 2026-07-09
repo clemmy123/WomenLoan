@@ -2,10 +2,11 @@
 
 namespace App\Models\Scopes;
 
+use App\Services\CdoLoanScopeService;
+use App\Support\WorkflowSteps;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Scope;
-use App\Support\WorkflowSteps;
 use Illuminate\Support\Facades\Auth;
 
 class ApprovalLevelScope implements Scope
@@ -30,20 +31,37 @@ class ApprovalLevelScope implements Scope
             return;
         }
 
+        // Chief keeps seeing loans after assigning an accountant (ready + disbursed).
+        if ($user->hasRole('chief')) {
+            $builder->where(function (Builder $inner) {
+                $inner->where(function (Builder $awaiting) {
+                    $awaiting->where('current_step', 8)
+                        ->where('status', 'approved');
+                })->orWhereIn('status', ['ready_for_disbursement', 'disbursed']);
+            });
+
+            return;
+        }
+
+        // Accountant keeps seeing assigned loans after putting money (disbursed).
+        if ($user->hasRole('accountant')) {
+            $builder->where('officer_id', $user->id)
+                ->where(function (Builder $inner) {
+                    $inner->where(function (Builder $ready) {
+                        $ready->where('current_step', 9)
+                            ->where('status', 'ready_for_disbursement');
+                    })->orWhere('status', 'disbursed');
+                });
+
+            return;
+        }
+
         if ($user->can('view all loans')) {
             return;
         }
 
         if ($user->hasRole(['cdo_ward', 'cdo_council', 'cdo_region'])) {
-            $builder->whereHas('businessDetails', function ($q) use ($user) {
-                if ($user->hasRole('cdo_ward')) {
-                    $q->where('ward_id', $user->zoneable_id);
-                } elseif ($user->hasRole('cdo_council')) {
-                    $q->where('council_id', $user->zoneable_id);
-                } elseif ($user->hasRole('cdo_region')) {
-                    $q->where('region_id', $user->zoneable_id);
-                }
-            });
+            app(CdoLoanScopeService::class)->applyBusinessDetailsScope($builder, $user);
 
             return;
         }
@@ -53,9 +71,6 @@ class ApprovalLevelScope implements Scope
         foreach ($stepMap as $role => $steps) {
             if ($user->hasRole($role)) {
                 $builder->whereIn('current_step', $steps);
-                if ($role === 'accountant') {
-                    $builder->where('officer_id', $user->id);
-                }
 
                 return;
             }

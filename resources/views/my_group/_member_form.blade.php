@@ -25,7 +25,27 @@
         </div>
         <div class="wizard-field">
             <label class="app-label">{{ __('applicants.dob') }} @include('partials.required-mark')</label>
-            <input type="date" name="dob" value="{{ old('dob') }}" required class="app-input">
+            <input
+                type="date"
+                name="dob"
+                id="member_dob"
+                value="{{ old('dob') }}"
+                data-age-display="member_dob_age"
+                max="{{ now()->subYears(18)->toDateString() }}"
+                required
+                class="app-input"
+            >
+            <p
+                id="member_dob_age"
+                class="mt-1.5 text-xs font-medium text-indigo-600"
+                data-age-template="{{ __('applicants.age_years', ['age' => ':age']) }}"
+                data-age-empty=""
+                @unless(old('dob')) hidden @endunless
+            >
+                @if(old('dob'))
+                    {{ __('applicants.age_years', ['age' => \App\Support\AgeCalculator::years(\Carbon\Carbon::parse(old('dob'))) ?? '—']) }}
+                @endif
+            </p>
         </div>
         <div class="wizard-field">
             <label class="app-label">{{ __('applicants.sex') }} @include('partials.required-mark')</label>

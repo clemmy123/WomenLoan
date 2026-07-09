@@ -2,14 +2,33 @@
 
 namespace App\Http\Requests\Admin;
 
+use App\Http\Requests\Concerns\NormalizesIdentityFields;
+use App\Rules\TanzaniaPhone;
+use App\Rules\UniqueEmail;
+use App\Rules\UniquePhone;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
 use Illuminate\Validation\Rules\Password;
 
 class UpdateUserRequest extends FormRequest
 {
+    use NormalizesIdentityFields;
+
     public function authorize(): bool
     {
         return $this->user()->can('manage users');
+    }
+
+    protected function prepareForValidation(): void
+    {
+        $this->normalizeIdentityInput(['phone', 'email']);
+
+        if ($this->filled('check_number')) {
+            $digits = preg_replace('/\D+/', '', (string) $this->input('check_number')) ?? '';
+            $this->merge([
+                'check_number' => substr($digits, 0, 10),
+            ]);
+        }
     }
 
     public function rules(): array
@@ -17,10 +36,17 @@ class UpdateUserRequest extends FormRequest
         $user = $this->route('user');
 
         return [
-            'name' => 'required|string|max:255',
-            'email' => 'required|email|unique:users,email,' . $user->id,
-            'phone' => 'nullable|string|max:20',
-            'password' => ['nullable', Password::defaults()],
+            'check_number' => [
+                'required',
+                'digits_between:1,10',
+                Rule::unique('users', 'check_number')->ignore($user->id),
+            ],
+            'first_name' => ['required', 'string', 'max:255', 'min:2'],
+            'middle_name' => ['nullable', 'string', 'max:255'],
+            'last_name' => ['required', 'string', 'max:255', 'min:2'],
+            'email' => ['required', 'email', 'max:255', new UniqueEmail($user->id)],
+            'phone' => ['required', 'string', new TanzaniaPhone, new UniquePhone($user->id)],
+            'password' => ['nullable', 'confirmed', Password::defaults()],
             'roles' => 'array',
             'roles.*' => 'exists:roles,name',
             'zone_type' => 'nullable|in:region,council,ward',

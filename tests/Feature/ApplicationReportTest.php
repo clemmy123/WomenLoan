@@ -19,11 +19,13 @@ class ApplicationReportTest extends TestCase
     {
         $response = $this->actingAsRole('ministry@wdf.go.tz')
             ->get(route('reports.applications.index', [
-                'period' => 'monthly',
+                'fiscal_year' => '2025/2026',
+                'period' => 'annually',
             ]));
 
         $response->assertOk();
         $response->assertSee(__('application_reports.filters'), false);
+        $response->assertSee(__('reports.fiscal_year'), false);
         $response->assertSee(__('application_reports.all_statuses'), false);
         $response->assertSee(__('application_reports.detail_table'), false);
     }
@@ -31,7 +33,10 @@ class ApplicationReportTest extends TestCase
     public function test_application_reports_table_shows_required_columns(): void
     {
         $response = $this->actingAsRole('ministry@wdf.go.tz')
-            ->get(route('reports.applications.index', ['period' => 'annually']));
+            ->get(route('reports.applications.index', [
+                'fiscal_year' => '2025/2026',
+                'period' => 'annually',
+            ]));
 
         $response->assertOk();
         $response->assertSee(__('application_reports.track_id'), false);
@@ -47,6 +52,7 @@ class ApplicationReportTest extends TestCase
     {
         $response = $this->actingAsRole('ministry@wdf.go.tz')
             ->get(route('reports.applications.index', [
+                'fiscal_year' => '2026/2027',
                 'status' => 'disbursed',
                 'period' => 'annually',
             ]));
@@ -58,7 +64,10 @@ class ApplicationReportTest extends TestCase
     public function test_application_reports_show_export_buttons(): void
     {
         $response = $this->actingAsRole('ministry@wdf.go.tz')
-            ->get(route('reports.applications.index', ['period' => 'monthly']));
+            ->get(route('reports.applications.index', [
+                'fiscal_year' => '2025/2026',
+                'period' => 'annually',
+            ]));
 
         $response->assertOk();
         $response->assertSee(__('application_reports.export_excel'), false);
@@ -68,7 +77,10 @@ class ApplicationReportTest extends TestCase
     public function test_ministry_can_export_application_reports_excel(): void
     {
         $response = $this->actingAsRole('ministry@wdf.go.tz')
-            ->get(route('reports.applications.export.excel', ['period' => 'monthly']));
+            ->get(route('reports.applications.export.excel', [
+                'fiscal_year' => '2025/2026',
+                'period' => 'annually',
+            ]));
 
         $response->assertOk();
         $response->assertDownload();
@@ -81,7 +93,10 @@ class ApplicationReportTest extends TestCase
     public function test_ministry_can_export_application_reports_pdf(): void
     {
         $response = $this->actingAsRole('ministry@wdf.go.tz')
-            ->get(route('reports.applications.export.pdf', ['period' => 'monthly']));
+            ->get(route('reports.applications.export.pdf', [
+                'fiscal_year' => '2025/2026',
+                'period' => 'annually',
+            ]));
 
         $response->assertOk();
         $response->assertDownload();

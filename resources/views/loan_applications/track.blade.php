@@ -16,7 +16,7 @@
         </div>
         <div class="flex justify-between items-center gap-4">
             <span class="text-slate-500 dark:text-zinc-400">{{ __('loans.current_step') }}</span>
-            @include('partials.badge', ['variant' => 'secondary', 'text' => $loan->current_step.' / 9'])
+            @include('partials.badge', ['variant' => 'secondary', 'text' => loan_workflow_step_label($loan->current_step)])
         </div>
         <div class="flex justify-between items-center gap-4">
             <span class="text-slate-500 dark:text-zinc-400">{{ __('common.requested') }}</span>

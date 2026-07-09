@@ -1,4 +1,6 @@
 <div class="space-y-6">
+    <p class="text-sm text-slate-500 dark:text-zinc-400">{{ __('admin.permissions_tick_hint') }}</p>
+
     @foreach($permissionGroups as $groupKey => $group)
     <div class="border border-slate-200 dark:border-white/[0.08] rounded-xl overflow-hidden">
         <div class="flex justify-between items-center px-4 py-3 bg-slate-50 dark:bg-white/[0.04] border-b border-slate-100 dark:border-white/[0.06]">
@@ -15,7 +17,7 @@
             <label class="flex flex-col gap-1 p-3 rounded-xl border border-slate-100 dark:border-white/[0.06] hover:bg-slate-50 dark:hover:bg-white/[0.03] cursor-pointer">
                 <span class="flex items-start gap-2">
                     <input type="checkbox" name="permissions[]" value="{{ $permissionName }}"
-                        {{ in_array($permissionName, old('permissions', $rolePermissions)) ? 'checked' : '' }}
+                        {{ in_array($permissionName, old('permissions', $rolePermissions ?? [])) ? 'checked' : '' }}
                         class="perm-check perm-{{ $groupKey }} mt-0.5 rounded border-slate-300 text-indigo-600">
                     <span class="text-sm text-slate-700 dark:text-zinc-300">{{ permission_label($permissionName) }}</span>
                 </span>

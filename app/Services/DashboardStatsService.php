@@ -4,15 +4,19 @@ namespace App\Services;
 
 use App\Models\Applicant;
 use App\Models\Loan;
+use App\Services\Concerns\FiltersLoanLists;
 use App\Support\WorkflowSteps;
 use Carbon\Carbon;
-use Illuminate\Support\Collection;
+use Illuminate\Contracts\Pagination\LengthAwarePaginator;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 
 class DashboardStatsService
 {
+    use FiltersLoanLists;
+
     protected int $cacheTtl = 45;
 
     protected function loanQueryForUser(): \Illuminate\Database\Eloquent\Builder
@@ -38,8 +42,14 @@ class DashboardStatsService
                 ->selectRaw("SUM(CASE WHEN status IN ('pending','received','in_review','awaiting_applicant') THEN 1 ELSE 0 END) as pending")
                 ->selectRaw("SUM(CASE WHEN status IN ('approved','ready_for_disbursement') THEN 1 ELSE 0 END) as approved")
                 ->selectRaw("SUM(CASE WHEN status = 'disbursed' THEN 1 ELSE 0 END) as disbursed")
-                ->selectRaw("SUM(CASE WHEN status = 'disbursed' THEN disbursed_amount ELSE 0 END) as total_amount")
                 ->first();
+
+            // Sum in PHP so string-stored disbursed_amount values are cast reliably.
+            $totalAmount = (clone $query)
+                ->where('status', 'disbursed')
+                ->where('disbursed_amount', '>', 0)
+                ->get(['disbursed_amount'])
+                ->sum(fn (Loan $loan) => (float) ($loan->disbursed_amount ?? 0));
 
             $thisMonth = (clone $query)
                 ->whereYear('created_at', now()->year)
@@ -52,24 +62,66 @@ class DashboardStatsService
                 'pending' => (int) ($row->pending ?? 0),
                 'approved' => (int) ($row->approved ?? 0),
                 'disbursed' => (int) ($row->disbursed ?? 0),
-                'total_amount' => (float) ($row->total_amount ?? 0),
+                'total_amount' => (float) $totalAmount,
                 'this_month' => $thisMonth,
             ];
         });
     }
 
-    public function recentLoans(int $limit = 6): Collection
-    {
-        $userId = Auth::id();
+    public function paginatedRecentLoans(
+        ?string $filter = null,
+        ?string $search = null,
+        ?string $sort = null,
+        int $perPage = 15,
+    ): LengthAwarePaginator {
+        $filter = $this->normalizeRecentFilter($filter);
+        $sort = $this->normalizeListSort($sort);
 
-        return Cache::remember("stats.recent.{$userId}", $this->cacheTtl, function () use ($limit) {
-            return $this->loanQueryForUser()
-                ->select(['id', 'loan_track_id', 'applicant_id', 'requested_amount', 'current_step', 'status', 'created_at'])
-                ->with(['applicant:id,full_name,first_name,last_name'])
-                ->latest()
-                ->limit($limit)
-                ->get();
-        });
+        $query = $this->loanQueryForUser()
+            ->select([
+                'id', 'loan_track_id', 'loan_type', 'loan_group_id', 'applicant_id',
+                'requested_amount', 'current_step', 'status', 'created_at',
+            ])
+            ->with([
+                'applicant:id,full_name,first_name,last_name',
+                'group:id,name',
+                'businessDetails:loan_id,ward_id,council_id,business_name',
+                'businessDetails.ward:id,name',
+            ]);
+
+        $this->applyRecentFilter($query, $filter);
+        $this->applyListSearch($query, $search);
+        $this->applyListSort($query, $sort);
+
+        return $query
+            ->paginate($perPage)
+            ->withQueryString()
+            ->fragment('recent-applications');
+    }
+
+    public function recentSortOptions(): array
+    {
+        return $this->listSortOptions();
+    }
+
+    public function normalizeRecentFilter(?string $filter): string
+    {
+        return in_array($filter, ['all', 'pending', 'approved', 'disbursed'], true) ? $filter : 'all';
+    }
+
+    public function normalizeRecentSort(?string $sort): string
+    {
+        return $this->normalizeListSort($sort);
+    }
+
+    protected function applyRecentFilter(Builder $query, string $filter): void
+    {
+        match ($filter) {
+            'pending' => $query->whereIn('status', ['pending', 'received', 'in_review', 'awaiting_applicant']),
+            'approved' => $query->whereIn('status', ['approved', 'ready_for_disbursement']),
+            'disbursed' => $query->where('status', 'disbursed'),
+            default => null,
+        };
     }
 
     public function monthlyApplications(int $months = 6): array
@@ -197,7 +249,7 @@ class DashboardStatsService
             return;
         }
 
-        foreach (['stats.user', 'stats.monthly.apps', 'stats.monthly.disb', 'stats.pipeline', 'stats.status', 'stats.region', 'stats.recent'] as $prefix) {
+        foreach (['stats.user', 'stats.monthly.apps', 'stats.monthly.disb', 'stats.pipeline', 'stats.status', 'stats.region'] as $prefix) {
             Cache::forget("{$prefix}.{$userId}");
         }
     }

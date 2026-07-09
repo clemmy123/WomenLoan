@@ -10,6 +10,7 @@ export default defineConfig({
                 'resources/js/app.js',
                 'resources/js/pages/dashboard.js',
                 'resources/js/pages/reports.js',
+                'resources/js/pages/analytical-reports.js',
                 'resources/js/pages/geo-cascade.js',
                 'resources/js/pages/landing.js',
             ],

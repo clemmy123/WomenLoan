@@ -426,5 +426,10 @@ class LoanSubmissionTest extends TestCase
         $response->assertRedirect(route('loan-applications.create').'?wizard_step=2');
         $response->assertSessionHasErrors('guarantor_phone');
         $response->assertSessionDoesntHaveErrors('error');
+
+        $this->actingAs($user)
+            ->get($response->headers->get('Location'))
+            ->assertOk()
+            ->assertDontSee(__('messages.unexpected_error'), false);
     }
 }

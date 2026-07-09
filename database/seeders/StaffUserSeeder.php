@@ -2,6 +2,7 @@
 
 namespace Database\Seeders;
 
+use App\Models\Concerns\HasDisplayName;
 use App\Models\Council;
 use App\Models\Region;
 use App\Models\User;
@@ -16,17 +17,17 @@ class StaffUserSeeder extends Seeder
         $password = Hash::make('password');
 
         $users = [
-            ['email' => 'admin@wdf.go.tz', 'name' => 'System Administrator', 'phone' => '255700000000', 'role' => 'super_admin'],
-            ['email' => 'ward.cdo@wdf.go.tz', 'name' => 'Grace Mwangi (CDO Ward)', 'phone' => '255712345001', 'role' => 'cdo_ward', 'zone' => 'ward'],
-            ['email' => 'council.cdo@wdf.go.tz', 'name' => 'John Massawe (CDO Council)', 'phone' => '255712345002', 'role' => 'cdo_council', 'zone' => 'council'],
-            ['email' => 'region.cdo@wdf.go.tz', 'name' => 'Mary Lyimo (CDO Region)', 'phone' => '255712345003', 'role' => 'cdo_region', 'zone' => 'region'],
-            ['email' => 'ministry@wdf.go.tz', 'name' => 'Dr. Amina Hassan (Ministry)', 'phone' => '255712345004', 'role' => 'cdo_ministry'],
-            ['email' => 'assdir@wdf.go.tz', 'name' => 'Peter Kileo (Ass. Director)', 'phone' => '255712345005', 'role' => 'assistant_director'],
-            ['email' => 'director@wdf.go.tz', 'name' => 'Elizabeth Mrema (Director)', 'phone' => '255712345006', 'role' => 'director'],
-            ['email' => 'km@wdf.go.tz', 'name' => 'Prof. Neema Kapinga (KM)', 'phone' => '255712345007', 'role' => 'km'],
-            ['email' => 'chief@wdf.go.tz', 'name' => 'James Mdoe (Chief)', 'phone' => '255712345008', 'role' => 'chief'],
-            ['email' => 'accountant1@wdf.go.tz', 'name' => 'Sarah Ngowi (Accountant)', 'phone' => '255712345009', 'role' => 'accountant'],
-            ['email' => 'accountant2@wdf.go.tz', 'name' => 'David Mushi (Accountant)', 'phone' => '255712345010', 'role' => 'accountant'],
+            ['email' => 'admin@wdf.go.tz', 'check' => '1000000001', 'first' => 'System', 'middle' => null, 'last' => 'Administrator', 'phone' => '255700000000', 'role' => 'super_admin'],
+            ['email' => 'ward.cdo@wdf.go.tz', 'check' => '1000000002', 'first' => 'Grace', 'middle' => null, 'last' => 'Mwangi', 'phone' => '255712345001', 'role' => 'cdo_ward', 'zone' => 'ward'],
+            ['email' => 'council.cdo@wdf.go.tz', 'check' => '1000000003', 'first' => 'John', 'middle' => null, 'last' => 'Massawe', 'phone' => '255712345002', 'role' => 'cdo_council', 'zone' => 'council'],
+            ['email' => 'region.cdo@wdf.go.tz', 'check' => '1000000004', 'first' => 'Mary', 'middle' => null, 'last' => 'Lyimo', 'phone' => '255712345003', 'role' => 'cdo_region', 'zone' => 'region'],
+            ['email' => 'ministry@wdf.go.tz', 'check' => '1000000005', 'first' => 'Amina', 'middle' => null, 'last' => 'Hassan', 'phone' => '255712345004', 'role' => 'cdo_ministry'],
+            ['email' => 'assdir@wdf.go.tz', 'check' => '1000000006', 'first' => 'Peter', 'middle' => null, 'last' => 'Kileo', 'phone' => '255712345005', 'role' => 'assistant_director'],
+            ['email' => 'director@wdf.go.tz', 'check' => '1000000007', 'first' => 'Elizabeth', 'middle' => null, 'last' => 'Mrema', 'phone' => '255712345006', 'role' => 'director'],
+            ['email' => 'km@wdf.go.tz', 'check' => '1000000008', 'first' => 'Neema', 'middle' => null, 'last' => 'Kapinga', 'phone' => '255712345007', 'role' => 'km'],
+            ['email' => 'chief@wdf.go.tz', 'check' => '1000000009', 'first' => 'James', 'middle' => null, 'last' => 'Mdoe', 'phone' => '255712345008', 'role' => 'chief'],
+            ['email' => 'accountant1@wdf.go.tz', 'check' => '1000000010', 'first' => 'Sarah', 'middle' => null, 'last' => 'Ngowi', 'phone' => '255712345009', 'role' => 'accountant'],
+            ['email' => 'accountant2@wdf.go.tz', 'check' => '1000000011', 'first' => 'David', 'middle' => null, 'last' => 'Mushi', 'phone' => '255712345010', 'role' => 'accountant'],
         ];
 
         $dodomaRegion = Region::where('name', 'Dodoma')->first();
@@ -37,7 +38,11 @@ class StaffUserSeeder extends Seeder
             $user = User::updateOrCreate(
                 ['email' => $data['email']],
                 [
-                    'name' => $data['name'],
+                    'check_number' => $data['check'],
+                    'first_name' => $data['first'],
+                    'middle_name' => $data['middle'],
+                    'last_name' => $data['last'],
+                    'name' => HasDisplayName::buildFullName($data['first'], $data['middle'], $data['last']),
                     'phone' => $data['phone'],
                     'password' => $password,
                     'is_active' => true,

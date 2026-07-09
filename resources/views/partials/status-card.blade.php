@@ -2,10 +2,11 @@
     $type = $type ?? 'success';
     $message = $message ?? '';
     $errors = $errors ?? [];
+    $autoDismiss = $autoDismiss ?? false;
     $class = trim(($class ?? '') . ' app-status-card app-status-card--' . $type);
     $role = $type === 'success' ? 'status' : 'alert';
 @endphp
-<div class="{{ $class }}" role="{{ $role }}">
+<div class="{{ $class }}" role="{{ $role }}" @if($autoDismiss) data-auto-dismiss @endif>
     <div class="app-status-card-accent" aria-hidden="true"></div>
     <div class="app-status-card-body">
         <div class="app-status-card-icon" aria-hidden="true">

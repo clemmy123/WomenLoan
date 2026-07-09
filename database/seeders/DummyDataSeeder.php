@@ -204,13 +204,13 @@ class DummyDataSeeder extends Seeder
             ['track' => 'WL000007', 'step' => 6, 'status' => 'in_review', 'acceptance' => 'accepted', 'requested' => 9000000, 'proposed' => 8500000, 'disbursed' => 0, 'applicant' => 11, 'history' => [
                 ['step' => 5, 'action' => 'forwarded_to_director', 'user' => 'ass_dir', 'comments' => 'Recommended for director review.'],
             ]],
-            // Step 7 — KM
+            // Step 7 — Permanent Secretary
             ['track' => 'WL000008', 'step' => 7, 'status' => 'in_review', 'acceptance' => 'accepted', 'requested' => 10000000, 'proposed' => 9500000, 'disbursed' => 0, 'applicant' => 12, 'history' => [
-                ['step' => 6, 'action' => 'forwarded_to_km', 'user' => 'director', 'comments' => 'Director endorsed. Forward to KM.'],
+                ['step' => 6, 'action' => 'forwarded_to_km', 'user' => 'director', 'comments' => 'Director endorsed. Forward to Permanent Secretary.'],
             ]],
             // Step 8 — chief assigns accountant
             ['track' => 'WL000009', 'step' => 8, 'status' => 'approved', 'acceptance' => 'accepted', 'requested' => 5500000, 'proposed' => 5000000, 'disbursed' => 0, 'applicant' => 13, 'approved_by' => 'Prof. Neema Kapinga', 'history' => [
-                ['step' => 7, 'action' => 'approved', 'user' => 'km', 'comments' => 'Final approval granted by KM.'],
+                ['step' => 7, 'action' => 'approved', 'user' => 'km', 'comments' => 'Final approval granted by Permanent Secretary.'],
             ]],
             // Step 9 — ready for disbursement
             ['track' => 'WL000010', 'step' => 9, 'status' => 'ready_for_disbursement', 'acceptance' => 'accepted', 'requested' => 4000000, 'proposed' => 3800000, 'disbursed' => 0, 'applicant' => 14, 'officer' => 'accountant', 'history' => [

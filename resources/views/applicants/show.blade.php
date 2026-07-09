@@ -31,7 +31,12 @@
                     @include('partials.detail-field', ['label' => __('applicants.middle_name'), 'value' => $applicant->middle_name])
                     @include('partials.detail-field', ['label' => __('applicants.last_name'), 'value' => $applicant->last_name])
                     @include('partials.detail-field', ['label' => __('applicants.nin'), 'value' => $applicant->nin, 'mono' => true])
-                    @include('partials.detail-field', ['label' => __('applicants.dob'), 'value' => $applicant->dob?->translatedFormat('M d, Y')])
+                    @include('partials.detail-field', [
+                        'label' => __('applicants.dob'),
+                        'value' => $applicant->dob
+                            ? $applicant->dob->translatedFormat('M d, Y').' ('.__('applicants.age_years', ['age' => $applicant->age() ?? '—']).')'
+                            : null,
+                    ])
                     @include('partials.detail-field', ['label' => __('applicants.phone_number'), 'value' => $applicant->phone])
                     @include('partials.detail-field', ['label' => __('applicants.email'), 'value' => $applicant->email])
                 </div>
@@ -60,48 +65,6 @@
                     @include('partials.detail-field', ['label' => __('applicants.po_box'), 'value' => $applicant->po_box])
                 </div>
             </section>
-        </div>
-    </div>
-
-    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <div class="app-card app-card-padded space-y-4">
-            <h3 class="text-sm font-bold tracking-wide uppercase text-indigo-600 border-b border-slate-100 dark:border-white/10 pb-2">{{ __('applicants.linked_groups') }}</h3>
-
-            <ul class="divide-y divide-slate-100 dark:divide-white/10">
-                @forelse($applicant->groups as $group)
-                    <li class="py-3 flex items-center justify-between text-sm">
-                        <span class="font-semibold text-slate-900 dark:text-white">{{ $group->name }}</span>
-                        <form action="{{ route('applicants.detach-group', [$applicant, $group]) }}" method="POST" onsubmit="return confirm(@json(__('applicants.unlink_confirm')));">
-                            @csrf
-                            @method('DELETE')
-                            <button type="submit" class="app-btn app-btn-link-danger app-btn-sm">{{ __('applicants.remove') }}</button>
-                        </form>
-                    </li>
-                @empty
-                    <li class="py-4 text-center text-xs text-slate-400">{{ __('applicants.no_groups_linked') }}</li>
-                @endforelse
-            </ul>
-        </div>
-
-        <div class="app-card app-card-padded space-y-4">
-            <h3 class="text-sm font-bold tracking-wide uppercase text-indigo-600 border-b border-slate-100 dark:border-white/10 pb-2">{{ __('applicants.link_group') }}</h3>
-
-            <form action="{{ route('applicants.attach-group', $applicant) }}" method="POST" class="space-y-4">
-                @csrf
-                <div>
-                    {{-- <label for="group_id" class="detail-field-label">{{ __('applicants.select_group') }}</label>
-                    <select name="group_id" id="group_id" required class="app-select">
-                        <option value="">{{ __('applicants.select_group') }}</option>
-                        @foreach($groups as $loanGroup)
-                            <option value="{{ $loanGroup->hashid }}" @selected(old('group_id') === $loanGroup->hashid)>{{ $loanGroup->name }}</option>
-                        @endforeach
-                    </select> --}}
-                    @error('group_id') <p class="mt-1 text-xs text-red-600">{{ $message }}</p> @enderror
-                </div>
-                <button type="submit" class="app-btn app-btn-primary app-btn-block w-full">
-                    {{ __('applicants.link_group_button') }}
-                </button>
-            </form>
         </div>
     </div>
 </div>

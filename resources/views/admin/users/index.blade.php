@@ -14,6 +14,7 @@
     <table class="app-table">
         <thead>
             <tr>
+                <th>{{ __('admin.check_number') }}</th>
                 <th>{{ __('common.name') }}</th>
                 <th>{{ __('common.email') }}</th>
                 <th>{{ __('common.roles') }}</th>
@@ -24,6 +25,7 @@
         <tbody>
             @forelse($users as $user)
             <tr>
+                <td class="font-mono text-xs text-slate-600">{{ $user->check_number ?: '—' }}</td>
                 <td class="font-medium">{{ $user->name }}</td>
                 <td class="text-slate-600">{{ $user->email }}</td>
                 <td>
@@ -44,7 +46,7 @@
                 </td>
             </tr>
             @empty
-            <tr><td colspan="5" class="app-table-empty">{{ __('admin.no_users') }}</td></tr>
+            <tr><td colspan="6" class="app-table-empty">{{ __('admin.no_users') }}</td></tr>
             @endforelse
         </tbody>
     </table>

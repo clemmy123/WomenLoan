@@ -6,20 +6,42 @@ use App\Models\Loan;
 use App\Models\Scopes\ApplicantAccess;
 use App\Models\Scopes\ApprovalLevelScope;
 use App\Models\User;
+use App\Services\Concerns\FiltersLoanLists;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Database\Eloquent\Collection;
 
 class LoanQueryService
 {
-    public function paginatedIndex(int $perPage = 15): LengthAwarePaginator
-    {
-        return Loan::query()
+    use FiltersLoanLists;
+
+    public function paginatedIndex(
+        ?string $search = null,
+        ?string $sort = null,
+        ?string $status = null,
+        int $perPage = 15,
+    ): LengthAwarePaginator {
+        $sort = $this->normalizeListSort($sort);
+        $status = $this->normalizeListStatus($status);
+
+        $query = Loan::query()
             ->select([
-                'id', 'loan_track_id', 'loan_type', 'requested_amount',
-                'status', 'current_step', 'user_id', 'created_at',
+                'id', 'loan_track_id', 'loan_type', 'loan_group_id', 'applicant_id',
+                'requested_amount', 'status', 'current_step', 'user_id', 'created_at',
             ])
-            ->latest()
-            ->paginate($perPage);
+            ->with([
+                'applicant:id,full_name,first_name,last_name',
+                'group:id,name',
+                'businessDetails:loan_id,ward_id,council_id,business_name',
+                'businessDetails.ward:id,name',
+            ]);
+
+        $this->applyListSearch($query, $search);
+        $this->applyListStatus($query, $status);
+        $this->applyListSort($query, $sort);
+
+        return $query
+            ->paginate($perPage)
+            ->withQueryString();
     }
 
     public function paginatedForReports(int $perPage = 15): LengthAwarePaginator
@@ -55,6 +77,7 @@ class LoanQueryService
             'officer',
             'group',
             'group.members',
+            'group.applicants' => fn ($query) => $query->withoutGlobalScope(ApplicantAccess::class),
         ]);
     }
 

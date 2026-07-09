@@ -79,35 +79,56 @@
                             <p class="text-sm text-slate-500 dark:text-zinc-400">{{ __('groups.reg_number') }}: {{ $userGroup->registration_number }}</p>
                         @endif
                     </div>
-                    <div class="overflow-x-auto">
-                        <table class="app-table">
-                            <thead>
-                                <tr>
-                                    <th>{{ __('applicants.first_name') }}</th>
-                                    <th>{{ __('applicants.middle_name') }}</th>
-                                    <th>{{ __('applicants.last_name') }}</th>
-                                    <th>{{ __('applicants.nin') }}</th>
-                                    <th>{{ __('applicants.dob') }}</th>
-                                    <th>{{ __('applicants.sex') }}</th>
-                                    <th>{{ __('common.phone') }}</th>
-                                    <th>{{ __('common.email') }}</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                @foreach($userGroup->members as $member)
-                                <tr>
-                                    <td>{{ $member->first_name }}@if($member->is_group_leader) <span class="text-xs text-indigo-600">({{ __('groups.group_leader') }})</span>@endif</td>
-                                    <td>{{ $member->middle_name ?: '—' }}</td>
-                                    <td>{{ $member->last_name }}</td>
-                                    <td class="font-mono text-sm">{{ $member->nin }}</td>
-                                    <td>{{ $member->dob?->translatedFormat('d M Y') ?? '—' }}</td>
-                                    <td>{{ $member->sex ?? '—' }}</td>
-                                    <td>{{ $member->phone }}</td>
-                                    <td>{{ $member->email ?? '—' }}</td>
-                                </tr>
-                                @endforeach
-                            </tbody>
-                        </table>
+                    <div x-data="{ membersOpen: false }" class="rounded-xl border border-slate-200 dark:border-white/10 overflow-hidden">
+                        <button
+                            type="button"
+                            class="collapsible-toggle"
+                            @click="membersOpen = !membersOpen"
+                            :aria-expanded="membersOpen"
+                        >
+                            <div class="text-left">
+                                <p class="font-semibold text-slate-900 dark:text-white">{{ __('groups.group_members') }}</p>
+                                <p class="text-sm text-slate-500 dark:text-zinc-400 mt-0.5">{{ __('groups.members_count', ['count' => $userGroup->members->count()]) }}</p>
+                            </div>
+                            <span class="collapsible-toggle__action">
+                                <span x-text="membersOpen ? @js(__('groups.hide_members_list')) : @js(__('groups.show_members_list', ['count' => $userGroup->members->count()]))"></span>
+                                <svg class="collapsible-chevron" :class="{ 'is-open': membersOpen }" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                                    <path fill-rule="evenodd" d="M5.23 7.21a.75.75 0 011.06.02L10 11.168l3.71-3.94a.75.75 0 111.08 1.04l-4.25 4.5a.75.75 0 01-1.08 0l-4.25-4.5a.75.75 0 01.02-1.06z" clip-rule="evenodd"/>
+                                </svg>
+                            </span>
+                        </button>
+                        <div x-show="membersOpen" x-cloak class="collapsible-panel">
+                            <div class="overflow-x-auto">
+                                <table class="app-table">
+                                    <thead>
+                                        <tr>
+                                            <th>{{ __('applicants.first_name') }}</th>
+                                            <th>{{ __('applicants.middle_name') }}</th>
+                                            <th>{{ __('applicants.last_name') }}</th>
+                                            <th>{{ __('applicants.nin') }}</th>
+                                            <th>{{ __('applicants.dob') }}</th>
+                                            <th>{{ __('applicants.sex') }}</th>
+                                            <th>{{ __('common.phone') }}</th>
+                                            <th>{{ __('common.email') }}</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        @foreach($userGroup->members as $member)
+                                        <tr>
+                                            <td>{{ $member->first_name }}@if($member->is_group_leader) <span class="text-xs text-indigo-600">({{ __('groups.group_leader') }})</span>@endif</td>
+                                            <td>{{ $member->middle_name ?: '—' }}</td>
+                                            <td>{{ $member->last_name }}</td>
+                                            <td class="font-mono text-sm">{{ $member->nin }}</td>
+                                            <td>{{ $member->dob?->translatedFormat('d M Y') ?? '—' }}</td>
+                                            <td>{{ $member->sex ?? '—' }}</td>
+                                            <td>{{ $member->phone }}</td>
+                                            <td>{{ $member->email ?? '—' }}</td>
+                                        </tr>
+                                        @endforeach
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
                     </div>
                 @elseif($canSetupGroup ?? false)
                     <div class="rounded-xl bg-amber-50 dark:bg-amber-500/10 border border-amber-200 dark:border-amber-500/20 p-4 mt-4 text-sm text-amber-900 dark:text-amber-200">
@@ -517,7 +538,7 @@
         </div>
 
         <div class="app-card app-card-padded flex flex-wrap justify-between items-center gap-3">
-            <button type="button" x-show="step > 1" x-cloak @click="step--" class="app-btn app-btn-secondary">{{ __('common.back') }}</button>
+            <button type="button" x-show="step > 1" x-cloak @click="prevStep()" class="app-btn app-btn-secondary">{{ __('common.back') }}</button>
             <div class="flex flex-wrap gap-3 ml-auto">
                 @if(!($editing ?? false))
                 <button type="submit" name="form_action" value="save_draft" formnovalidate @click="prepareDraftSubmit()" x-show="step < totalSteps" x-cloak class="app-btn app-btn-ghost">{{ __('loans.save_draft') }}</button>

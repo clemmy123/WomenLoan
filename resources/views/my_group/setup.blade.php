@@ -91,12 +91,25 @@
             </div>
 
             <template x-for="(member, index) in members" :key="index">
-                <div class="border border-slate-200 dark:border-white/10 rounded-xl p-4 space-y-4">
-                    <div class="flex items-center justify-between gap-3">
-                        <p class="font-semibold text-slate-900 dark:text-white" x-text="memberLabel(index)"></p>
-                        <button type="button" @click="removeMember(index)" class="text-sm text-red-600 hover:text-red-500 font-medium" x-show="members.length > 1">{{ __('groups.remove_member') }}</button>
+                <div class="member-collapsible border border-slate-200 dark:border-white/10 rounded-xl overflow-hidden">
+                    <div class="member-collapsible__header">
+                        <button
+                            type="button"
+                            class="member-collapsible__toggle"
+                            @click="toggleMember(index)"
+                            :aria-expanded="isMemberOpen(index)"
+                        >
+                            <div class="min-w-0 text-left">
+                                <p class="font-semibold text-slate-900 dark:text-white" x-text="memberLabel(index)"></p>
+                                <p class="text-sm text-slate-500 dark:text-zinc-400 mt-0.5" x-show="memberSummary(index)" x-text="memberSummary(index)"></p>
+                            </div>
+                            <svg class="collapsible-chevron shrink-0" :class="{ 'is-open': isMemberOpen(index) }" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                                <path fill-rule="evenodd" d="M5.23 7.21a.75.75 0 011.06.02L10 11.168l3.71-3.94a.75.75 0 111.08 1.04l-4.25 4.5a.75.75 0 01-1.08 0l-4.25-4.5a.75.75 0 01.02-1.06z" clip-rule="evenodd"/>
+                            </svg>
+                        </button>
+                        <button type="button" @click="removeMember(index)" class="text-sm text-red-600 hover:text-red-500 font-medium shrink-0" x-show="members.length > 1">{{ __('groups.remove_member') }}</button>
                     </div>
-                    <div class="space-y-4">
+                    <div x-show="isMemberOpen(index)" x-cloak class="member-collapsible__body space-y-4">
                         <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
                             <div class="wizard-field">
                                 <label class="app-label">{{ __('applicants.first_name') }} @include('partials.required-mark')</label>
@@ -118,7 +131,8 @@
                         </div>
                         <div class="wizard-field">
                             <label class="app-label">{{ __('applicants.dob') }} @include('partials.required-mark')</label>
-                            <input type="date" class="app-input" x-model="member.dob" :name="'members[' + index + '][dob]'" required>
+                            <input type="date" class="app-input" x-model="member.dob" :name="'members[' + index + '][dob]'" :max="maxAdultDob" required>
+                            <p class="mt-1.5 text-xs font-medium text-indigo-600" x-show="memberAgeLabel(member.dob)" x-text="memberAgeLabel(member.dob)"></p>
                         </div>
                         <div class="wizard-field">
                             <label class="app-label">{{ __('applicants.sex') }} @include('partials.required-mark')</label>
@@ -177,17 +191,52 @@ document.addEventListener('alpine:init', () => {
 
     Alpine.data('groupSetup', () => ({
         members: payload.members,
+        openMembers: [],
+        maxAdultDob: @json(now()->subYears(18)->toDateString()),
+        ageTemplate: @json(__('applicants.age_years', ['age' => ':age'])),
 
         init() {
             if (!this.members.length) {
                 this.addMember();
+            } else {
+                this.openMembers = [0];
             }
 
             this.$nextTick(() => window.initIdentityInputs?.(this.$root));
         },
 
+        memberAgeLabel(dob) {
+            const age = window.calculateAge?.(dob);
+            if (age === null || age === undefined) {
+                return '';
+            }
+
+            return this.ageTemplate.replace(':age', String(age));
+        },
+
         memberLabel(index) {
             return payload.memberLabel.replace(':n', String(index + 1));
+        },
+
+        memberSummary(index) {
+            const member = this.members[index];
+            const name = [member.first_name, member.last_name].filter(Boolean).join(' ').trim();
+
+            return name;
+        },
+
+        isMemberOpen(index) {
+            return this.openMembers.includes(index);
+        },
+
+        toggleMember(index) {
+            if (this.isMemberOpen(index)) {
+                this.openMembers = this.openMembers.filter((item) => item !== index);
+
+                return;
+            }
+
+            this.openMembers.push(index);
         },
 
         addMember() {
@@ -204,11 +253,20 @@ document.addEventListener('alpine:init', () => {
                 leadership_role: '',
             });
 
+            this.openMembers = [this.members.length - 1];
+
             this.$nextTick(() => window.initIdentityInputs?.(this.$root));
         },
 
         removeMember(index) {
             this.members.splice(index, 1);
+            this.openMembers = this.openMembers
+                .filter((item) => item !== index)
+                .map((item) => (item > index ? item - 1 : item));
+
+            if (!this.openMembers.length && this.members.length) {
+                this.openMembers = [Math.min(index, this.members.length - 1)];
+            }
         },
     }));
 });

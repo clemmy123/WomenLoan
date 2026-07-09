@@ -89,6 +89,8 @@ class PermissionCatalog
             'view council loans' => __('nav.loan_applications'),
             'view region loans' => __('nav.loan_applications'),
             'view all loans' => __('nav.loan_applications'),
+            'assign accountant' => __('nav.assign_accountant_queue'),
+            'disburse loan' => __('nav.my_disbursements'),
             'manage loan groups' => __('nav.loan_groups'),
             'view repayments' => __('nav.repayments'),
             'view reports' => __('nav.reports'),
@@ -107,9 +109,29 @@ class PermissionCatalog
             ->all();
     }
 
-    public static function orderedPermissions()
+    /**
+     * Ensure every catalog permission exists in the database so Roles UI
+     * can show each one as its own checkbox.
+     *
+     * @return list<string>
+     */
+    public static function syncToDatabase(): array
     {
         $names = self::allPermissionNames();
+
+        foreach ($names as $name) {
+            Permission::firstOrCreate([
+                'name' => $name,
+                'guard_name' => 'web',
+            ]);
+        }
+
+        return $names;
+    }
+
+    public static function orderedPermissions()
+    {
+        $names = self::syncToDatabase();
 
         return Permission::query()
             ->whereIn('name', $names)

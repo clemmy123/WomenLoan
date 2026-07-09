@@ -24,6 +24,7 @@
             'type' => 'success',
             'message' => session('success'),
             'class' => 'print:hidden',
+            'autoDismiss' => true,
         ])
     @endif
 

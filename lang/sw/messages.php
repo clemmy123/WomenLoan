@@ -13,7 +13,7 @@ return [
     'workflow_action_success' => 'Hatua imekamilika.',
     'cannot_delete_self' => 'Huwezi kufuta akaunti yako mwenyewe.',
     'cannot_edit_super_admin' => 'Jukumu la super admin haliwezi kubadilishwa.',
-    'application_submitted' => 'Ombi limewasilishwa kwa CDO Ward. Huwezi kulihariri tena.',
+    'application_submitted' => 'Ombi limewasilishwa. Litaendelea kwenye hatua inayofuata ya ukaguzi. Huwezi kulihariri tena.',
     'application_updated' => 'Ombi limesasishwa.',
     'application_not_editable' => 'Ombi hili haliwezi kuhaririwa tena kwa sababu uchakataji umeanza.',
     'already_has_application' => 'Unaweza kuwasilisha ombi la mkopo mara moja tu (binafsi au kundi).',

@@ -27,7 +27,11 @@ class NavPermissions
             'viewStaffLoans' => $user->can('view ward loans')
                 || $user->can('view council loans')
                 || $user->can('view region loans')
-                || $user->can('view all loans'),
+                || $user->can('view all loans')
+                || $user->can('assign accountant')
+                || $user->can('disburse loan'),
+            'isChief' => $user->hasRole('chief'),
+            'isAccountant' => $user->hasRole('accountant'),
             'manageGroups' => $user->can('manage loan groups'),
             'viewRepayments' => $user->can('view repayments'),
             'viewReports' => $user->can('view reports'),

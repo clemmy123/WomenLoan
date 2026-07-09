@@ -7,6 +7,7 @@ document.addEventListener('alpine:init', () => {
         selectedCouncil: config.selectedCouncil ?? '',
         selectedWard: config.selectedWard ?? '',
         selectedStreet: config.selectedStreet ?? '',
+        filtersOpen: Boolean(config.filtersOpen),
         geoApi: config.geoApi ?? {},
         districts: [],
         councils: [],

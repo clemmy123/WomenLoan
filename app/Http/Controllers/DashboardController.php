@@ -9,14 +9,28 @@ class DashboardController extends Controller
 {
     public function __construct(private DashboardStatsService $stats) {}
 
-    public function index()
+    public function index(\Illuminate\Http\Request $request)
     {
         $user = Auth::user();
         $stats = $this->stats->forUser();
-        $recentLoans = $this->stats->recentLoans(5);
+        $recentFilter = $this->stats->normalizeRecentFilter($request->query('recent'));
+        $recentSearch = trim((string) $request->query('search', ''));
+        $recentSort = $this->stats->normalizeRecentSort($request->query('sort'));
+        $recentLoans = $this->stats->paginatedRecentLoans($recentFilter, $recentSearch, $recentSort);
+        $recentSortOptions = $this->stats->recentSortOptions();
         $monthly = $this->stats->monthlyApplications();
         $pipeline = $this->stats->stepBreakdown();
 
-        return view('dashboard', compact('user', 'stats', 'recentLoans', 'monthly', 'pipeline'));
+        return view('dashboard', compact(
+            'user',
+            'stats',
+            'recentLoans',
+            'recentFilter',
+            'recentSearch',
+            'recentSort',
+            'recentSortOptions',
+            'monthly',
+            'pipeline',
+        ));
     }
 }

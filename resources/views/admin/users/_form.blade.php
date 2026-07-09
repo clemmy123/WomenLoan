@@ -1,35 +1,83 @@
-@php $user = $user ?? null; $userRoles = $userRoles ?? []; @endphp
+@php
+    use App\Models\Concerns\HasDisplayName;
+
+    $user = $user ?? null;
+    $userRoles = $userRoles ?? [];
+    $nameParts = HasDisplayName::splitFullName((string) old('name', $user?->name ?? ''));
+    $firstName = old('first_name', $user?->first_name ?? $nameParts['first_name']);
+    $middleName = old('middle_name', $user?->middle_name ?? $nameParts['middle_name']);
+    $lastName = old('last_name', $user?->last_name ?? $nameParts['last_name']);
+@endphp
 
 <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
     <div class="app-card app-card-padded space-y-4">
         <h3 class="font-bold text-slate-900">{{ __('admin.account_details') }}</h3>
+
         <div>
-            <label class="app-label">{{ __('admin.full_name') }} @include('partials.required-mark')</label>
-            <input type="text" name="name" value="{{ old('name', $user?->name) }}" required class="app-input">
+            <label class="app-label" for="check_number">{{ __('admin.check_number') }} @include('partials.required-mark')</label>
+            <input
+                type="text"
+                name="check_number"
+                id="check_number"
+                value="{{ old('check_number', $user?->check_number) }}"
+                required
+                inputmode="numeric"
+                pattern="[0-9]{1,10}"
+                maxlength="10"
+                class="app-input"
+                placeholder="{{ __('admin.check_number_placeholder') }}"
+                oninput="this.value = this.value.replace(/\D/g, '').slice(0, 10)"
+            >
+            @error('check_number') <p class="mt-1.5 text-xs font-medium text-red-600">{{ $message }}</p> @enderror
         </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            <div>
+                <label class="app-label" for="first_name">{{ __('applicants.first_name') }} @include('partials.required-mark')</label>
+                <input type="text" name="first_name" id="first_name" value="{{ $firstName }}" required class="app-input">
+                @error('first_name') <p class="mt-1.5 text-xs font-medium text-red-600">{{ $message }}</p> @enderror
+            </div>
+            <div>
+                <label class="app-label" for="middle_name">{{ __('applicants.middle_name') }}</label>
+                <input type="text" name="middle_name" id="middle_name" value="{{ $middleName }}" class="app-input">
+                @error('middle_name') <p class="mt-1.5 text-xs font-medium text-red-600">{{ $message }}</p> @enderror
+            </div>
+            <div>
+                <label class="app-label" for="last_name">{{ __('applicants.last_name') }} @include('partials.required-mark')</label>
+                <input type="text" name="last_name" id="last_name" value="{{ $lastName }}" required class="app-input">
+                @error('last_name') <p class="mt-1.5 text-xs font-medium text-red-600">{{ $message }}</p> @enderror
+            </div>
+        </div>
+
         <div>
-            <label class="app-label">{{ __('common.email') }} @include('partials.required-mark')</label>
-            <input type="email" name="email" value="{{ old('email', $user?->email) }}" required class="app-input">
+            <label class="app-label" for="email">{{ __('common.email') }} @include('partials.required-mark')</label>
+            <input type="email" name="email" id="email" value="{{ old('email', $user?->email) }}" required class="app-input">
+            @error('email') <p class="mt-1.5 text-xs font-medium text-red-600">{{ $message }}</p> @enderror
         </div>
+
         <div>
-            <label class="app-label">{{ __('common.phone') }}</label>
-            <input type="text" name="phone" value="{{ old('phone', $user?->phone) }}" class="app-input">
+            <label class="app-label" for="phone_local">{{ __('common.phone') }} @include('partials.required-mark')</label>
+            @include('partials.inputs.phone-input', [
+                'name' => 'phone',
+                'id' => 'phone_local',
+                'value' => old('phone', $user?->phone),
+                'required' => true,
+            ])
+            @error('phone') <p class="mt-1.5 text-xs font-medium text-red-600">{{ $message }}</p> @enderror
         </div>
+
         <div>
-            <label class="app-label">{{ __('common.password') }} {{ $user ? __('common.password_keep_blank') : '' }} @unless($user) @include('partials.required-mark') @endunless</label>
-            <input type="password" name="password" {{ $user ? '' : 'required' }} class="app-input">
+            <label class="app-label" for="admin_password">{{ __('common.password') }} {{ $user ? __('common.password_keep_blank') : '' }} @unless($user) @include('partials.required-mark') @endunless</label>
+            <input type="password" name="password" id="admin_password" {{ $user ? '' : 'required' }} class="app-input" autocomplete="new-password">
+            @include('partials.password-requirements', ['targetId' => 'admin_password', 'variant' => 'app'])
+            @error('password') <p class="mt-1.5 text-xs font-medium text-red-600">{{ $message }}</p> @enderror
         </div>
-        @if($user)
+
         <div>
-            <label class="app-label">{{ __('common.confirm_password') }} @unless($user) @include('partials.required-mark') @endunless</label>
-            <input type="password" name="password_confirmation" class="app-input">
+            <label class="app-label" for="password_confirmation">{{ __('common.confirm_password') }} @unless($user) @include('partials.required-mark') @endunless</label>
+            <input type="password" name="password_confirmation" id="password_confirmation" {{ $user ? '' : 'required' }} class="app-input" autocomplete="new-password">
         </div>
-        @else
-        <div>
-            <label class="app-label">{{ __('common.confirm_password') }} @unless($user) @include('partials.required-mark') @endunless</label>
-            <input type="password" name="password_confirmation" required class="app-input">
-        </div>
-        @endif
+
         <label class="flex items-center gap-2 text-sm text-slate-700">
             <input type="checkbox" name="is_active" value="1" {{ old('is_active', $user?->is_active ?? true) ? 'checked' : '' }} class="rounded border-slate-300 text-indigo-600">
             {{ __('admin.active_account') }}

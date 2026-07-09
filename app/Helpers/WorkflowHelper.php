@@ -14,7 +14,9 @@ if (! function_exists('loan_has_workflow_actions')) {
 
         $step = $loan->current_step;
 
-        return ($user->can('forward to ministry') && $step === 1 && $loan->status === 'received')
+        $cdoScope = app(\App\Services\CdoLoanScopeService::class);
+
+        return ($user->can('forward to ministry') && $step === 1 && $loan->status === 'received' && $cdoScope->canActOnLoan($user, $loan))
             || ($user->can('propose loan amount') && $step === 2)
             || ($user->hasRole('applicant') && $step === 3)
             || ($user->can('forward to assistant director') && $step === 4)

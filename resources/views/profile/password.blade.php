@@ -24,6 +24,7 @@
             <div>
                 <label class="app-label" for="password">{{ __('profile.new_password') }} @include('partials.required-mark')</label>
                 <input type="password" name="password" id="password" required autocomplete="new-password" class="app-input">
+                @include('partials.password-requirements', ['targetId' => 'password', 'variant' => 'app'])
             </div>
 
             <div>

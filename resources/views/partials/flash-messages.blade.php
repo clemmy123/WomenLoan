@@ -1,5 +1,5 @@
 @if(session('success') || session('error') || $errors->any())
-<div class="app-flash-stack">
+<div class="app-flash-stack" data-auto-dismiss>
     @if(session('success'))
         @include('partials.status-card', [
             'type' => 'success',

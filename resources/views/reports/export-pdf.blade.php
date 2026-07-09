@@ -21,6 +21,8 @@
 <body>
     <h1>{{ __('reports.title') }}</h1>
     <p class="meta">
+        {{ __('reports.fiscal_year') }}: {{ $filters['fiscal_year'] ?? '—' }}
+        &nbsp;|&nbsp;
         {{ __('reports.date_from') }}: {{ $filters['date_from'] }}
         &nbsp;|&nbsp;
         {{ __('reports.date_to') }}: {{ $filters['date_to'] }}

@@ -1,7 +1,7 @@
 <?php
 
 return [
-    'portal_name' => 'Women Loans Portal',
+    'portal_name' => 'Women Loans System',
     'help' => 'Msaada',
     'user_guide' => 'Mwongozo wa Mtumiaji',
     'sign_in' => 'Ingia',

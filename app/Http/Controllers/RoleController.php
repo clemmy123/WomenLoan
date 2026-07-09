@@ -25,6 +25,7 @@ class RoleController extends Controller
 
     public function create()
     {
+        PermissionCatalog::syncToDatabase();
         $permissionGroups = PermissionCatalog::groups();
         $menuHints = PermissionCatalog::menuHints();
 
@@ -41,6 +42,7 @@ class RoleController extends Controller
 
     public function edit(Role $role)
     {
+        PermissionCatalog::syncToDatabase();
         $permissionGroups = PermissionCatalog::groups();
         $menuHints = PermissionCatalog::menuHints();
         $rolePermissions = $role->permissions->pluck('name')->toArray();

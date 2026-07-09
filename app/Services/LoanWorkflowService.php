@@ -119,6 +119,10 @@ class LoanWorkflowService
     {
         $disbursedAmount = (float) $loan->proposed_amount;
 
+        if ($disbursedAmount <= 0) {
+            throw new \InvalidArgumentException('Cannot disburse a loan without a proposed amount.');
+        }
+
         $this->logAction($loan, $user, 9, 'disbursed', $data);
         $loan->update([
             'disbursed_amount' => $disbursedAmount,
@@ -127,8 +131,16 @@ class LoanWorkflowService
             'current_step' => 9,
         ]);
 
-        if (! $loan->loanPayments()->exists()) {
-            $this->repayments->createForLoan($loan->fresh(), $disbursedAmount);
+        $fresh = $loan->fresh();
+        $existingPayment = $fresh->loanPayments()->orderBy('id')->first();
+
+        if ($existingPayment) {
+            $existingPayment->update([
+                'amount_disbursed' => $disbursedAmount,
+                'amount_requested' => $fresh->requested_amount,
+            ]);
+        } else {
+            $this->repayments->createForLoan($fresh, $disbursedAmount);
         }
     }
 

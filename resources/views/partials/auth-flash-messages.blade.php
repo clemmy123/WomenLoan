@@ -3,6 +3,7 @@
         'type' => 'success',
         'message' => session('status'),
         'class' => 'app-status-card--auth',
+        'autoDismiss' => true,
     ])
 @endif
 
@@ -12,5 +13,6 @@
         'message' => $errors->count() === 1 ? $errors->first() : __('common.errors_below'),
         'errors' => $errors->count() > 1 ? $errors->all() : [],
         'class' => 'app-status-card--auth',
+        'autoDismiss' => true,
     ])
 @endif

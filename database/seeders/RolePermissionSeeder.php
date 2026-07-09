@@ -2,9 +2,10 @@
 
 namespace Database\Seeders;
 
+use App\Models\Role;
+use App\Support\PermissionCatalog;
 use Illuminate\Database\Seeder;
 use Spatie\Permission\Models\Permission;
-use App\Models\Role;
 use Spatie\Permission\PermissionRegistrar;
 
 class RolePermissionSeeder extends Seeder
@@ -13,49 +14,12 @@ class RolePermissionSeeder extends Seeder
     {
         app()[PermissionRegistrar::class]->forgetCachedPermissions();
 
-        $permissions = [
-            'view dashboard',
-            'manage applicants',
-            'register applicant',
-            'view own profile',
-            'create loan application',
-            'view own loans',
-            'edit pending loan',
-            'accept loan amount',
-            'view loan by track id',
-            'view ward loans',
-            'receive application',
-            'review ward application',
-            'forward to ministry',
-            'view council loans',
-            'view region loans',
-            'view all loans',
-            'review ministry application',
-            'propose loan amount',
-            'send to applicant confirmation',
-            'forward to assistant director',
-            'comment as assistant director',
-            'forward to director',
-            'comment as director',
-            'forward to km',
-            'approve as km',
-            'assign accountant',
-            'disburse loan',
-            'rollback workflow step',
-            'record repayment',
-            'view repayments',
-            'view reports',
-            'manage users',
-            'manage roles',
-            'manage loan groups',
-        ];
-
-        foreach ($permissions as $permission) {
-            Permission::firstOrCreate(['name' => $permission, 'guard_name' => 'web']);
-        }
+        // One source of truth: every catalog permission is created individually
+        // so Roles & Permissions UI can tick them one by one.
+        PermissionCatalog::syncToDatabase();
 
         $rolePermissions = [
-            'super_admin' => Permission::all()->pluck('name')->toArray(),
+            'super_admin' => PermissionCatalog::allPermissionNames(),
             'admin' => [
                 'view dashboard', 'manage applicants', 'register applicant', 'view all loans',
                 'view repayments', 'record repayment', 'view reports', 'rollback workflow step',
@@ -95,11 +59,11 @@ class RolePermissionSeeder extends Seeder
                 'view loan by track id', 'view repayments', 'view reports',
             ],
             'chief' => [
-                'view dashboard', 'view all loans', 'assign accountant',
+                'view dashboard', 'assign accountant',
                 'view loan by track id', 'view repayments', 'view reports',
             ],
             'accountant' => [
-                'view dashboard', 'view all loans', 'disburse loan', 'record repayment',
+                'view dashboard', 'disburse loan', 'record repayment',
                 'view loan by track id', 'view repayments', 'view reports',
             ],
         ];

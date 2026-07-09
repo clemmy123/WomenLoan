@@ -18,6 +18,7 @@ class ReportsExport implements FromArray, WithTitle
     {
         $lines = [
             [__('reports.title')],
+            [__('reports.fiscal_year'), $this->filters['fiscal_year'] ?? ''],
             [__('reports.date_from'), $this->filters['date_from']],
             [__('reports.date_to'), $this->filters['date_to']],
             [__('reports.total_records'), $this->summary['count']],

@@ -26,7 +26,19 @@
         'destroy_url' => route('my-group.members.destroy', $m),
     ])->values();
 @endphp
-<div class="page page-medium" x-data="{ modal: null, member: null }">
+<div
+    class="page page-medium"
+    x-data="{
+        modal: null,
+        member: null,
+        ageTemplate: @js(__('applicants.age_years', ['age' => ':age'])),
+        ageLabel(dob) {
+            const age = window.calculateAge?.(dob);
+            if (age === null || age === undefined) return '';
+            return this.ageTemplate.replace(':age', String(age));
+        },
+    }"
+>
     <div class="page-header">
         <div>
             <h1 class="page-title">{{ $group->name }}</h1>
@@ -238,7 +250,15 @@
                             </div>
                             <div class="wizard-field">
                                 <label class="app-label">{{ __('applicants.dob') }} @include('partials.required-mark')</label>
-                                <input type="date" name="dob" class="app-input" :value="member?.dob" required>
+                                <input
+                                    type="date"
+                                    name="dob"
+                                    class="app-input"
+                                    x-model="member.dob"
+                                    max="{{ now()->subYears(18)->toDateString() }}"
+                                    required
+                                >
+                                <p class="mt-1.5 text-xs font-medium text-indigo-600" x-show="ageLabel(member?.dob)" x-text="ageLabel(member?.dob)"></p>
                             </div>
                             <div class="wizard-field">
                                 <label class="app-label">{{ __('applicants.sex') }} @include('partials.required-mark')</label>
@@ -284,7 +304,15 @@
                                 </div>
                                 <div class="wizard-field">
                                     <label class="app-label">{{ __('applicants.dob') }} @include('partials.required-mark')</label>
-                                    <input type="date" name="dob" class="app-input" :value="member.dob" required>
+                                    <input
+                                        type="date"
+                                        name="dob"
+                                        class="app-input"
+                                        x-model="member.dob"
+                                        max="{{ now()->subYears(18)->toDateString() }}"
+                                        required
+                                    >
+                                    <p class="mt-1.5 text-xs font-medium text-indigo-600" x-show="ageLabel(member?.dob)" x-text="ageLabel(member?.dob)"></p>
                                 </div>
                                 <div class="wizard-field">
                                     <label class="app-label">{{ __('applicants.sex') }} @include('partials.required-mark')</label>
@@ -343,6 +371,7 @@
         @include('partials.modal', [
             'name' => 'add',
             'title' => __('groups.add_member'),
+            'wide' => true,
             'body' => view('my_group._member_form', ['action' => route('my-group.members.store')])->render(),
         ])
     @endif

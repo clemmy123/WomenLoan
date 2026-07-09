@@ -280,4 +280,66 @@ class GroupSetupTest extends TestCase
             ->assertDontSee(__('groups.setup_title'), false)
             ->assertSee(__('loans.continue_as_individual'), false);
     }
+
+    public function test_group_setup_allows_optional_group_phone_matching_leader(): void
+    {
+        $user = $this->applicantWithoutLoan();
+        $applicant = $this->prepareGroupApplicant($user);
+
+        $this->actingAs($user)->post(route('my-group.store'), [
+            'name' => 'Shared Phone Group',
+            'phone' => '0712200002',
+            'email' => $applicant->email,
+            'leader' => ['sex' => 'Female'],
+            'members' => [
+                [
+                    'first_name' => 'Asha',
+                    'last_name' => 'Hassan',
+                    'nin' => '19920101123450000011',
+                    'dob' => '1992-01-01',
+                    'phone' => '0755111222',
+                    'sex' => 'Female',
+                    'marital_status' => 'Single',
+                ],
+            ],
+        ])
+            ->assertRedirect(route('my-group.show'))
+            ->assertSessionHas('success');
+
+        $group = LoanGroup::where('name', 'Shared Phone Group')->firstOrFail();
+        $this->assertSame($applicant->phone, $group->phone);
+    }
+
+    public function test_group_setup_uses_leader_dob_from_profile_not_submitted_value(): void
+    {
+        $user = $this->applicantWithoutLoan();
+        $applicant = $this->prepareGroupApplicant($user);
+
+        $this->actingAs($user)->post(route('my-group.store'), [
+            'name' => 'Leader Dob Group',
+            'leader' => [
+                'dob' => now()->subYears(10)->format('Y-m-d'),
+                'sex' => 'Female',
+            ],
+            'members' => [
+                [
+                    'first_name' => 'Asha',
+                    'last_name' => 'Hassan',
+                    'nin' => '19920101123450000011',
+                    'dob' => '1992-01-01',
+                    'phone' => '0755111222',
+                    'sex' => 'Female',
+                    'marital_status' => 'Single',
+                ],
+            ],
+        ])
+            ->assertRedirect(route('my-group.show'))
+            ->assertSessionHas('success');
+
+        $leader = LoanGroupMember::where('is_group_leader', true)
+            ->whereHas('group', fn ($query) => $query->where('name', 'Leader Dob Group'))
+            ->firstOrFail();
+
+        $this->assertSame($applicant->dob->format('Y-m-d'), $leader->dob->format('Y-m-d'));
+    }
 }

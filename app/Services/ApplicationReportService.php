@@ -4,6 +4,8 @@ namespace App\Services;
 
 use App\Models\Loan;
 use App\Models\Scopes\ApprovalLevelScope;
+use App\Support\FiscalYear;
+use Carbon\Carbon;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Collection;
@@ -23,27 +25,54 @@ class ApplicationReportService
         'rejected',
     ];
 
+    public const PERIODS = [
+        'daily',
+        'weekly',
+        'monthly',
+        'quarterly',
+        'annually',
+    ];
+
     public function normalizeFilters(array $input): array
     {
-        $filters = [
-            'period' => $input['period'] ?? 'monthly',
-            'date_from' => $input['date_from'] ?? null,
-            'date_to' => $input['date_to'] ?? null,
-            'status' => $input['status'] ?? null,
-        ];
+        $fiscalYear = FiscalYear::normalize($input['fiscal_year'] ?? null);
+        [$fyFrom, $fyTo] = FiscalYear::dateRange($fiscalYear);
 
-        if (! $filters['date_from'] || ! $filters['date_to']) {
-            $filters['date_to'] = now()->toDateString();
-            $filters['date_from'] = match ($filters['period']) {
-                'daily' => now()->subDays(30)->toDateString(),
-                'weekly' => now()->subWeeks(12)->toDateString(),
-                'quarterly' => now()->subQuarters(8)->toDateString(),
-                'annually' => now()->subYears(5)->toDateString(),
-                default => now()->subMonths(12)->toDateString(),
-            };
+        $period = $input['period'] ?? 'annually';
+        if (! in_array($period, self::PERIODS, true)) {
+            $period = 'annually';
         }
 
-        return $filters;
+        [$from, $to] = FiscalYear::periodRangeWithin($period, $fyFrom, $fyTo);
+
+        $customFrom = $input['date_from'] ?? null;
+        $customTo = $input['date_to'] ?? null;
+        $useCustomDates = filled($customFrom)
+            && filled($customTo)
+            && ($input['use_custom_dates'] ?? null) === '1';
+
+        if ($useCustomDates) {
+            [$from, $to] = FiscalYear::clampDates((string) $customFrom, (string) $customTo, $fyFrom, $fyTo);
+        }
+
+        return [
+            'fiscal_year' => $fiscalYear,
+            'period' => $period,
+            'date_from' => $from,
+            'date_to' => $to,
+            'status' => $input['status'] ?? null,
+            'use_custom_dates' => $useCustomDates ? '1' : null,
+        ];
+    }
+
+    public function fiscalYearOptions(?Carbon $asOf = null): array
+    {
+        return FiscalYear::options($asOf);
+    }
+
+    public function currentFiscalYearKey(?Carbon $asOf = null): string
+    {
+        return FiscalYear::currentKey($asOf);
     }
 
     public function paginatedRows(array $filters, int $perPage = 25): LengthAwarePaginator
@@ -100,12 +129,8 @@ class ApplicationReportService
 
         if ($user?->hasRole('applicant')) {
             $query->where('user_id', $user->id);
-        } elseif ($user?->hasRole('cdo_ward')) {
-            $query->whereHas('businessDetails', fn (Builder $q) => $q->where('ward_id', $user->zoneable_id));
-        } elseif ($user?->hasRole('cdo_council')) {
-            $query->whereHas('businessDetails', fn (Builder $q) => $q->where('council_id', $user->zoneable_id));
-        } elseif ($user?->hasRole('cdo_region')) {
-            $query->whereHas('businessDetails', fn (Builder $q) => $q->where('region_id', $user->zoneable_id));
+        } elseif ($user?->hasRole(['cdo_ward', 'cdo_council', 'cdo_region'])) {
+            app(CdoLoanScopeService::class)->applyBusinessDetailsScope($query, $user);
         }
 
         return $query;
@@ -113,14 +138,16 @@ class ApplicationReportService
 
     protected function mapRow(Loan $loan): array
     {
-        $payment = $loan->loanPayments->first();
+        $payment = $loan->relationLoaded('loanPayments')
+            ? $loan->loanPayments->sortBy('id')->first()
+            : $loan->loanPayments()->orderBy('id')->first();
 
         return [
             'track_id' => $loan->loan_track_id,
             'hashid' => $loan->hashid,
             'full_name' => $loan->applicant?->full_name ?? __('common.na'),
             'amount_requested' => (float) ($loan->requested_amount ?? 0),
-            'amount_disbursed' => (float) ($payment?->amount_disbursed ?? $loan->disbursed_amount ?? 0),
+            'amount_disbursed' => max(0.0, (float) ($loan->disbursed_amount ?? 0)),
             'bank_name' => $loan->bank_name ?? __('common.na'),
             'outstanding' => (float) ($payment?->outstanding_debt ?? 0),
             'amount_repaid' => (float) ($payment?->amount_paid ?? 0),

@@ -74,7 +74,7 @@ return Application::configure(basePath: dirname(__DIR__))
                 }
 
                 if ($column !== null) {
-                    $attribute = __("validation.attributes.{$column}", str_replace('_', ' ', $column));
+                    $attribute = validation_attribute_label($column);
                     $fieldMessage = __('validation.required', ['attribute' => $attribute]);
                     $step = LoanWizardFieldMap::stepForField($column);
                     $url = url()->previous();

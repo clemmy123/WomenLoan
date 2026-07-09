@@ -27,4 +27,11 @@ return [
     'send_reset_link' => 'Tuma kiungo cha kuweka upya',
     'reset_password' => 'Weka upya nenosiri',
     'reset_password_subtitle' => 'Chagua nenosiri jipya la akaunti yako.',
+    'password_requirements_title' => 'Nenosiri lazima liwe na:',
+    'password_rule_length' => 'Angalau herufi 8',
+    'password_rule_letter' => 'Angalau herufi moja',
+    'password_rule_uppercase' => 'Angalau herufi kubwa moja (A–Z)',
+    'password_rule_number' => 'Angalau nambari moja (0–9)',
+    'password_rule_symbol' => 'Angalau alama maalum moja (!@#$…)',
+    'password_strong' => 'Nenosiri imara',
 ];

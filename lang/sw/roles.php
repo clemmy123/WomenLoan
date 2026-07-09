@@ -10,7 +10,7 @@ return [
     'cdo_ministry' => 'Afisa Wizara',
     'assistant_director' => 'Mkurugenzi Msaidizi',
     'director' => 'Mkurugenzi',
-    'km' => 'Usimamizi wa Maarifa',
+    'km' => 'Katibu Mkuu',
     'chief' => 'Mkuu wa Idara',
     'accountant' => 'Mhasibu',
 ];

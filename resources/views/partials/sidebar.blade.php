@@ -1,17 +1,10 @@
-<nav class="space-y-1">
+<nav class="flex-1 min-h-0 space-y-1">
     @if($nav['viewDashboard'])
     <p class="text-[10px] font-bold text-slate-400 dark:text-zinc-500 uppercase tracking-widest px-4 mb-2">{{ __('nav.dashboard') }}</p>
     <a href="{{ route('dashboard') }}" class="sidebar-link flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-medium transition-all {{ request()->routeIs('dashboard') ? 'sidebar-active' : '' }}">
         <svg class="h-4 w-4 opacity-70 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l9-9 9 9M5 10v10a1 1 0 001 1h3m10-11v10a1 1 0 01-1 1h-3"/></svg>
         {{ __('nav.dashboard') }}
     </a>
-    @endif
-
-    @if($nav['trackLoan'])
-        <p class="text-[10px] font-bold text-slate-400 dark:text-zinc-500 uppercase tracking-widest px-4 mb-2 mt-4">{{ __('nav.track_loan') }}</p>
-        <form action="{{ route('loans.track') }}" method="GET" class="px-4 mb-2">
-            <input type="text" name="track_id" placeholder="WL000001" class="w-full text-xs rounded-lg border border-slate-200 dark:border-white/10 bg-white dark:bg-dm-850 text-slate-900 dark:text-zinc-200 px-3 py-2 focus:ring-2 focus:ring-indigo-500">
-        </form>
     @endif
 
     @if($nav['isApplicant'])
@@ -37,10 +30,22 @@
     @endif
 
     @if($nav['viewStaffLoans'])
-        <p class="text-[10px] font-bold text-slate-400 dark:text-zinc-500 uppercase tracking-widest px-4 mb-2 mt-4">{{ __('nav.pending_review') }}</p>
+        @php
+            $staffLoansSection = match (true) {
+                $nav['isChief'] ?? false => __('nav.approved_for_assignment'),
+                $nav['isAccountant'] ?? false => __('nav.disbursements'),
+                default => __('nav.pending_review'),
+            };
+            $staffLoansLabel = match (true) {
+                $nav['isChief'] ?? false => __('nav.assign_accountant_queue'),
+                $nav['isAccountant'] ?? false => __('nav.my_disbursements'),
+                default => __('nav.loan_applications'),
+            };
+        @endphp
+        <p class="text-[10px] font-bold text-slate-400 dark:text-zinc-500 uppercase tracking-widest px-4 mb-2 mt-4">{{ $staffLoansSection }}</p>
         <a href="{{ route('loan-applications.index') }}" class="sidebar-link flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-medium transition-all {{ request()->routeIs('loan-applications.*') ? 'sidebar-active' : '' }}">
             <svg class="h-4 w-4 opacity-70 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
-            {{ __('nav.loan_applications') }}
+            {{ $staffLoansLabel }}
         </a>
     @endif
 
@@ -61,15 +66,75 @@
     @endif
 
     @if($nav['viewReports'])
+        @php
+            $reportsMenuOpen = request()->routeIs('reports.index', 'reports.export.*', 'reports.applications.*');
+            $reportsOverviewActive = request()->routeIs('reports.index', 'reports.export.*');
+            $applicationReportsActive = request()->routeIs('reports.applications.*');
+            $analyticalReportsActive = request()->routeIs('reports.analytical.*');
+        @endphp
         <p class="text-[10px] font-bold text-slate-400 dark:text-zinc-500 uppercase tracking-widest px-4 mb-2 mt-4">{{ __('nav.reports_section') }}</p>
-        <a href="{{ route('reports.index') }}" class="sidebar-link flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-medium transition-all {{ request()->routeIs('reports.index', 'reports.export.*') ? 'sidebar-active' : '' }}">
-            <svg class="h-4 w-4 opacity-70 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>
-            {{ __('nav.reports') }}
-        </a>
-        <a href="{{ route('reports.applications.index') }}" class="sidebar-link flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-medium transition-all {{ request()->routeIs('reports.applications.*') ? 'sidebar-active' : '' }}">
-            <svg class="h-4 w-4 opacity-70 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
-            {{ __('nav.application_reports') }}
-        </a>
+        <div class="space-y-1" x-data="{ open: {{ $reportsMenuOpen ? 'true' : 'false' }} }">
+            <button
+                type="button"
+                @click="open = !open"
+                class="sidebar-link sidebar-menu-toggle flex w-full items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-medium transition-all {{ $reportsMenuOpen ? 'sidebar-menu-open' : '' }}"
+                :aria-expanded="open.toString()"
+            >
+                <svg class="h-4 w-4 opacity-70 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>
+                <span class="flex-1 text-left">{{ __('nav.reports') }}</span>
+                <svg class="h-4 w-4 opacity-60 shrink-0 transition-transform duration-200" :class="open ? 'rotate-180' : ''" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+            </button>
+
+            <div
+                x-show="open"
+                x-cloak
+                x-transition:enter="transition ease-out duration-150"
+                x-transition:enter-start="opacity-0 -translate-y-1"
+                x-transition:enter-end="opacity-100 translate-y-0"
+                x-transition:leave="transition ease-in duration-100"
+                x-transition:leave-start="opacity-100 translate-y-0"
+                x-transition:leave-end="opacity-0 -translate-y-1"
+                class="sidebar-submenu space-y-1 pl-4 ml-4 border-l border-slate-200/80 dark:border-white/10"
+            >
+                <a href="{{ route('reports.index') }}" class="sidebar-link flex items-center gap-3 px-3 py-2 rounded-xl text-sm font-medium transition-all {{ $reportsOverviewActive ? 'sidebar-active' : '' }}">
+                    <svg class="h-4 w-4 opacity-70 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zm10 0a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zm10 0a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"/></svg>
+                    {{ __('nav.reports_overview') }}
+                </a>
+                <a href="{{ route('reports.applications.index') }}" class="sidebar-link flex items-center gap-3 px-3 py-2 rounded-xl text-sm font-medium transition-all {{ $applicationReportsActive ? 'sidebar-active' : '' }}">
+                    <svg class="h-4 w-4 opacity-70 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+                    {{ __('nav.application_reports') }}
+                </a>
+            </div>
+        </div>
+        <div class="space-y-1" x-data="{ open: {{ $analyticalReportsActive ? 'true' : 'false' }} }">
+            <button
+                type="button"
+                @click="open = !open"
+                class="sidebar-link sidebar-menu-toggle flex w-full items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-medium transition-all {{ $analyticalReportsActive ? 'sidebar-menu-open' : '' }}"
+                :aria-expanded="open.toString()"
+            >
+                <svg class="h-4 w-4 opacity-70 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 3v18M6 13v8M16 8v13M21 5v16"/></svg>
+                <span class="flex-1 text-left">{{ __('nav.analytical_reports') }}</span>
+                <svg class="h-4 w-4 opacity-60 shrink-0 transition-transform duration-200" :class="open ? 'rotate-180' : ''" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+            </button>
+
+            <div
+                x-show="open"
+                x-cloak
+                x-transition:enter="transition ease-out duration-150"
+                x-transition:enter-start="opacity-0 -translate-y-1"
+                x-transition:enter-end="opacity-100 translate-y-0"
+                x-transition:leave="transition ease-in duration-100"
+                x-transition:leave-start="opacity-100 translate-y-0"
+                x-transition:leave-end="opacity-0 -translate-y-1"
+                class="sidebar-submenu space-y-1 pl-4 ml-4 border-l border-slate-200/80 dark:border-white/10"
+            >
+                <a href="{{ route('reports.analytical.overview') }}" class="sidebar-link flex items-center gap-3 px-3 py-2 rounded-xl text-sm font-medium transition-all {{ request()->routeIs('reports.analytical.overview', 'reports.analytical.export.*') ? 'sidebar-active' : '' }}">
+                    <svg class="h-4 w-4 opacity-70 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zm10 0a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zm10 0a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"/></svg>
+                    {{ __('nav.analytical_overview') }}
+                </a>
+            </div>
+        </div>
     @endif
 
     @if($nav['manageUsers'] || $nav['manageRoles'])

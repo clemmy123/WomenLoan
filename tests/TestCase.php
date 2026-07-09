@@ -35,4 +35,9 @@ abstract class TestCase extends BaseTestCase
     {
         return \App\Models\User::where('email', 'applicant2@wdf.go.tz')->firstOrFail();
     }
+
+    protected function strongPassword(): string
+    {
+        return 'SecurePass123!';
+    }
 }

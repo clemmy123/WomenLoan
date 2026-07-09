@@ -82,11 +82,15 @@ document.addEventListener('DOMContentLoaded', async () => {
             options: doughnutOpts,
         },
         {
-            id: 'widowedChart',
+            id: 'maritalStatusChart',
             type: 'doughnut',
             data: {
-                labels: payload.widowed.labels,
-                datasets: [{ data: payload.widowed.data, backgroundColor: ['#f472b6', '#e2e8f0'], borderWidth: 0 }],
+                labels: payload.marital_status.labels,
+                datasets: [{
+                    data: payload.marital_status.data,
+                    backgroundColor: ['#6366f1', '#10b981', '#f59e0b', '#f472b6'],
+                    borderWidth: 0,
+                }],
             },
             options: doughnutOpts,
         },

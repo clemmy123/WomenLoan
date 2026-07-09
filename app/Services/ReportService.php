@@ -2,8 +2,11 @@
 
 namespace App\Services;
 
+use App\Models\Applicant;
 use App\Models\Loan;
 use App\Models\Scopes\ApprovalLevelScope;
+use App\Support\AgeCalculator;
+use App\Support\FiscalYear;
 use Carbon\Carbon;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Database\Eloquent\Builder;
@@ -12,38 +15,75 @@ use Illuminate\Support\Facades\Auth;
 
 class ReportService
 {
+    public const PERIODS = [
+        'daily',
+        'weekly',
+        'monthly',
+        'quarterly',
+        'annually',
+    ];
+
     public function __construct(private GeoHierarchyService $geo) {}
 
     public function normalizeFilters(array $input): array
     {
-        $filters = [
-            'period' => $input['period'] ?? 'monthly',
-            'date_from' => $input['date_from'] ?? null,
-            'date_to' => $input['date_to'] ?? null,
+        $loanType = $input['loan_type'] ?? null;
+        if (! in_array($loanType, Applicant::LOAN_TYPES, true)) {
+            $loanType = null;
+        }
+
+        $maritalStatus = $input['marital_status'] ?? null;
+        if (! in_array($maritalStatus, Applicant::MARITAL_STATUSES, true)) {
+            $maritalStatus = null;
+        }
+
+        $fiscalYear = FiscalYear::normalize($input['fiscal_year'] ?? null);
+        [$fyFrom, $fyTo] = FiscalYear::dateRange($fiscalYear);
+
+        $period = $input['period'] ?? 'annually';
+        if (! in_array($period, self::PERIODS, true)) {
+            $period = 'annually';
+        }
+
+        [$from, $to] = FiscalYear::periodRangeWithin($period, $fyFrom, $fyTo);
+
+        $customFrom = $input['date_from'] ?? null;
+        $customTo = $input['date_to'] ?? null;
+        $useCustomDates = filled($customFrom)
+            && filled($customTo)
+            && ($input['use_custom_dates'] ?? null) === '1';
+
+        if ($useCustomDates) {
+            [$from, $to] = FiscalYear::clampDates((string) $customFrom, (string) $customTo, $fyFrom, $fyTo);
+        }
+
+        return [
+            'fiscal_year' => $fiscalYear,
+            'period' => $period,
+            'date_from' => $from,
+            'date_to' => $to,
             'region_id' => $input['region_id'] ?? null,
             'district_id' => $input['district_id'] ?? null,
             'council_id' => $input['council_id'] ?? null,
             'ward_id' => $input['ward_id'] ?? null,
             'street_id' => $input['street_id'] ?? null,
-            'loan_type' => $input['loan_type'] ?? null,
+            'loan_type' => $loanType,
             'age_min' => $input['age_min'] ?? null,
             'age_max' => $input['age_max'] ?? null,
             'has_disability' => $input['has_disability'] ?? null,
-            'is_widowed' => $input['is_widowed'] ?? null,
+            'marital_status' => $maritalStatus,
+            'use_custom_dates' => $useCustomDates ? '1' : null,
         ];
+    }
 
-        if (! $filters['date_from'] || ! $filters['date_to']) {
-            $filters['date_to'] = now()->toDateString();
-            $filters['date_from'] = match ($filters['period']) {
-                'daily' => now()->subDays(30)->toDateString(),
-                'weekly' => now()->subWeeks(12)->toDateString(),
-                'quarterly' => now()->subQuarters(8)->toDateString(),
-                'annually' => now()->subYears(5)->toDateString(),
-                default => now()->subMonths(12)->toDateString(),
-            };
-        }
+    public function fiscalYearOptions(?Carbon $asOf = null): array
+    {
+        return FiscalYear::options($asOf);
+    }
 
-        return $filters;
+    public function currentFiscalYearKey(?Carbon $asOf = null): string
+    {
+        return FiscalYear::currentKey($asOf);
     }
 
     public function paginatedRows(array $filters, int $perPage = 25): LengthAwarePaginator
@@ -81,10 +121,10 @@ class ReportService
         $outstanding = 0.0;
 
         foreach ($loans as $loan) {
-            $payment = $loan->loanPayments->first();
-            $disbursed += (float) ($payment?->amount_disbursed ?? $loan->disbursed_amount ?? 0);
+            $payment = $this->paymentLedger($loan);
+            $disbursed += $this->actualDisbursedAmount($loan);
             $paid += (float) ($payment?->amount_paid ?? 0);
-            $outstanding += (float) ($payment?->outstanding_debt ?? $loan->disbursed_amount ?? 0);
+            $outstanding += $this->outstandingAmount($loan, $payment);
         }
 
         return [
@@ -100,7 +140,7 @@ class ReportService
         $loans = $this->baseQuery($filters)
             ->with([
                 'loanPayments',
-                'applicant:id,dob',
+                'applicant:id,dob,marital_status',
                 'businessDetails.region:id,name',
             ])
             ->get();
@@ -113,7 +153,7 @@ class ReportService
             'by_region' => $this->amountByRegion($loans),
             'loan_type' => $this->loanTypeBreakdown($loans),
             'disability' => $this->booleanBreakdown($loans, 'has_disability', __('reports.with_disability'), __('reports.without_disability')),
-            'widowed' => $this->booleanBreakdown($loans, 'is_widowed', __('reports.widowed'), __('reports.not_widowed')),
+            'marital_status' => $this->maritalStatusBreakdown($loans),
             'age_buckets' => $this->ageBuckets($loans),
         ];
     }
@@ -122,17 +162,15 @@ class ReportService
     {
         $query = $this->scopedLoanQuery()
             ->with([
-                'applicant:id,full_name,first_name,last_name,dob',
+                'applicant:id,full_name,first_name,last_name,dob,marital_status',
                 'businessDetails.region:id,name',
                 'businessDetails.district:id,name',
                 'businessDetails.ward:id,name',
                 'businessDetails.street:id,name',
                 'loanPayments',
             ])
-            ->where(function (Builder $q) {
-                $q->where('status', 'disbursed')
-                    ->orWhere('disbursed_amount', '>', 0);
-            });
+            ->where('status', 'disbursed')
+            ->where('disbursed_amount', '>', 0);
 
         if ($filters['date_from']) {
             $query->where(function (Builder $q) use ($filters) {
@@ -162,38 +200,55 @@ class ReportService
             $query->where('has_disability', (bool) (int) $filters['has_disability']);
         }
 
-        if ($filters['is_widowed'] !== null && $filters['is_widowed'] !== '') {
-            $query->where('is_widowed', (bool) (int) $filters['is_widowed']);
-        }
-
-        if ($filters['age_min'] || $filters['age_max']) {
+        if ($filters['marital_status'] || $filters['age_min'] || $filters['age_max']) {
             $query->whereHas('applicant', function (Builder $q) use ($filters) {
+                if ($filters['marital_status']) {
+                    $q->where('marital_status', $filters['marital_status']);
+                }
+
+                // Birthday-aware bounds: age grows only on/after the birthday date.
                 if ($filters['age_min']) {
-                    $q->whereDate('dob', '<=', now()->subYears((int) $filters['age_min']));
+                    $q->whereDate(
+                        'dob',
+                        '<=',
+                        AgeCalculator::latestDobForMinAge((int) $filters['age_min'])->toDateString()
+                    );
                 }
                 if ($filters['age_max']) {
-                    $q->whereDate('dob', '>', now()->subYears((int) $filters['age_max'] + 1));
+                    $q->whereDate(
+                        'dob',
+                        '>',
+                        AgeCalculator::earliestExclusiveDobForMaxAge((int) $filters['age_max'])->toDateString()
+                    );
                 }
             });
         }
 
-        $query->whereHas('businessDetails', function (Builder $q) use ($filters) {
-            if ($filters['region_id']) {
-                $q->where('region_id', $filters['region_id']);
-            }
-            if ($filters['district_id']) {
-                $q->where('district_id', $filters['district_id']);
-            }
-            if ($filters['council_id']) {
-                $q->where('council_id', $filters['council_id']);
-            }
-            if ($filters['ward_id']) {
-                $q->where('ward_id', $filters['ward_id']);
-            }
-            if ($filters['street_id']) {
-                $q->where('street_id', $filters['street_id']);
-            }
-        });
+        $hasGeoFilter = $filters['region_id']
+            || $filters['district_id']
+            || $filters['council_id']
+            || $filters['ward_id']
+            || $filters['street_id'];
+
+        if ($hasGeoFilter) {
+            $query->whereHas('businessDetails', function (Builder $q) use ($filters) {
+                if ($filters['region_id']) {
+                    $q->where('region_id', $filters['region_id']);
+                }
+                if ($filters['district_id']) {
+                    $q->where('district_id', $filters['district_id']);
+                }
+                if ($filters['council_id']) {
+                    $q->where('council_id', $filters['council_id']);
+                }
+                if ($filters['ward_id']) {
+                    $q->where('ward_id', $filters['ward_id']);
+                }
+                if ($filters['street_id']) {
+                    $q->where('street_id', $filters['street_id']);
+                }
+            });
+        }
 
         return $query;
     }
@@ -205,12 +260,8 @@ class ReportService
 
         if ($user?->hasRole('applicant')) {
             $query->where('user_id', $user->id);
-        } elseif ($user?->hasRole('cdo_ward')) {
-            $query->whereHas('businessDetails', fn (Builder $q) => $q->where('ward_id', $user->zoneable_id));
-        } elseif ($user?->hasRole('cdo_council')) {
-            $query->whereHas('businessDetails', fn (Builder $q) => $q->where('council_id', $user->zoneable_id));
-        } elseif ($user?->hasRole('cdo_region')) {
-            $query->whereHas('businessDetails', fn (Builder $q) => $q->where('region_id', $user->zoneable_id));
+        } elseif ($user?->hasRole(['cdo_ward', 'cdo_council', 'cdo_region'])) {
+            app(CdoLoanScopeService::class)->applyBusinessDetailsScope($query, $user);
         }
 
         return $query;
@@ -218,7 +269,7 @@ class ReportService
 
     protected function mapRow(Loan $loan): array
     {
-        $payment = $loan->loanPayments->first();
+        $payment = $this->paymentLedger($loan);
 
         return [
             'track_id' => $loan->loan_track_id,
@@ -226,11 +277,37 @@ class ReportService
             'name' => $loan->applicant?->full_name ?? __('common.na'),
             'region' => $loan->businessDetails?->region?->name,
             'loan_type' => loan_type_label($loan->loan_type),
-            'disbursed' => (float) ($payment?->amount_disbursed ?? $loan->disbursed_amount ?? 0),
+            'disbursed' => $this->actualDisbursedAmount($loan),
             'paid' => (float) ($payment?->amount_paid ?? 0),
-            'outstanding' => (float) ($payment?->outstanding_debt ?? $loan->disbursed_amount ?? 0),
+            'outstanding' => $this->outstandingAmount($loan, $payment),
             'date' => ($loan->date_issued ?? $loan->updated_at)?->translatedFormat('d M Y'),
         ];
+    }
+
+    /**
+     * Canonical disbursed principal is loans.disbursed_amount (set at workflow disburse).
+     */
+    protected function actualDisbursedAmount(Loan $loan): float
+    {
+        return max(0.0, (float) ($loan->disbursed_amount ?? 0));
+    }
+
+    protected function paymentLedger(Loan $loan): ?\App\Models\LoanPayment
+    {
+        if ($loan->relationLoaded('loanPayments')) {
+            return $loan->loanPayments->sortBy('id')->first();
+        }
+
+        return $loan->loanPayments()->orderBy('id')->first();
+    }
+
+    protected function outstandingAmount(Loan $loan, ?\App\Models\LoanPayment $payment): float
+    {
+        if ($payment) {
+            return max(0.0, (float) ($payment->outstanding_debt ?? 0));
+        }
+
+        return $this->actualDisbursedAmount($loan);
     }
 
     protected function loanReferenceDate(Loan $loan): Carbon
@@ -245,8 +322,8 @@ class ReportService
         foreach ($loans as $loan) {
             $key = $this->periodKey($this->loanReferenceDate($loan), $period);
             $buckets[$key] ??= ['disbursed' => 0.0, 'paid' => 0.0];
-            $payment = $loan->loanPayments->first();
-            $buckets[$key]['disbursed'] += (float) ($payment?->amount_disbursed ?? $loan->disbursed_amount ?? 0);
+            $payment = $this->paymentLedger($loan);
+            $buckets[$key]['disbursed'] += $this->actualDisbursedAmount($loan);
             $buckets[$key]['paid'] += (float) ($payment?->amount_paid ?? 0);
         }
 
@@ -265,8 +342,8 @@ class ReportService
 
         foreach ($loans as $loan) {
             $region = $loan->businessDetails?->region?->name ?? __('reports.unknown_region');
-            $payment = $loan->loanPayments->first();
-            $totals[$region] = ($totals[$region] ?? 0) + (float) ($payment?->outstanding_debt ?? $loan->disbursed_amount ?? 0);
+            $payment = $this->paymentLedger($loan);
+            $totals[$region] = ($totals[$region] ?? 0) + $this->outstandingAmount($loan, $payment);
         }
 
         arsort($totals);
@@ -279,12 +356,30 @@ class ReportService
 
     protected function loanTypeBreakdown(Collection $loans): array
     {
-        $counts = $loans->groupBy('loan_type')->map->count();
+        $labels = [];
+        $data = [];
 
-        return [
-            'labels' => $counts->keys()->map(fn ($t) => loan_type_label($t))->values()->all(),
-            'data' => $counts->values()->map(fn ($v) => (int) $v)->all(),
-        ];
+        foreach (Applicant::LOAN_TYPES as $type) {
+            $labels[] = loan_type_label($type);
+            $data[] = $loans->where('loan_type', $type)->count();
+        }
+
+        return compact('labels', 'data');
+    }
+
+    protected function maritalStatusBreakdown(Collection $loans): array
+    {
+        $labels = [];
+        $data = [];
+
+        foreach (Applicant::MARITAL_STATUSES as $status) {
+            $labels[] = __('applicants.marital_statuses.'.$status);
+            $data[] = $loans->filter(
+                fn (Loan $loan) => ($loan->applicant?->marital_status ?? null) === $status
+            )->count();
+        }
+
+        return compact('labels', 'data');
     }
 
     protected function booleanBreakdown(Collection $loans, string $field, string $trueLabel, string $falseLabel): array
@@ -304,7 +399,7 @@ class ReportService
         $data = array_fill_keys($labels, 0);
 
         foreach ($loans as $loan) {
-            $age = $loan->applicant?->dob?->age;
+            $age = AgeCalculator::years($loan->applicant?->dob);
             if ($age === null) {
                 continue;
             }

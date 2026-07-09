@@ -25,8 +25,8 @@ class ApplicantProfilePrefillTest extends TestCase
             'last_name' => 'Doe',
             'email' => 'john.doe@example.com',
             'phone' => '0712345678',
-            'password' => 'password',
-            'password_confirmation' => 'password',
+            'password' => $this->strongPassword(),
+            'password_confirmation' => $this->strongPassword(),
         ]);
 
         $response->assertRedirect(route('dashboard'));

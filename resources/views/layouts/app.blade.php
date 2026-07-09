@@ -18,8 +18,8 @@
     <span class="app-shell-orb app-shell-orb--cyan"></span>
     <span class="app-shell-orb app-shell-orb--rose"></span>
 </div>
-<div class="app-shell min-h-full flex flex-col">
-    <nav class="app-header sticky top-0 z-40 w-full h-16 flex items-center">
+<div class="app-shell">
+    <nav class="app-header shrink-0 z-40 w-full h-16 flex items-center">
         <div class="mx-auto w-full px-4 sm:px-6 flex justify-between items-center">
             <div class="flex items-center gap-4">
                 <button @click="mobileSidebarOpen = true" class="md:hidden p-2 text-slate-500 dark:text-zinc-300 hover:bg-indigo-500/10 rounded-lg transition">
@@ -43,8 +43,8 @@
         </div>
     </nav>
 
-    <div class="flex flex-1 overflow-hidden min-h-0">
-        <aside class="app-sidebar hidden md:flex flex-col w-64 p-4 space-y-6 overflow-y-auto transition-colors">
+    <div class="app-shell-body">
+        <aside class="app-sidebar hidden md:flex">
             @include('partials.sidebar')
         </aside>
 
@@ -55,15 +55,15 @@
             </aside>
         </div>
 
-        <main class="flex-1 p-6 lg:p-10 overflow-y-auto app-main">
-            <div class="max-w-7xl mx-auto app-content-shell">
+        <main class="app-main">
+            <div class="max-w-7xl mx-auto app-content-shell p-6 lg:p-10">
                 @include('partials.flash-messages')
                 @yield('content')
             </div>
         </main>
     </div>
 
-    <footer class="app-footer">
+    <footer class="app-footer shrink-0">
         <p class="app-footer-text">{{ __('home.footer_copyright') }}</p>
     </footer>
 </div>

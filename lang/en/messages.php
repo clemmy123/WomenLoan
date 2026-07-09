@@ -13,7 +13,7 @@ return [
     'workflow_action_success' => 'Action completed successfully.',
     'cannot_delete_self' => 'You cannot delete your own account.',
     'cannot_edit_super_admin' => 'Super admin role cannot be modified.',
-    'application_submitted' => 'Application submitted to the Ward CDO. You can no longer edit it.',
+    'application_submitted' => 'Application submitted. It will proceed to the next review step. You can no longer edit it.',
     'application_updated' => 'Application updated successfully.',
     'application_not_editable' => 'This application can no longer be edited because processing has started.',
     'already_has_application' => 'You may only submit one loan application (individual or group).',

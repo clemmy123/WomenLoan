@@ -6,8 +6,24 @@
 <div class="page">
     <div class="page-header">
         <div>
-            <h1 class="page-title">{{ __('loans.title') }}</h1>
-            <p class="page-subtitle">{{ __('loans.apply_subtitle') }}</p>
+            <h1 class="page-title">
+                @if(auth()->user()?->hasRole('chief'))
+                    {{ __('nav.assign_accountant_queue') }}
+                @elseif(auth()->user()?->hasRole('accountant'))
+                    {{ __('nav.my_disbursements') }}
+                @else
+                    {{ __('loans.title') }}
+                @endif
+            </h1>
+            <p class="page-subtitle">
+                @if(auth()->user()?->hasRole('chief'))
+                    {{ __('loans.chief_queue_subtitle') }}
+                @elseif(auth()->user()?->hasRole('accountant'))
+                    {{ __('loans.accountant_queue_subtitle') }}
+                @else
+                    {{ __('loans.apply_subtitle') }}
+                @endif
+            </p>
         </div>
         @can('create loan application')
         <div class="page-actions flex flex-wrap gap-2">
@@ -31,7 +47,17 @@
         <div class="app-card-header">
             <h3 class="font-bold text-slate-900 dark:text-white">{{ __('loans.submitted') }}</h3>
         </div>
-        @if($loans->count())
+
+        @include('partials.loan-list-toolbar', [
+            'action' => route('loan-applications.index'),
+            'search' => $search ?? '',
+            'status' => $status ?? '',
+            'statusOptions' => $listStatusOptions ?? [],
+            'showClear' => ($search ?? '') !== '' || ($status ?? '') !== '',
+            'clearUrl' => route('loan-applications.index'),
+        ])
+
+        @if($loans->total())
         <div class="overflow-x-auto">
             <table class="app-table">
                 <thead>
@@ -40,6 +66,9 @@
                         <th>{{ __('common.type') }}</th>
                         <th>{{ __('dashboard.amount') }}</th>
                         <th>{{ __('dashboard.status') }}</th>
+                        @if(auth()->user()?->hasRole(['cdo_ward', 'cdo_council', 'cdo_region']))
+                            <th>{{ __('loans.business_ward') }}</th>
+                        @endif
                         <th>{{ __('common.submitted') }}</th>
                         <th class="w-28">{{ __('common.actions') }}</th>
                     </tr>
@@ -54,10 +83,14 @@
                             <td>{{ format_tzs($loan->requested_amount) }}</td>
                             <td>
                                 <div class="flex flex-wrap items-center gap-1">
-                                    @include('partials.badge', ['variant' => 'secondary', 'text' => __('common.step_n_of', ['step' => $loan->current_step, 'total' => 9])])
+                                    @include('partials.badge', ['variant' => 'secondary', 'text' => loan_workflow_step_label($loan->current_step)])
                                     @include('partials.loan-status-badge', ['status' => $loan->status])
+                                    @include('partials.cdo-loan-scope-badge', ['loan' => $loan])
                                 </div>
                             </td>
+                            @if(auth()->user()?->hasRole(['cdo_ward', 'cdo_council', 'cdo_region']))
+                                <td>{{ $loan->businessDetails?->ward?->name ?? '—' }}</td>
+                            @endif
                             <td>{{ $loan->created_at->translatedFormat('d M Y') }}</td>
                             <td>@include('partials.loan-row-actions', ['loan' => $loan])</td>
                         </tr>
@@ -67,7 +100,13 @@
         </div>
         <div class="app-card-footer">{{ $loans->links() }}</div>
         @else
-        <p class="app-table-empty">{{ __('loans.no_applications') }}</p>
+        <p class="app-table-empty">
+            @if(($search ?? '') !== '' || ($status ?? '') !== '')
+                {{ __('dashboard.no_search_results') }}
+            @else
+                {{ __('loans.no_applications') }}
+            @endif
+        </p>
         @endif
     </div>
 
