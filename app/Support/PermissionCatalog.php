@@ -65,7 +65,7 @@ class PermissionCatalog
             ],
             'reports' => [
                 'label' => __('permissions.groups.reports'),
-                'permissions' => ['view reports'],
+                'permissions' => ['view reports', 'view analytical reports'],
             ],
             'administration' => [
                 'label' => __('permissions.groups.administration'),
@@ -99,6 +99,7 @@ class PermissionCatalog
             'manage loan groups' => __('nav.loan_groups'),
             'view repayments' => __('nav.repayments'),
             'view reports' => __('nav.reports'),
+            'view analytical reports' => __('nav.analytical_reports'),
             'view administration dashboard' => __('nav.admin_dashboard'),
             'manage users' => __('nav.users'),
             'manage roles' => __('nav.roles'),

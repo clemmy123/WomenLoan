@@ -114,34 +114,34 @@ Route::middleware(['auth'])->group(function () {
         ->middleware('can:view reports')
         ->name('reports.applications.export.pdf');
     Route::get('/reports/analytical', [ReportController::class, 'analytical'])
-        ->middleware('can:view reports')
+        ->middleware('can:view analytical reports')
         ->name('reports.analytical.index');
     Route::get('/reports/analytical/overview', [ReportController::class, 'analyticalOverview'])
-        ->middleware('can:view reports')
+        ->middleware('can:view analytical reports')
         ->name('reports.analytical.overview');
     Route::get('/reports/analytical/outstanding', [ReportController::class, 'analyticalOutstanding'])
-        ->middleware('can:view reports')
+        ->middleware('can:view analytical reports')
         ->name('reports.analytical.outstanding');
     Route::get('/reports/analytical/overdue', [ReportController::class, 'analyticalOverdue'])
-        ->middleware('can:view reports')
+        ->middleware('can:view analytical reports')
         ->name('reports.analytical.overdue');
     Route::get('/reports/analytical/export/excel', [ReportController::class, 'exportAnalyticalExcel'])
-        ->middleware('can:view reports')
+        ->middleware('can:view analytical reports')
         ->name('reports.analytical.export.excel');
     Route::get('/reports/analytical/export/pdf', [ReportController::class, 'exportAnalyticalPdf'])
-        ->middleware('can:view reports')
+        ->middleware('can:view analytical reports')
         ->name('reports.analytical.export.pdf');
     Route::get('/reports/analytical/outstanding/export/excel', [ReportController::class, 'exportAnalyticalOutstandingExcel'])
-        ->middleware('can:view reports')
+        ->middleware('can:view analytical reports')
         ->name('reports.analytical.outstanding.export.excel');
     Route::get('/reports/analytical/outstanding/export/pdf', [ReportController::class, 'exportAnalyticalOutstandingPdf'])
-        ->middleware('can:view reports')
+        ->middleware('can:view analytical reports')
         ->name('reports.analytical.outstanding.export.pdf');
     Route::get('/reports/analytical/overdue/export/excel', [ReportController::class, 'exportAnalyticalOverdueExcel'])
-        ->middleware('can:view reports')
+        ->middleware('can:view analytical reports')
         ->name('reports.analytical.overdue.export.excel');
     Route::get('/reports/analytical/overdue/export/pdf', [ReportController::class, 'exportAnalyticalOverduePdf'])
-        ->middleware('can:view reports')
+        ->middleware('can:view analytical reports')
         ->name('reports.analytical.overdue.export.pdf');
     Route::get('/reports/export/excel', [ReportController::class, 'exportExcel'])
         ->middleware('can:view reports')

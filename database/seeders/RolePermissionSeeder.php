@@ -22,7 +22,7 @@ class RolePermissionSeeder extends Seeder
             'super_admin' => PermissionCatalog::allPermissionNames(),
             'admin' => [
                 'view dashboard', 'manage applicants', 'register applicant', 'view all loans',
-                'view repayments', 'view reports', 'rollback workflow step',
+                'view repayments', 'view reports', 'view analytical reports', 'rollback workflow step',
                 'view administration dashboard', 'manage users', 'manage roles', 'view audit logs',
                 'manage loan groups', 'view loan by track id',
             ],
@@ -33,38 +33,38 @@ class RolePermissionSeeder extends Seeder
             ],
             'cdo_ward' => [
                 'view dashboard', 'view ward loans', 'receive application', 'review ward application',
-                'forward to ministry', 'rollback workflow step', 'view loan by track id', 'view repayments', 'view reports',
+                'forward to ministry', 'rollback workflow step', 'view loan by track id', 'view repayments', 'view reports', 'view analytical reports',
             ],
             'cdo_council' => [
-                'view dashboard', 'view council loans', 'view loan by track id', 'view repayments', 'view reports',
+                'view dashboard', 'view council loans', 'view loan by track id', 'view repayments', 'view reports', 'view analytical reports',
             ],
             'cdo_region' => [
-                'view dashboard', 'view region loans', 'view loan by track id', 'view repayments', 'view reports',
+                'view dashboard', 'view region loans', 'view loan by track id', 'view repayments', 'view reports', 'view analytical reports',
             ],
             'cdo_ministry' => [
                 'view dashboard', 'view all loans', 'review ministry application', 'propose loan amount',
                 'send to applicant confirmation', 'forward to assistant director', 'rollback workflow step',
-                'view loan by track id', 'view repayments', 'view reports',
+                'view loan by track id', 'view repayments', 'view reports', 'view analytical reports',
             ],
             'assistant_director' => [
                 'view dashboard', 'view all loans', 'comment as assistant director', 'forward to director',
-                'rollback workflow step', 'view loan by track id', 'view repayments', 'view reports',
+                'rollback workflow step', 'view loan by track id', 'view repayments', 'view reports', 'view analytical reports',
             ],
             'director' => [
                 'view dashboard', 'view all loans', 'comment as director', 'forward to km',
-                'rollback workflow step', 'view loan by track id', 'view repayments', 'view reports',
+                'rollback workflow step', 'view loan by track id', 'view repayments', 'view reports', 'view analytical reports',
             ],
             'km' => [
                 'view dashboard', 'view all loans', 'approve as km', 'rollback workflow step',
-                'view loan by track id', 'view repayments', 'view reports',
+                'view loan by track id', 'view repayments', 'view reports', 'view analytical reports',
             ],
             'chief' => [
                 'view dashboard', 'assign accountant',
-                'view loan by track id', 'view repayments', 'view reports',
+                'view loan by track id', 'view repayments', 'view reports', 'view analytical reports',
             ],
             'accountant' => [
                 'view dashboard', 'disburse loan',
-                'view loan by track id', 'view repayments', 'view reports',
+                'view loan by track id', 'view repayments', 'view reports', 'view analytical reports',
             ],
         ];
 

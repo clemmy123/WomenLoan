@@ -43,6 +43,7 @@ return [
     'view repayments' => 'View repayments',
     'record repayment' => 'Record loan repayment',
     'view reports' => 'View reports',
+    'view analytical reports' => 'View analytical reports',
     'view administration dashboard' => 'View administration overview',
     'manage users' => 'Manage users',
     'manage roles' => 'Manage roles & permissions',

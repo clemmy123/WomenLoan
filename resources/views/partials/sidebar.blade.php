@@ -65,7 +65,7 @@
         </a>
     @endif
 
-    @if($nav['viewReports'])
+    @if($nav['viewReports'] || ($nav['viewAnalyticalReports'] ?? false))
         @php
             $reportsMenuOpen = request()->routeIs('reports.index', 'reports.export.*', 'reports.applications.*');
             $reportsOverviewActive = request()->routeIs('reports.index', 'reports.export.*');
@@ -73,6 +73,7 @@
             $analyticalReportsActive = request()->routeIs('reports.analytical.*');
         @endphp
         <p class="text-[10px] font-bold text-slate-400 dark:text-zinc-500 uppercase tracking-widest px-4 mb-2 mt-4">{{ __('nav.reports_section') }}</p>
+        @if($nav['viewReports'])
         <div class="space-y-1" x-data="{ open: {{ $reportsMenuOpen ? 'true' : 'false' }} }">
             <button
                 type="button"
@@ -106,6 +107,8 @@
                 </a>
             </div>
         </div>
+        @endif
+        @if($nav['viewAnalyticalReports'] ?? false)
         <div class="space-y-1" x-data="{ open: {{ $analyticalReportsActive ? 'true' : 'false' }} }">
             <button
                 type="button"
@@ -143,6 +146,7 @@
                 </a>
             </div>
         </div>
+        @endif
     @endif
 
     @if($nav['viewAdminDashboard'] || $nav['manageUsers'] || $nav['manageRoles'] || ($nav['viewAuditLogs'] ?? false))

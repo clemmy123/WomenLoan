@@ -52,14 +52,14 @@ class ReportController extends Controller
 
     public function analytical()
     {
-        $this->authorize('view reports');
+        $this->authorize('view analytical reports');
 
         return redirect()->route('reports.analytical.overview');
     }
 
     public function analyticalOverview(Request $request)
     {
-        $this->authorize('view reports');
+        $this->authorize('view analytical reports');
 
         $filters = $this->analyticalReports->normalizeFilters($request->all());
         $summary = $this->analyticalReports->summary($filters);
@@ -114,7 +114,7 @@ class ReportController extends Controller
 
     protected function analyticalDebtPage(Request $request, string $mode)
     {
-        $this->authorize('view reports');
+        $this->authorize('view analytical reports');
 
         $filters = $this->debtReports->normalizeFilters($request->all());
         $summary = $this->debtReports->summary($filters, $mode);
@@ -146,7 +146,7 @@ class ReportController extends Controller
 
     protected function exportAnalyticalDebtExcel(Request $request, string $mode): BinaryFileResponse
     {
-        $this->authorize('view reports');
+        $this->authorize('view analytical reports');
         $data = $this->analyticalDebtExportData($request, $mode);
 
         return Excel::download(
@@ -157,7 +157,7 @@ class ReportController extends Controller
 
     protected function exportAnalyticalDebtPdf(Request $request, string $mode)
     {
-        $this->authorize('view reports');
+        $this->authorize('view analytical reports');
         $data = $this->analyticalDebtExportData($request, $mode);
         $isOverdue = $mode === AnalyticalDebtReportService::MODE_OVERDUE;
 
@@ -184,7 +184,7 @@ class ReportController extends Controller
 
     public function exportAnalyticalExcel(Request $request): BinaryFileResponse
     {
-        $this->authorize('view reports');
+        $this->authorize('view analytical reports');
 
         $data = $this->analyticalExportData($request);
 
@@ -201,7 +201,7 @@ class ReportController extends Controller
 
     public function exportAnalyticalPdf(Request $request)
     {
-        $this->authorize('view reports');
+        $this->authorize('view analytical reports');
 
         $data = $this->analyticalExportData($request);
 

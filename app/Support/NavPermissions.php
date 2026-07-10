@@ -35,6 +35,7 @@ class NavPermissions
             'manageGroups' => $user->can('manage loan groups'),
             'viewRepayments' => $user->can('view repayments'),
             'viewReports' => $user->can('view reports'),
+            'viewAnalyticalReports' => $user->can('view analytical reports'),
             'manageUsers' => $user->can('manage users'),
             'manageRoles' => $user->can('manage roles'),
             'viewAuditLogs' => $user->can('view audit logs'),
