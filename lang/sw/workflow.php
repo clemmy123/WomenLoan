@@ -11,6 +11,8 @@ return [
     'committee_minutes' => 'Dakika za Kamati',
     'disburse_amount_label' => 'Kiasi cha kutoa',
     'disburse_amount_fixed' => 'Kiasi hiki kimefungwa kwa kiasi kilichoidhinishwa na hakiwezi kubadilishwa.',
+    'grace_period_months' => 'Kipindi cha neema (miezi)',
+    'grace_period_help' => 'Mwombaji ataanza malipo baada ya kipindi hiki. Chaguo-msingi ni miezi 3.',
     'submit_confirm_title' => 'Wasilisha?',
     'submit_confirm_message' => 'Una uhakika unataka kuwasilisha? Ombi litaendelea kwenye hatua inayofuata ya ukaguzi.',
     'submit_confirm_note' => 'Hatua hii haiwezi kubatilishwa.',

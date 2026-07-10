@@ -38,14 +38,11 @@ class ReportService
         }
 
         $fiscalYear = FiscalYear::normalize($input['fiscal_year'] ?? null);
-        [$fyFrom, $fyTo] = FiscalYear::dateRange($fiscalYear);
 
         $period = $input['period'] ?? 'annually';
         if (! in_array($period, self::PERIODS, true)) {
             $period = 'annually';
         }
-
-        [$from, $to] = FiscalYear::periodRangeWithin($period, $fyFrom, $fyTo);
 
         $customFrom = $input['date_from'] ?? null;
         $customTo = $input['date_to'] ?? null;
@@ -53,9 +50,13 @@ class ReportService
             && filled($customTo)
             && ($input['use_custom_dates'] ?? null) === '1';
 
-        if ($useCustomDates) {
-            [$from, $to] = FiscalYear::clampDates((string) $customFrom, (string) $customTo, $fyFrom, $fyTo);
-        }
+        [$from, $to] = FiscalYear::resolveFilterDates(
+            $fiscalYear,
+            $period,
+            is_string($customFrom) ? $customFrom : null,
+            is_string($customTo) ? $customTo : null,
+            $useCustomDates,
+        );
 
         return [
             'fiscal_year' => $fiscalYear,
@@ -78,12 +79,25 @@ class ReportService
 
     public function fiscalYearOptions(?Carbon $asOf = null): array
     {
-        return FiscalYear::options($asOf);
+        return $this->labelFiscalYearOptions(FiscalYear::options($asOf, includeAll: true));
     }
 
     public function currentFiscalYearKey(?Carbon $asOf = null): string
     {
         return FiscalYear::currentKey($asOf);
+    }
+
+    /**
+     * @param  array<string, string>  $options
+     * @return array<string, string>
+     */
+    protected function labelFiscalYearOptions(array $options): array
+    {
+        if (isset($options[FiscalYear::ALL_KEY])) {
+            $options[FiscalYear::ALL_KEY] = __('reports.all_years');
+        }
+
+        return $options;
     }
 
     public function paginatedRows(array $filters, int $perPage = 25): LengthAwarePaginator

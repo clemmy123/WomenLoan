@@ -3,8 +3,12 @@
 use App\Models\Loan;
 use App\Models\User;
 
-if (! function_exists('loan_has_workflow_actions')) {
-    function loan_has_workflow_actions(Loan $loan, ?User $user = null): bool
+if (! function_exists('loan_needs_user_action')) {
+    /**
+     * True when the current user has a forward/approve workflow action on this loan
+     * (not rollback-only). Used for list priority and "needs action" alerts.
+     */
+    function loan_needs_user_action(Loan $loan, ?User $user = null): bool
     {
         $user ??= auth()->user();
 
@@ -13,7 +17,6 @@ if (! function_exists('loan_has_workflow_actions')) {
         }
 
         $step = $loan->current_step;
-
         $cdoScope = app(\App\Services\CdoLoanScopeService::class);
 
         return ($user->can('forward to ministry') && $step === 1 && $loan->status === 'received' && $cdoScope->canActOnLoan($user, $loan))
@@ -24,7 +27,20 @@ if (! function_exists('loan_has_workflow_actions')) {
             || ($user->can('forward to km') && $step === 6)
             || ($user->can('approve as km') && $step === 7)
             || ($user->can('assign accountant') && $step === 8)
-            || ($user->can('disburse loan') && $step === 9 && $loan->status === 'ready_for_disbursement' && $loan->officer_id === $user->id)
+            || ($user->can('disburse loan') && $step === 9 && $loan->status === 'ready_for_disbursement' && $loan->officer_id === $user->id);
+    }
+}
+
+if (! function_exists('loan_has_workflow_actions')) {
+    function loan_has_workflow_actions(Loan $loan, ?User $user = null): bool
+    {
+        $user ??= auth()->user();
+
+        if (! $user) {
+            return false;
+        }
+
+        return loan_needs_user_action($loan, $user)
             || app(\App\Services\WorkflowAuthorizationService::class)->canPerform($user, $loan, 'rollback_step');
     }
 }

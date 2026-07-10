@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Models\Concerns\Auditable;
 use App\Models\Concerns\HasHashid;
 use App\Models\Concerns\HasDisplayName;
 use App\Models\Concerns\Searchable;
@@ -18,7 +19,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Applicant extends Model
 {
-    use HasDisplayName, HasFactory, HasHashid, Searchable;
+    use Auditable, HasDisplayName, HasFactory, HasHashid, Searchable;
 
     public const MARITAL_STATUSES = ['Single', 'Married', 'Divorced', 'Widowed'];
 

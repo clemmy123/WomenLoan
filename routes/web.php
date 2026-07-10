@@ -1,8 +1,10 @@
 <?php
 
+use App\Http\Controllers\AdminDashboardController;
 use App\Http\Controllers\ApplicantGroupController;
 use App\Http\Controllers\ReportController;
 use App\Http\Controllers\ApplicantController;
+use App\Http\Controllers\AuditLogController;
 use App\Http\Controllers\Auth\AuthController;
 use App\Http\Controllers\Auth\PasswordResetController;
 use App\Http\Controllers\CouncilController;
@@ -84,6 +86,12 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/repayments', [LoanPaymentController::class, 'index'])
         ->middleware('can:view repayments')
         ->name('repayments.index');
+    Route::get('/repayments/export/excel', [LoanPaymentController::class, 'exportExcel'])
+        ->middleware('can:view repayments')
+        ->name('repayments.export.excel');
+    Route::get('/repayments/export/pdf', [LoanPaymentController::class, 'exportPdf'])
+        ->middleware('can:view repayments')
+        ->name('repayments.export.pdf');
     Route::get('/repayments/{payment}', [LoanPaymentController::class, 'show'])
         ->middleware('can:view repayments')
         ->name('repayments.show');
@@ -111,12 +119,30 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/reports/analytical/overview', [ReportController::class, 'analyticalOverview'])
         ->middleware('can:view reports')
         ->name('reports.analytical.overview');
+    Route::get('/reports/analytical/outstanding', [ReportController::class, 'analyticalOutstanding'])
+        ->middleware('can:view reports')
+        ->name('reports.analytical.outstanding');
+    Route::get('/reports/analytical/overdue', [ReportController::class, 'analyticalOverdue'])
+        ->middleware('can:view reports')
+        ->name('reports.analytical.overdue');
     Route::get('/reports/analytical/export/excel', [ReportController::class, 'exportAnalyticalExcel'])
         ->middleware('can:view reports')
         ->name('reports.analytical.export.excel');
     Route::get('/reports/analytical/export/pdf', [ReportController::class, 'exportAnalyticalPdf'])
         ->middleware('can:view reports')
         ->name('reports.analytical.export.pdf');
+    Route::get('/reports/analytical/outstanding/export/excel', [ReportController::class, 'exportAnalyticalOutstandingExcel'])
+        ->middleware('can:view reports')
+        ->name('reports.analytical.outstanding.export.excel');
+    Route::get('/reports/analytical/outstanding/export/pdf', [ReportController::class, 'exportAnalyticalOutstandingPdf'])
+        ->middleware('can:view reports')
+        ->name('reports.analytical.outstanding.export.pdf');
+    Route::get('/reports/analytical/overdue/export/excel', [ReportController::class, 'exportAnalyticalOverdueExcel'])
+        ->middleware('can:view reports')
+        ->name('reports.analytical.overdue.export.excel');
+    Route::get('/reports/analytical/overdue/export/pdf', [ReportController::class, 'exportAnalyticalOverduePdf'])
+        ->middleware('can:view reports')
+        ->name('reports.analytical.overdue.export.pdf');
     Route::get('/reports/export/excel', [ReportController::class, 'exportExcel'])
         ->middleware('can:view reports')
         ->name('reports.export.excel');
@@ -124,12 +150,23 @@ Route::middleware(['auth'])->group(function () {
         ->middleware('can:view reports')
         ->name('reports.export.pdf');
 
+    Route::prefix('admin')->name('admin.')->middleware('can:view administration dashboard')->group(function () {
+        Route::get('dashboard', [AdminDashboardController::class, 'index'])->name('dashboard');
+    });
+
     Route::prefix('admin')->name('admin.')->middleware('can:manage users')->group(function () {
         Route::resource('users', UserController::class)->except(['show']);
     });
 
     Route::prefix('admin')->name('admin.')->middleware('can:manage roles')->group(function () {
         Route::resource('roles', RoleController::class)->except(['show']);
+    });
+
+    Route::prefix('admin')->name('admin.')->middleware('can:view audit logs')->group(function () {
+        Route::get('audit-logs', [AuditLogController::class, 'index'])->name('audit.index');
+        Route::get('audit-logs/export/excel', [AuditLogController::class, 'exportExcel'])->name('audit.export.excel');
+        Route::get('audit-logs/export/pdf', [AuditLogController::class, 'exportPdf'])->name('audit.export.pdf');
+        Route::get('audit-logs/{activity}', [AuditLogController::class, 'show'])->name('audit.show');
     });
 
     Route::prefix('api/loans')->name('loans.api.')->group(function () {

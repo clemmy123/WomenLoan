@@ -2,9 +2,11 @@
 
 namespace App\Http\Controllers;
 
+use App\Exports\AnalyticalDebtExport;
 use App\Exports\AnalyticalOverviewExport;
 use App\Exports\ApplicationReportsExport;
 use App\Exports\ReportsExport;
+use App\Services\AnalyticalDebtReportService;
 use App\Services\AnalyticalReportService;
 use App\Services\ApplicationReportService;
 use App\Services\ReportService;
@@ -19,6 +21,7 @@ class ReportController extends Controller
         private ReportService $reports,
         private ApplicationReportService $applicationReports,
         private AnalyticalReportService $analyticalReports,
+        private AnalyticalDebtReportService $debtReports,
     ) {}
 
     public function index(Request $request)
@@ -77,6 +80,106 @@ class ReportController extends Controller
             'sortOptions',
             'fiscalYearOptions',
         ));
+    }
+
+    public function analyticalOutstanding(Request $request)
+    {
+        return $this->analyticalDebtPage($request, AnalyticalDebtReportService::MODE_OUTSTANDING);
+    }
+
+    public function analyticalOverdue(Request $request)
+    {
+        return $this->analyticalDebtPage($request, AnalyticalDebtReportService::MODE_OVERDUE);
+    }
+
+    public function exportAnalyticalOutstandingExcel(Request $request): BinaryFileResponse
+    {
+        return $this->exportAnalyticalDebtExcel($request, AnalyticalDebtReportService::MODE_OUTSTANDING);
+    }
+
+    public function exportAnalyticalOutstandingPdf(Request $request)
+    {
+        return $this->exportAnalyticalDebtPdf($request, AnalyticalDebtReportService::MODE_OUTSTANDING);
+    }
+
+    public function exportAnalyticalOverdueExcel(Request $request): BinaryFileResponse
+    {
+        return $this->exportAnalyticalDebtExcel($request, AnalyticalDebtReportService::MODE_OVERDUE);
+    }
+
+    public function exportAnalyticalOverduePdf(Request $request)
+    {
+        return $this->exportAnalyticalDebtPdf($request, AnalyticalDebtReportService::MODE_OVERDUE);
+    }
+
+    protected function analyticalDebtPage(Request $request, string $mode)
+    {
+        $this->authorize('view reports');
+
+        $filters = $this->debtReports->normalizeFilters($request->all());
+        $summary = $this->debtReports->summary($filters, $mode);
+        $rows = $this->debtReports->paginatedRows($filters, $mode);
+        $regions = $this->debtReports->regions();
+        $sortOptions = $this->debtReports->sortOptions();
+        $fiscalYearOptions = $this->debtReports->fiscalYearOptions();
+        $debtReports = $this->debtReports;
+
+        $isOverdue = $mode === AnalyticalDebtReportService::MODE_OVERDUE;
+
+        return view('reports.analytical.debts', [
+            'mode' => $mode,
+            'filters' => $filters,
+            'summary' => $summary,
+            'rows' => $rows,
+            'regions' => $regions,
+            'sortOptions' => $sortOptions,
+            'fiscalYearOptions' => $fiscalYearOptions,
+            'debtReports' => $debtReports,
+            'pageTitle' => __($isOverdue ? 'analytical_reports.overdue_title' : 'analytical_reports.outstanding_title'),
+            'pageSubtitle' => __($isOverdue ? 'analytical_reports.overdue_subtitle' : 'analytical_reports.outstanding_subtitle'),
+            'listTitle' => __($isOverdue ? 'analytical_reports.overdue_list' : 'analytical_reports.outstanding_list'),
+            'indexRouteName' => $isOverdue ? 'reports.analytical.overdue' : 'reports.analytical.outstanding',
+            'excelRouteName' => $isOverdue ? 'reports.analytical.overdue.export.excel' : 'reports.analytical.outstanding.export.excel',
+            'pdfRouteName' => $isOverdue ? 'reports.analytical.overdue.export.pdf' : 'reports.analytical.outstanding.export.pdf',
+        ]);
+    }
+
+    protected function exportAnalyticalDebtExcel(Request $request, string $mode): BinaryFileResponse
+    {
+        $this->authorize('view reports');
+        $data = $this->analyticalDebtExportData($request, $mode);
+
+        return Excel::download(
+            new AnalyticalDebtExport($mode, $data['summary'], $data['rows'], $data['filters']),
+            $this->debtReports->exportFilename($mode, 'xlsx')
+        );
+    }
+
+    protected function exportAnalyticalDebtPdf(Request $request, string $mode)
+    {
+        $this->authorize('view reports');
+        $data = $this->analyticalDebtExportData($request, $mode);
+        $isOverdue = $mode === AnalyticalDebtReportService::MODE_OVERDUE;
+
+        return Pdf::loadView('reports.analytical.debt-export-pdf', [
+            'title' => __($isOverdue ? 'analytical_reports.overdue_title' : 'analytical_reports.outstanding_title'),
+            'summary' => $data['summary'],
+            'rows' => $data['rows'],
+            'filters' => $data['filters'],
+        ])
+            ->setPaper('a4', 'landscape')
+            ->download($this->debtReports->exportFilename($mode, 'pdf'));
+    }
+
+    protected function analyticalDebtExportData(Request $request, string $mode): array
+    {
+        $filters = $this->debtReports->normalizeFilters($request->all());
+
+        return [
+            'filters' => $filters,
+            'summary' => $this->debtReports->summary($filters, $mode),
+            'rows' => $this->debtReports->allRows($filters, $mode),
+        ];
     }
 
     public function exportAnalyticalExcel(Request $request): BinaryFileResponse

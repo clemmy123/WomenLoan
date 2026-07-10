@@ -82,11 +82,11 @@
                 </div>
                 <div class="wizard-field">
                     <label class="app-label" for="date_from">{{ __('application_reports.date_from') }}</label>
-                    <input type="date" name="date_from" id="date_from" value="{{ $f['date_from'] }}" class="app-input" onchange="document.getElementById('use_custom_dates').value='1'">
+                    <input type="date" name="date_from" id="date_from" value="{{ $f['date_from'] ?? '' }}" class="app-input" onchange="document.getElementById('use_custom_dates').value='1'">
                 </div>
                 <div class="wizard-field">
                     <label class="app-label" for="date_to">{{ __('application_reports.date_to') }}</label>
-                    <input type="date" name="date_to" id="date_to" value="{{ $f['date_to'] }}" class="app-input" onchange="document.getElementById('use_custom_dates').value='1'">
+                    <input type="date" name="date_to" id="date_to" value="{{ $f['date_to'] ?? '' }}" class="app-input" onchange="document.getElementById('use_custom_dates').value='1'">
                     <input type="hidden" name="use_custom_dates" id="use_custom_dates" value="{{ ($f['use_custom_dates'] ?? null) === '1' ? '1' : '' }}">
                 </div>
             </div>

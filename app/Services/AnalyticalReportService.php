@@ -42,7 +42,6 @@ class AnalyticalReportService
     public function normalizeFilters(array $input): array
     {
         $fiscalYear = FiscalYear::normalize($input['fiscal_year'] ?? null);
-        [$fyFrom, $fyTo] = FiscalYear::dateRange($fiscalYear);
 
         $period = $input['period'] ?? 'annually';
         if (! in_array($period, self::PERIODS, true)) {
@@ -59,21 +58,37 @@ class AnalyticalReportService
             $sort = 'newest';
         }
 
+        $customFrom = $input['date_from'] ?? null;
+        $customTo = $input['date_to'] ?? null;
+        $wantsCustomDates = ($input['use_custom_dates'] ?? null) === '1'
+            && filled($customFrom)
+            && filled($customTo);
+
         // Fiscal year is the outer scope. Quarter / period / custom dates resolve inside it.
-        if ($quarter) {
+        // "All" ignores quarter and returns every matching record unless custom dates are set.
+        if (FiscalYear::isAll($fiscalYear)) {
+            $quarter = null;
+            $useCustomDates = $wantsCustomDates;
+            [$from, $to] = FiscalYear::resolveFilterDates(
+                $fiscalYear,
+                $period,
+                is_string($customFrom) ? $customFrom : null,
+                is_string($customTo) ? $customTo : null,
+                $useCustomDates,
+            );
+        } elseif ($quarter) {
+            [$fyFrom, $fyTo] = FiscalYear::dateRange($fiscalYear);
             [$from, $to] = FiscalYear::periodRangeWithin($quarter, $fyFrom, $fyTo);
             $useCustomDates = false;
         } else {
-            [$from, $to] = FiscalYear::periodRangeWithin($period, $fyFrom, $fyTo);
-            $customFrom = $input['date_from'] ?? null;
-            $customTo = $input['date_to'] ?? null;
-            $useCustomDates = filled($customFrom)
-                && filled($customTo)
-                && ($input['use_custom_dates'] ?? null) === '1';
-
-            if ($useCustomDates) {
-                [$from, $to] = FiscalYear::clampDates((string) $customFrom, (string) $customTo, $fyFrom, $fyTo);
-            }
+            $useCustomDates = $wantsCustomDates;
+            [$from, $to] = FiscalYear::resolveFilterDates(
+                $fiscalYear,
+                $period,
+                is_string($customFrom) ? $customFrom : null,
+                is_string($customTo) ? $customTo : null,
+                $useCustomDates,
+            );
         }
 
         return [
@@ -95,7 +110,12 @@ class AnalyticalReportService
 
     public function fiscalYearOptions(?Carbon $asOf = null): array
     {
-        return FiscalYear::options($asOf);
+        $options = FiscalYear::options($asOf, includeAll: true);
+        if (isset($options[FiscalYear::ALL_KEY])) {
+            $options[FiscalYear::ALL_KEY] = __('analytical_reports.all_years');
+        }
+
+        return $options;
     }
 
     public function currentFiscalYearKey(?Carbon $asOf = null): string

@@ -21,11 +21,11 @@
 <body>
     <h1>{{ __('reports.title') }}</h1>
     <p class="meta">
-        {{ __('reports.fiscal_year') }}: {{ $filters['fiscal_year'] ?? '—' }}
+        {{ __('reports.fiscal_year') }}: {{ ($filters['fiscal_year'] ?? null) === \App\Support\FiscalYear::ALL_KEY ? __('reports.all_years') : ($filters['fiscal_year'] ?? '—') }}
         &nbsp;|&nbsp;
-        {{ __('reports.date_from') }}: {{ $filters['date_from'] }}
+        {{ __('reports.date_from') }}: {{ $filters['date_from'] ?? '—' }}
         &nbsp;|&nbsp;
-        {{ __('reports.date_to') }}: {{ $filters['date_to'] }}
+        {{ __('reports.date_to') }}: {{ $filters['date_to'] ?? '—' }}
         &nbsp;|&nbsp;
         {{ __('reports.generated_at') }}: {{ now()->translatedFormat('d M Y H:i') }}
     </p>

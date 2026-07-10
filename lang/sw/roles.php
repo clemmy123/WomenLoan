@@ -13,4 +13,5 @@ return [
     'km' => 'Katibu Mkuu',
     'chief' => 'Mkuu wa Idara',
     'accountant' => 'Mhasibu',
+    'tehama_staff' => 'Tehama Staff',
 ];

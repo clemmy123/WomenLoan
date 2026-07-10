@@ -2,12 +2,13 @@
 
 namespace App\Models;
 
+use App\Models\Concerns\Auditable;
 use App\Models\Concerns\HasHashid;
 use Spatie\Permission\Models\Role as SpatieRole;
 
 class Role extends SpatieRole
 {
-    use HasHashid;
+    use Auditable, HasHashid;
 
     /** Roles that cannot be deleted. */
     public const PROTECTED = ['super_admin', 'applicant'];

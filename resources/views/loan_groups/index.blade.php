@@ -46,7 +46,7 @@
             </table>
         </div>
 
-        @if($loanGroups->hasPages())
+        @if($loanGroups->total() > 0)
         <div class="app-card-footer">
             {{ $loanGroups->links() }}
         </div>

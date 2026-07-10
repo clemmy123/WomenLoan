@@ -229,6 +229,7 @@ class WorkflowTest extends TestCase
         $response = $this->actingAsRole('accountant1@wdf.go.tz')
             ->post(route('loans.workflow', $loan->hashid), [
                 'action' => 'disburse',
+                'grace_period_months' => 3,
             ]);
 
         $response->assertRedirect(route('loan-applications.show', $loan->hashid));
@@ -261,6 +262,7 @@ class WorkflowTest extends TestCase
         $this->actingAsRole('accountant1@wdf.go.tz')
             ->post(route('loans.workflow', $loan->hashid), [
                 'action' => 'disburse',
+                'grace_period_months' => 3,
             ])
             ->assertRedirect(route('loan-applications.show', $loan->hashid));
 
@@ -280,6 +282,7 @@ class WorkflowTest extends TestCase
         $this->actingAsRole('accountant1@wdf.go.tz')
             ->post(route('loans.workflow', $loan->hashid), [
                 'action' => 'disburse',
+                'grace_period_months' => 3,
                 'disbursed_amount' => 1000000,
             ])
             ->assertSessionHasErrors('disbursed_amount');

@@ -123,6 +123,8 @@ class LoanWorkflowService
             throw new \InvalidArgumentException('Cannot disburse a loan without a proposed amount.');
         }
 
+        $gracePeriodMonths = (int) ($data['grace_period_months'] ?? config('wdf.grace_period_months', 3));
+
         $this->logAction($loan, $user, 9, 'disbursed', $data);
         $loan->update([
             'disbursed_amount' => $disbursedAmount,
@@ -140,7 +142,7 @@ class LoanWorkflowService
                 'amount_requested' => $fresh->requested_amount,
             ]);
         } else {
-            $this->repayments->createForLoan($fresh, $disbursedAmount);
+            $this->repayments->createForLoan($fresh, $disbursedAmount, $gracePeriodMonths);
         }
     }
 

@@ -54,6 +54,13 @@ class WorkflowActionRequest extends FormRequest
                 'nullable',
                 'exists:users,id',
             ],
+            'grace_period_months' => [
+                Rule::requiredIf($action === 'disburse'),
+                'nullable',
+                'integer',
+                'min:0',
+                'max:12',
+            ],
             'attachment' => [
                 Rule::requiredIf(in_array($action, ['forward_ministry', 'forward_ass_dir'], true)),
                 'nullable',

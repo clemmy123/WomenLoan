@@ -8,16 +8,20 @@ use Carbon\Carbon;
 
 class RepaymentScheduleService
 {
-    public function createForLoan(Loan $loan, float $disbursedAmount): LoanPayment
+    public function createForLoan(Loan $loan, float $disbursedAmount, ?int $gracePeriodMonths = null): LoanPayment
     {
         $months = (int) config('wdf.repayment_term_months', 12);
+        $graceMonths = $gracePeriodMonths ?? (int) config('wdf.grace_period_months', 3);
+        $graceMonths = max(0, $graceMonths);
         $rate = (float) config('wdf.interest_rate', 0.16);
         $interest = round($disbursedAmount * $rate, 2);
         $totalPayable = round($disbursedAmount + $interest, 2);
         $monthlyAmount = $months > 0 ? round($totalPayable / $months, 2) : $totalPayable;
 
-        $startDate = Carbon::parse($loan->date_issued ?? now());
-        $endDate = $startDate->copy()->addMonths($months);
+        $startDate = Carbon::parse($loan->date_issued ?? now())->startOfDay();
+        $repaymentStart = $startDate->copy()->addMonths($graceMonths);
+        $endDate = $repaymentStart->copy()->addMonths(max(0, $months - 1));
+        $gracePeriodDays = $startDate->diffInDays($repaymentStart);
 
         return LoanPayment::create([
             'loan_id' => $loan->id,
@@ -26,19 +30,22 @@ class RepaymentScheduleService
             'interest_amount' => $interest,
             'amount_paid' => 0,
             'outstanding_debt' => $totalPayable,
-            'grace_period_days' => 0,
+            'grace_period_days' => $gracePeriodDays,
             'start_date' => $startDate->toDateString(),
             'end_date' => $endDate->toDateString(),
             'payment_interval' => 'monthly',
-            'notes' => __('repayments.schedule_note', ['rate' => (int) ($rate * 100)]),
+            'notes' => __('repayments.schedule_note', [
+                'rate' => (int) ($rate * 100),
+                'grace' => $graceMonths,
+            ]),
             'payment_history' => [
-                'installments' => $this->buildInstallments($startDate, $months, $monthlyAmount, $totalPayable),
+                'installments' => $this->buildInstallments($repaymentStart, $months, $monthlyAmount, $totalPayable),
                 'transactions' => [],
             ],
         ]);
     }
 
-    public function recordPayment(LoanPayment $payment, float $amount, ?string $reference = null, ?string $method = null): array
+    public function recordPayment(LoanPayment $payment, float $amount, ?string $method = null): array
     {
         $amount = round($amount, 2);
         if ($amount <= 0) {
@@ -71,14 +78,13 @@ class RepaymentScheduleService
             $remaining -= $pay;
         }
 
-        $receiptNumber = sprintf(
-            'RCP-%s-%03d',
-            $payment->loan?->loan_track_id ?? $payment->id,
-            count($history['transactions']) + 1
-        );
+        $sequence = count($history['transactions']) + 1;
+        $trackId = $payment->loan?->loan_track_id ?? $payment->id;
+        $receiptNumber = sprintf('RCP-%s-%03d', $trackId, $sequence);
+        $reference = sprintf('WDF-%s-%03d', $trackId, $sequence);
 
         $history['transactions'][] = [
-            'date' => now()->toDateString(),
+            'date' => now()->toDateTimeString(),
             'amount' => $applied,
             'reference' => $reference,
             'method' => $method ?? 'Bank Transfer',
@@ -98,8 +104,21 @@ class RepaymentScheduleService
         return [
             'transaction_index' => $transactionIndex,
             'receipt_number' => $receiptNumber,
+            'reference' => $reference,
             'amount' => $applied,
         ];
+    }
+
+    public function nextInstallment(LoanPayment $payment): ?array
+    {
+        foreach ($this->installmentSchedule($payment) as $installment) {
+            $status = $installment['status'] ?? 'pending';
+            if (in_array($status, ['pending', 'partial'], true)) {
+                return $installment;
+            }
+        }
+
+        return null;
     }
 
     public function installmentSchedule(LoanPayment $payment): array
@@ -147,7 +166,7 @@ class RepaymentScheduleService
         return ['installments' => [], 'transactions' => $history];
     }
 
-    protected function buildInstallments(Carbon $startDate, int $months, float $monthlyAmount, float $totalPayable): array
+    protected function buildInstallments(Carbon $firstDueDate, int $months, float $monthlyAmount, float $totalPayable): array
     {
         $installments = [];
         $allocated = 0.0;
@@ -161,7 +180,7 @@ class RepaymentScheduleService
 
             $installments[] = [
                 'installment' => $i,
-                'due_date' => $startDate->copy()->addMonths($i)->toDateString(),
+                'due_date' => $firstDueDate->copy()->addMonths($i - 1)->toDateString(),
                 'amount_due' => $due,
                 'amount_paid' => 0,
                 'status' => 'pending',

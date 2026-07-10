@@ -13,4 +13,5 @@ return [
     'km' => 'Permanent Secretary',
     'chief' => 'Chief Officer',
     'accountant' => 'Accountant',
+    'tehama_staff' => 'Tehama Staff',
 ];

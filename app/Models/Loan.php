@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Models\Concerns\Auditable;
 use App\Models\Concerns\HasHashid;
 use App\Models\Scopes\ApprovalLevelScope;
 use App\Services\LoanTrackIdGenerator;
@@ -15,7 +16,12 @@ use Illuminate\Support\Facades\Auth;
 
 class Loan extends Model
 {
-    use HasFactory, HasHashid;
+    use Auditable, HasFactory, HasHashid;
+
+    /** @var list<string> */
+    protected array $auditExclude = [
+        'approval_history',
+    ];
 
     protected $fillable = [
         'loan_track_id',

@@ -5,6 +5,7 @@ namespace App\Providers;
 use App\Services\GeoHierarchyService;
 use App\Services\HashidService;
 use App\Support\NavPermissions;
+use Illuminate\Pagination\Paginator;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\View;
 use Illuminate\Support\ServiceProvider;
@@ -19,6 +20,9 @@ class AppServiceProvider extends ServiceProvider
 
     public function boot(): void
     {
+        Paginator::defaultView('vendor.pagination.wdf');
+        Paginator::defaultSimpleView('vendor.pagination.simple-wdf');
+
         Password::defaults(function () {
             return Password::min(8)
                 ->letters()

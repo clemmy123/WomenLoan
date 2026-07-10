@@ -175,4 +175,39 @@ class ReportFilterTest extends TestCase
             (string) $response->headers->get('content-type')
         );
     }
+
+    public function test_fiscal_year_all_returns_records_across_all_years(): void
+    {
+        $loan = Loan::withoutGlobalScope(ApprovalLevelScope::class)
+            ->where('loan_track_id', 'WL000011')
+            ->firstOrFail();
+
+        $loan->update(['date_issued' => '2023-08-15']);
+
+        $this->actingAsRole('ministry@wdf.go.tz');
+
+        $currentFy = app(ReportService::class)->normalizeFilters([
+            'fiscal_year' => '2025/2026',
+            'period' => 'annually',
+        ]);
+        $allYears = app(ReportService::class)->normalizeFilters([
+            'fiscal_year' => 'all',
+            'period' => 'annually',
+        ]);
+
+        $this->assertSame('all', $allYears['fiscal_year']);
+        $this->assertNull($allYears['date_from']);
+        $this->assertNull($allYears['date_to']);
+        $this->assertSame(0, app(ReportService::class)->summary($currentFy)['count']);
+        $this->assertSame(1, app(ReportService::class)->summary($allYears)['count']);
+        $this->assertSame(2800000.0, app(ReportService::class)->summary($allYears)['total_disbursed']);
+
+        $this->get(route('reports.index', [
+            'fiscal_year' => 'all',
+            'period' => 'annually',
+        ]))
+            ->assertOk()
+            ->assertSee(__('reports.all_years'), false)
+            ->assertSee(format_tzs(2800000), false);
+    }
 }

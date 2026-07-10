@@ -1,6 +1,9 @@
 <?php
 
 return [
-    'previous' => '&laquo; Iliyotangulia',
-    'next' => 'Ifuatayo &raquo;',
+    'previous' => 'Iliyotangulia',
+    'next' => 'Ifuatayo',
+    'page' => 'Ukurasa',
+    'of' => 'kati ya :last',
+    'label' => 'Kurasa',
 ];

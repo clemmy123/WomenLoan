@@ -7,6 +7,7 @@ use App\Models\Region;
 use App\Models\Scopes\ApplicantAccess;
 use App\Models\Ward;
 use App\Services\LoanQueryService;
+use App\Models\Concerns\Auditable;
 use App\Models\Concerns\HasHashid;
 use Database\Factories\UserFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -14,12 +15,13 @@ use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\Relations\MorphTo;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use Spatie\Activitylog\Traits\CausesActivity;
 use Spatie\Permission\Traits\HasRoles;
 
 class User extends Authenticatable
 {
     /** @use HasFactory<UserFactory> */
-    use HasFactory, HasHashid, HasRoles, Notifiable;
+    use Auditable, CausesActivity, HasFactory, HasHashid, HasRoles, Notifiable;
 
     protected $fillable = [
         'check_number',

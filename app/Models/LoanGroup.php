@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Models\Concerns\Auditable;
 use App\Models\Concerns\HasHashid;
 use App\Models\Concerns\Searchable;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -9,7 +10,7 @@ use Illuminate\Database\Eloquent\Model;
 
 class LoanGroup extends Model
 {
-    use HasFactory, HasHashid, Searchable;
+    use Auditable, HasFactory, HasHashid, Searchable;
 
     protected $fillable = [
         'name',

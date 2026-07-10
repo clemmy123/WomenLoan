@@ -78,7 +78,7 @@
             </table>
         </div>
 
-        @if($applicants->hasPages())
+        @if($applicants->total() > 0)
             <div class="app-card-footer">
                 {{ $applicants->links() }}
             </div>

@@ -4,7 +4,6 @@
 
 @section('content')
 @php
-    $receiptNumber = $tx['receipt_number'] ?? sprintf('RCP-%s-%03d', $payment->loan?->loan_track_id ?? $payment->id, $transaction + 1);
     $applicant = $payment->loan?->applicant;
 @endphp
 <div class="page page-medium space-y-6">
@@ -41,12 +40,12 @@
 
                 <div class="payment-receipt-meta">
                     <div>
-                        <span class="payment-receipt-label">{{ __('repayments.receipt_number') }}</span>
-                        <span class="payment-receipt-value font-mono">{{ $receiptNumber }}</span>
+                        <span class="payment-receipt-label">{{ __('repayments.payment_date') }}</span>
+                        <span class="payment-receipt-value payment-receipt-date">{{ format_payment_datetime($tx['date'] ?? null) }}</span>
                     </div>
                     <div>
-                        <span class="payment-receipt-label">{{ __('dashboard.date') }}</span>
-                        <span class="payment-receipt-value">{{ \Illuminate\Support\Carbon::parse($tx['date'])->translatedFormat('d M Y') }}</span>
+                        <span class="payment-receipt-label">{{ __('repayments.receipt_number') }}</span>
+                        <span class="payment-receipt-value font-mono">{{ $receiptNumber }}</span>
                     </div>
                 </div>
 
@@ -69,6 +68,17 @@
                 <div class="payment-receipt-amount">
                     <p class="payment-receipt-amount-label">{{ __('repayments.amount_received') }}</p>
                     <p class="app-gradient-confirm-amount">{{ format_tzs($tx['amount']) }}</p>
+                </div>
+
+                <div class="payment-receipt-qr">
+                    <img
+                        src="{{ $qrCodeDataUri }}"
+                        alt="{{ __('repayments.qr_alt') }}"
+                        class="payment-receipt-qr-image"
+                        width="160"
+                        height="160"
+                    >
+                    <p class="payment-receipt-qr-caption">{{ __('repayments.qr_caption') }}</p>
                 </div>
 
                 <p class="payment-receipt-footer">{{ __('repayments.receipt_footer') }}</p>

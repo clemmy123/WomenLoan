@@ -43,7 +43,9 @@ return [
     'view repayments' => 'Tazama marejesho',
     'record repayment' => 'Rekodi malipo ya mkopo',
     'view reports' => 'Tazama ripoti',
+    'view administration dashboard' => 'Tazama muhtasari wa usimamizi',
     'manage users' => 'Simamia watumiaji',
     'manage roles' => 'Simamia majukumu na ruhusa',
+    'view audit logs' => 'Tazama rekodi za ukaguzi',
     'manage loan groups' => 'Simamia vikundi vya mikopo',
 ];

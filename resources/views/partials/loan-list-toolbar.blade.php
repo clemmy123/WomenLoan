@@ -8,10 +8,13 @@
     'hiddenFields' => [],
     'clearUrl' => null,
     'showClear' => false,
+    'searchPlaceholder' => null,
 ])
 
 @php
     $useStatusFilter = ! empty($statusOptions);
+    $useSortFilter = ! empty($sortOptions);
+    $searchPlaceholder = $searchPlaceholder ?? __('dashboard.recent_search_placeholder');
 @endphp
 
 <form
@@ -28,7 +31,7 @@
             type="search"
             name="search"
             value="{{ $search }}"
-            placeholder="{{ __('dashboard.recent_search_placeholder') }}"
+            placeholder="{{ $searchPlaceholder }}"
             class="dashboard-recent-input"
             autocomplete="off"
             @input.debounce.350ms="$refs.recentForm.requestSubmit()"
@@ -42,7 +45,8 @@
                     @endforeach
                 </select>
             </label>
-        @elseif(! empty($sortOptions))
+        @endif
+        @if($useSortFilter)
             <label class="dashboard-recent-sort-wrap">
                 <span class="dashboard-recent-sort-label">{{ __('dashboard.sort_by') }}</span>
                 <select name="sort" class="dashboard-recent-select" @change="$refs.recentForm.requestSubmit()">

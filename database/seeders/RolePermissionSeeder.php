@@ -22,9 +22,9 @@ class RolePermissionSeeder extends Seeder
             'super_admin' => PermissionCatalog::allPermissionNames(),
             'admin' => [
                 'view dashboard', 'manage applicants', 'register applicant', 'view all loans',
-                'view repayments', 'record repayment', 'view reports', 'rollback workflow step',
-                'manage users', 'manage roles', 'manage loan groups',
-                'view loan by track id',
+                'view repayments', 'view reports', 'rollback workflow step',
+                'view administration dashboard', 'manage users', 'manage roles', 'view audit logs',
+                'manage loan groups', 'view loan by track id',
             ],
             'applicant' => [
                 'view dashboard', 'view own profile', 'create loan application', 'view own loans',
@@ -63,7 +63,7 @@ class RolePermissionSeeder extends Seeder
                 'view loan by track id', 'view repayments', 'view reports',
             ],
             'accountant' => [
-                'view dashboard', 'disburse loan', 'record repayment',
+                'view dashboard', 'disburse loan',
                 'view loan by track id', 'view repayments', 'view reports',
             ],
         ];

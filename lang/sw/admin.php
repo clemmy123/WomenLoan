@@ -1,6 +1,22 @@
 <?php
 
 return [
+    'dashboard_subtitle' => 'Muhtasari wa watumiaji, majukumu, na shughuli za hivi karibuni za usimamizi.',
+    'dashboard_summary_title' => 'Muhtasari wa watumiaji',
+    'dashboard_summary_copy' => ':active hai · :inactive si hai · majukumu :roles yamewekwa.',
+    'dashboard_active_rate' => ':rate% hai',
+    'dashboard_total_users' => 'Jumla ya watumiaji',
+    'dashboard_active_users' => 'Hai',
+    'dashboard_inactive_users' => 'Si hai',
+    'dashboard_open_users' => 'Fungua orodha ya watumiaji',
+    'dashboard_open_roles' => 'Fungua majukumu na ruhusa',
+    'dashboard_open_audit' => 'Fungua rekodi za ukaguzi',
+    'dashboard_audit_today' => 'Ukaguzi leo',
+    'dashboard_audit_week' => 'Ukaguzi (siku 7)',
+    'dashboard_audit_locked' => 'Toa ruhusa “Tazama rekodi za ukaguzi” ili kuona shughuli hapa.',
+    'dashboard_users_by_role' => 'Watumiaji kwa jukumu',
+    'dashboard_user_count' => 'Watumiaji',
+    'dashboard_recent_audit' => 'Shughuli za ukaguzi za hivi karibuni',
     'users_subtitle' => 'Simamia watumiaji na majukumu',
     'new_user' => 'Mtumiaji Mpya',
     'edit_user' => 'Hariri Mtumiaji',

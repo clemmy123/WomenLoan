@@ -1,5 +1,15 @@
 <?php
 
+if (! function_exists('trans_label')) {
+    /**
+     * Translate a key, or return a humanized fallback when the key is missing.
+     */
+    function trans_label(string $key, string $fallback): string
+    {
+        return \Illuminate\Support\Facades\Lang::has($key) ? __($key) : $fallback;
+    }
+}
+
 if (! function_exists('loan_status_label')) {
     function loan_status_label(?string $status): string
     {
@@ -7,7 +17,10 @@ if (! function_exists('loan_status_label')) {
             return '—';
         }
 
-        return __('statuses.' . $status, [], ucwords(str_replace('_', ' ', $status)));
+        return trans_label(
+            'statuses.'.$status,
+            ucwords(str_replace('_', ' ', $status))
+        );
     }
 }
 
@@ -18,7 +31,10 @@ if (! function_exists('role_label')) {
             return '—';
         }
 
-        return __('roles.' . $role, [], ucwords(str_replace('_', ' ', $role)));
+        return trans_label(
+            'roles.'.$role,
+            ucwords(str_replace('_', ' ', $role))
+        );
     }
 }
 
@@ -29,7 +45,10 @@ if (! function_exists('workflow_action_label')) {
             return '—';
         }
 
-        return __('workflow.actions.' . $action, [], ucwords(str_replace('_', ' ', $action)));
+        return trans_label(
+            'workflow.actions.'.$action,
+            ucwords(str_replace('_', ' ', $action))
+        );
     }
 }
 
@@ -40,7 +59,10 @@ if (! function_exists('permission_label')) {
             return '—';
         }
 
-        return __('permissions.' . $permission, [], ucwords($permission));
+        return trans_label(
+            'permissions.'.$permission,
+            ucwords($permission)
+        );
     }
 }
 
@@ -51,7 +73,10 @@ if (! function_exists('loan_type_label')) {
             return '—';
         }
 
-        return __('loans.types.' . $type, [], ucfirst($type));
+        return trans_label(
+            'loans.types.'.$type,
+            ucfirst($type)
+        );
     }
 }
 
@@ -86,7 +111,7 @@ if (! function_exists('loan_display_name')) {
 if (! function_exists('validation_attribute_label')) {
     function validation_attribute_label(string $field): string
     {
-        $key = 'validation.attributes.' . $field;
+        $key = 'validation.attributes.'.$field;
 
         return \Illuminate\Support\Facades\Lang::has($key)
             ? __($key)

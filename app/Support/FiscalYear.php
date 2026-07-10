@@ -9,9 +9,17 @@ class FiscalYear
     /** Earliest selectable FY start year (FY 2018/2019). */
     public const EARLIEST_START = 2018;
 
+    /** Select all years / no fiscal-year date bound. */
+    public const ALL_KEY = 'all';
+
     public static function currentKey(?Carbon $asOf = null): string
     {
         return self::key(self::startYear($asOf ?? now()));
+    }
+
+    public static function isAll(?string $value): bool
+    {
+        return $value === self::ALL_KEY;
     }
 
     /**
@@ -20,7 +28,7 @@ class FiscalYear
      *
      * @return array<string, string>
      */
-    public static function options(?Carbon $asOf = null): array
+    public static function options(?Carbon $asOf = null, bool $includeAll = false): array
     {
         $asOf ??= now();
         $currentStart = self::startYear($asOf);
@@ -31,11 +39,21 @@ class FiscalYear
             $options[$key] = $key;
         }
 
-        return array_reverse($options, true);
+        $options = array_reverse($options, true);
+
+        if ($includeAll) {
+            return [self::ALL_KEY => self::ALL_KEY] + $options;
+        }
+
+        return $options;
     }
 
     public static function normalize(?string $value, ?Carbon $asOf = null): string
     {
+        if (self::isAll($value)) {
+            return self::ALL_KEY;
+        }
+
         $options = self::options($asOf);
         if ($value && isset($options[$value])) {
             return $value;
@@ -49,12 +67,49 @@ class FiscalYear
      */
     public static function dateRange(string $fiscalYear): array
     {
+        if (self::isAll($fiscalYear)) {
+            throw new \InvalidArgumentException('Cannot resolve a date range for fiscal year "all".');
+        }
+
         $startYear = (int) explode('/', $fiscalYear)[0];
 
         return [
             sprintf('%04d-07-01', $startYear),
             sprintf('%04d-06-30', $startYear + 1),
         ];
+    }
+
+    /**
+     * Resolve inclusive filter dates. Null from/to means no date bound (all records).
+     *
+     * @return array{0: ?string, 1: ?string}
+     */
+    public static function resolveFilterDates(
+        string $fiscalYear,
+        string $period,
+        ?string $customFrom = null,
+        ?string $customTo = null,
+        bool $useCustomDates = false,
+    ): array {
+        if (self::isAll($fiscalYear)) {
+            if ($useCustomDates && filled($customFrom) && filled($customTo)) {
+                $from = (string) $customFrom;
+                $to = (string) $customTo;
+
+                return $from <= $to ? [$from, $to] : [$to, $from];
+            }
+
+            return [null, null];
+        }
+
+        [$fyFrom, $fyTo] = self::dateRange($fiscalYear);
+        [$from, $to] = self::periodRangeWithin($period, $fyFrom, $fyTo);
+
+        if ($useCustomDates && filled($customFrom) && filled($customTo)) {
+            return self::clampDates((string) $customFrom, (string) $customTo, $fyFrom, $fyTo);
+        }
+
+        return [$from, $to];
     }
 
     public static function startYear(Carbon $asOf): int

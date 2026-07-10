@@ -79,7 +79,7 @@ class CdoLoanScopeService
         return $user->hasRole(['cdo_ward', 'cdo_council', 'cdo_region']);
     }
 
-    protected function peerUserIds(User $user): array
+    public function peerUserIds(User $user): array
     {
         if (! $user->zoneable_type || ! $user->zoneable_id || ! $this->isGeoCdo($user)) {
             return [];

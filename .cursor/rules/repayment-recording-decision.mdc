@@ -1,0 +1,41 @@
+---
+description: Repayment recording design decisions — do not change without revisiting with the user
+alwaysApply: true
+---
+
+# Repayment flow — parked design discussion (2026-07-10)
+
+## Current state (KEEP AS-IS for now)
+
+- Applicant can record repayment in the system after paying outside (bank / mobile money).
+- WDF repayment account is shown in-app (`config/wdf.php` / env).
+- User explicitly asked to **leave this as it is** until a calmer, fuller discussion.
+
+## Problem acknowledged (not implemented yet)
+
+- In real life, the applicant does **not** need to log in to pay — they can pay by phone/bank to the WDF account.
+- Logging in only to “record” payment conflates **paying** (outside) with **posting** (in system).
+
+## Agreed direction when work resumes (Hatua 1 — preferred first step)
+
+1. **Paying** happens outside the system (mobile money / bank) to the WDF account.
+2. Applicant should use **loan Track ID** as payment reference when possible.
+3. **Accountant** (staff) sees money on the bank/M-Pesa **statement** (outside the app), then **records/confirms** the payment in WDF against that loan.
+4. Applicant login becomes optional for viewing balance / schedule / receipt — **not required to make the payment appear**.
+
+## How accountant knows before gateway (operational reality)
+
+- Bank / mobile-money **statement** on the WDF account.
+- Applicant informs staff (call / visit / screenshot / SMS).
+- Match amount + date + Track ID reference, then post in system.
+- Without a payment API/webhook there is **no automatic in-app notification** of incoming funds.
+
+## Later phases (not started)
+
+- Optional applicant “I have paid” notice → staff confirms (Hatua 2).
+- Payment gateway / bank API auto-posting (Hatua 3).
+
+## Agent instructions
+
+- Do **not** move record-repayment from applicant to accountant, or redesign this flow, unless the user explicitly reopens this topic.
+- When reopened, re-read this rule and confirm which hatua to implement before coding.

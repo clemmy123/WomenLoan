@@ -43,7 +43,9 @@ return [
     'view repayments' => 'View repayments',
     'record repayment' => 'Record loan repayment',
     'view reports' => 'View reports',
+    'view administration dashboard' => 'View administration overview',
     'manage users' => 'Manage users',
     'manage roles' => 'Manage roles & permissions',
+    'view audit logs' => 'View audit logs',
     'manage loan groups' => 'Manage loan groups',
 ];

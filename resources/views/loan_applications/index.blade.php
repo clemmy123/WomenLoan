@@ -23,6 +23,7 @@
                 @else
                     {{ __('loans.apply_subtitle') }}
                 @endif
+                <span class="block mt-1 text-xs text-amber-700 dark:text-amber-300 font-medium">{{ __('loans.action_priority_hint') }}</span>
             </p>
         </div>
         @can('create loan application')
@@ -75,7 +76,8 @@
                 </thead>
                 <tbody>
                     @foreach($loans as $loan)
-                        <tr>
+                        @php $needsAction = loan_needs_user_action($loan); @endphp
+                        <tr @class(['loan-row--needs-action' => $needsAction])>
                             <td>
                                 @include('partials.track-id-chip', ['trackId' => $loan->loan_track_id])
                             </td>
@@ -83,6 +85,7 @@
                             <td>{{ format_tzs($loan->requested_amount) }}</td>
                             <td>
                                 <div class="flex flex-wrap items-center gap-1">
+                                    @include('partials.loan-action-needed-badge', ['loan' => $loan])
                                     @include('partials.badge', ['variant' => 'secondary', 'text' => loan_workflow_step_label($loan->current_step)])
                                     @include('partials.loan-status-badge', ['status' => $loan->status])
                                     @include('partials.cdo-loan-scope-badge', ['loan' => $loan])

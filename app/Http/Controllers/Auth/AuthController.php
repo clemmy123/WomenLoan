@@ -32,6 +32,12 @@ class AuthController extends Controller
                 return back()->withErrors(['email' => __('auth.inactive')]);
             }
 
+            activity('audit')
+                ->causedBy(Auth::user())
+                ->performedOn(Auth::user())
+                ->event('login')
+                ->log('User logged in');
+
             return redirect()->intended(route('dashboard'));
         }
 
@@ -68,6 +74,14 @@ class AuthController extends Controller
 
     public function logout(Request $request)
     {
+        if (Auth::user()) {
+            activity('audit')
+                ->causedBy(Auth::user())
+                ->performedOn(Auth::user())
+                ->event('logout')
+                ->log('User logged out');
+        }
+
         Auth::logout();
         $request->session()->invalidate();
         $request->session()->regenerateToken();

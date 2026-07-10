@@ -80,17 +80,19 @@ class DashboardStatsService
         $query = $this->loanQueryForUser()
             ->select([
                 'id', 'loan_track_id', 'loan_type', 'loan_group_id', 'applicant_id',
-                'requested_amount', 'current_step', 'status', 'created_at',
+                'requested_amount', 'current_step', 'status', 'user_id', 'officer_id', 'created_at',
             ])
             ->with([
                 'applicant:id,full_name,first_name,last_name',
                 'group:id,name',
                 'businessDetails:loan_id,ward_id,council_id,business_name',
                 'businessDetails.ward:id,name',
+                'approvalLevels:id,loan_id,user_id',
             ]);
 
         $this->applyRecentFilter($query, $filter);
         $this->applyListSearch($query, $search);
+        $this->applyActionableFirst($query);
         $this->applyListSort($query, $sort);
 
         return $query

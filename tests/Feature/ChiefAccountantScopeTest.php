@@ -147,6 +147,7 @@ class ChiefAccountantScopeTest extends TestCase
         $this->actingAs($accountant)
             ->post(route('loans.workflow', $loan->hashid), [
                 'action' => 'disburse',
+                'grace_period_months' => 3,
             ])
             ->assertRedirect(route('loan-applications.show', $loan->hashid));
 

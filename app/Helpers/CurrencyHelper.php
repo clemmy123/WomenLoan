@@ -25,3 +25,17 @@ if (! function_exists('format_amount_input')) {
         return number_format((float) $digits, 0, '', ',');
     }
 }
+
+if (! function_exists('format_payment_datetime')) {
+    /**
+     * Full payment timestamp: day, month, year, hour, minute, second, AM/PM.
+     */
+    function format_payment_datetime(mixed $value): string
+    {
+        if ($value === null || $value === '') {
+            return '—';
+        }
+
+        return \Illuminate\Support\Carbon::parse($value)->translatedFormat('d M Y, h:i:s A');
+    }
+}

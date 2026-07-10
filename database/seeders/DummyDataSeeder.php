@@ -323,6 +323,27 @@ class DummyDataSeeder extends Seeder
             if (! empty($s['with_payment'])) {
                 $disbursed = (float) $s['disbursed'];
                 $interest = $disbursed * 0.16;
+                $totalPayable = $disbursed + $interest;
+                $monthlyAmount = round($totalPayable / 12, 2);
+                $startDate = now()->subMonths(4)->startOfDay();
+                $repaymentStart = $startDate->copy()->addMonths(3);
+                $installments = [];
+                $allocated = 0.0;
+
+                for ($i = 1; $i <= 12; $i++) {
+                    $due = $i === 12
+                        ? round($totalPayable - $allocated, 2)
+                        : $monthlyAmount;
+                    $allocated += $due;
+                    $installments[] = [
+                        'installment' => $i,
+                        'due_date' => $repaymentStart->copy()->addMonths($i - 1)->toDateString(),
+                        'amount_due' => $due,
+                        'amount_paid' => $i === 1 ? round($disbursed * 0.25, 2) : 0,
+                        'status' => $i === 1 ? 'partial' : 'pending',
+                    ];
+                }
+
                 LoanPayment::updateOrCreate(
                     ['loan_id' => $loan->id],
                     [
@@ -331,14 +352,17 @@ class DummyDataSeeder extends Seeder
                         'interest_amount' => $interest,
                         'amount_paid' => $disbursed * 0.25,
                         'outstanding_debt' => $disbursed + $interest - ($disbursed * 0.25),
-                        'grace_period_days' => 30,
-                        'start_date' => now()->subDays(30),
-                        'end_date' => now()->addMonths(12),
+                        'grace_period_days' => $startDate->diffInDays($repaymentStart),
+                        'start_date' => $startDate->toDateString(),
+                        'end_date' => $repaymentStart->copy()->addMonths(11)->toDateString(),
                         'payment_interval' => 'monthly',
                         'notes' => 'Sample repayment schedule — 16% interest applied.',
                         'payment_history' => [
-                            ['date' => now()->subDays(15)->toDateString(), 'amount' => $disbursed * 0.15, 'method' => 'Bank'],
-                            ['date' => now()->subDays(5)->toDateString(), 'amount' => $disbursed * 0.10, 'method' => 'Mobile Money'],
+                            'installments' => $installments,
+                            'transactions' => [
+                                ['date' => now()->subDays(15)->toDateTimeString(), 'amount' => $disbursed * 0.15, 'method' => 'Bank Transfer', 'reference' => 'WDF-WL000011-001', 'receipt_number' => 'RCP-WL000011-001'],
+                                ['date' => now()->subDays(5)->toDateTimeString(), 'amount' => $disbursed * 0.10, 'method' => 'Bank Transfer', 'reference' => 'WDF-WL000011-002', 'receipt_number' => 'RCP-WL000011-002'],
+                            ],
                         ],
                     ]
                 );

@@ -95,11 +95,11 @@
                 </div>
                 <div class="wizard-field">
                     <label class="app-label" for="date_from">{{ __('reports.date_from') }}</label>
-                    <input type="date" name="date_from" id="date_from" value="{{ $f['date_from'] }}" class="app-input" onchange="document.getElementById('use_custom_dates').value='1'">
+                    <input type="date" name="date_from" id="date_from" value="{{ $f['date_from'] ?? '' }}" class="app-input" onchange="document.getElementById('use_custom_dates').value='1'">
                 </div>
                 <div class="wizard-field">
                     <label class="app-label" for="date_to">{{ __('reports.date_to') }}</label>
-                    <input type="date" name="date_to" id="date_to" value="{{ $f['date_to'] }}" class="app-input" onchange="document.getElementById('use_custom_dates').value='1'">
+                    <input type="date" name="date_to" id="date_to" value="{{ $f['date_to'] ?? '' }}" class="app-input" onchange="document.getElementById('use_custom_dates').value='1'">
                     <input type="hidden" name="use_custom_dates" id="use_custom_dates" value="{{ ($f['use_custom_dates'] ?? null) === '1' ? '1' : '' }}">
                 </div>
                 <div class="wizard-field">
@@ -189,24 +189,37 @@
         </div>
     </form>
 
-    <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        <div class="rounded-2xl bg-white dark:dark-surface border border-slate-200 dark:border-white/[0.08] p-5">
-            <p class="text-xs text-slate-500 dark:text-zinc-400 uppercase font-semibold">{{ __('reports.total_records') }}</p>
-            <p class="text-2xl font-bold text-slate-900 dark:text-white mt-1">{{ number_format($summary['count']) }}</p>
-        </div>
-        <div class="rounded-2xl bg-white dark:dark-surface border border-slate-200 dark:border-white/[0.08] p-5">
-            <p class="text-xs text-slate-500 dark:text-zinc-400 uppercase font-semibold">{{ __('reports.total_disbursed') }}</p>
-            <p class="text-2xl font-bold text-emerald-600 dark:text-emerald-400 mt-1">{{ format_tzs($summary['total_disbursed']) }}</p>
-        </div>
-        <div class="rounded-2xl bg-white dark:dark-surface border border-slate-200 dark:border-white/[0.08] p-5">
-            <p class="text-xs text-slate-500 dark:text-zinc-400 uppercase font-semibold">{{ __('reports.total_paid') }}</p>
-            <p class="text-2xl font-bold text-indigo-600 dark:text-indigo-400 mt-1">{{ format_tzs($summary['total_paid']) }}</p>
-        </div>
-        <div class="rounded-2xl bg-white dark:dark-surface border border-slate-200 dark:border-white/[0.08] p-5">
-            <p class="text-xs text-slate-500 dark:text-zinc-400 uppercase font-semibold">{{ __('reports.total_outstanding') }}</p>
-            <p class="text-2xl font-bold text-amber-600 dark:text-amber-400 mt-1">{{ format_tzs($summary['total_outstanding']) }}</p>
-        </div>
-    </div>
+    @php
+        $collectable = (float) $summary['total_paid'] + (float) $summary['total_outstanding'];
+        $collectionRate = $collectable > 0
+            ? (int) min(100, round(((float) $summary['total_paid'] / $collectable) * 100))
+            : 0;
+    @endphp
+
+    @include('partials.repayment-summary-strip', [
+        'title' => __('reports.summary_title'),
+        'copy' => __('reports.summary_copy', [
+            'count' => number_format($summary['count']),
+        ]),
+        'rate' => $collectionRate,
+        'rateLabel' => __('reports.collection_rate', ['rate' => $collectionRate]),
+        'metrics' => [
+            [
+                'label' => __('reports.total_disbursed'),
+                'value' => format_tzs($summary['total_disbursed']),
+            ],
+            [
+                'label' => __('reports.total_paid'),
+                'value' => format_tzs($summary['total_paid']),
+                'tone' => 'paid',
+            ],
+            [
+                'label' => __('reports.total_outstanding'),
+                'value' => format_tzs($summary['total_outstanding']),
+                'tone' => 'outstanding',
+            ],
+        ],
+    ])
 
     <div class="grid gap-6 lg:grid-cols-2">
         <div class="rounded-2xl bg-white dark:dark-surface border border-slate-200 dark:border-white/[0.08] p-6 lg:col-span-2">

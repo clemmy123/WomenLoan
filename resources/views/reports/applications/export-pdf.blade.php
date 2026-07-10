@@ -21,13 +21,13 @@
 <body>
     <h1>{{ __('application_reports.title') }}</h1>
     <p class="meta">
-        {{ __('reports.fiscal_year') }}: {{ $filters['fiscal_year'] ?? '—' }}
+        {{ __('reports.fiscal_year') }}: {{ ($filters['fiscal_year'] ?? null) === \App\Support\FiscalYear::ALL_KEY ? __('reports.all_years') : ($filters['fiscal_year'] ?? '—') }}
         &nbsp;|&nbsp;
         {{ __('application_reports.status') }}: {{ $filters['status'] ? loan_status_label($filters['status']) : __('application_reports.all_statuses') }}
         &nbsp;|&nbsp;
-        {{ __('application_reports.date_from') }}: {{ $filters['date_from'] }}
+        {{ __('application_reports.date_from') }}: {{ $filters['date_from'] ?? '—' }}
         &nbsp;|&nbsp;
-        {{ __('application_reports.date_to') }}: {{ $filters['date_to'] }}
+        {{ __('application_reports.date_to') }}: {{ $filters['date_to'] ?? '—' }}
         &nbsp;|&nbsp;
         {{ __('reports.generated_at') }}: {{ now()->translatedFormat('d M Y H:i') }}
     </p>

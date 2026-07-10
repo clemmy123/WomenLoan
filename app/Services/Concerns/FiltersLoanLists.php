@@ -2,6 +2,8 @@
 
 namespace App\Services\Concerns;
 
+use App\Models\User;
+use App\Services\CdoLoanScopeService;
 use Illuminate\Database\Eloquent\Builder;
 
 trait FiltersLoanLists
@@ -118,5 +120,78 @@ trait FiltersLoanLists
             'status' => $query->orderBy('status')->orderByDesc('id'),
             default => $query->latest()->latest('id'),
         };
+    }
+
+    /**
+     * Put loans the current user must act on first, then keep the chosen sort within each group.
+     */
+    protected function applyActionableFirst(Builder $query, ?User $user = null): void
+    {
+        $user ??= auth()->user();
+
+        if (! $user) {
+            return;
+        }
+
+        $parts = [];
+        $bindings = [];
+
+        if ($user->can('forward to ministry')) {
+            $peerIds = app(CdoLoanScopeService::class)->peerUserIds($user);
+
+            if ($peerIds !== []) {
+                $placeholders = implode(',', array_fill(0, count($peerIds), '?'));
+                $parts[] = "(loans.current_step = 1 AND loans.status = 'received' AND NOT EXISTS (
+                    SELECT 1 FROM approval_levels
+                    WHERE approval_levels.loan_id = loans.id
+                    AND approval_levels.user_id IN ({$placeholders})
+                ))";
+                array_push($bindings, ...$peerIds);
+            } else {
+                $parts[] = "(loans.current_step = 1 AND loans.status = 'received')";
+            }
+        }
+
+        if ($user->can('propose loan amount')) {
+            $parts[] = '(loans.current_step = 2)';
+        }
+
+        if ($user->hasRole('applicant')) {
+            $parts[] = '(loans.current_step = 3)';
+        }
+
+        if ($user->can('forward to assistant director')) {
+            $parts[] = '(loans.current_step = 4)';
+        }
+
+        if ($user->can('forward to director')) {
+            $parts[] = '(loans.current_step = 5)';
+        }
+
+        if ($user->can('forward to km')) {
+            $parts[] = '(loans.current_step = 6)';
+        }
+
+        if ($user->can('approve as km')) {
+            $parts[] = '(loans.current_step = 7)';
+        }
+
+        if ($user->can('assign accountant')) {
+            $parts[] = '(loans.current_step = 8)';
+        }
+
+        if ($user->can('disburse loan')) {
+            $parts[] = "(loans.current_step = 9 AND loans.status = 'ready_for_disbursement' AND loans.officer_id = ?)";
+            $bindings[] = $user->id;
+        }
+
+        if ($parts === []) {
+            return;
+        }
+
+        $query->orderByRaw(
+            'CASE WHEN ('.implode(' OR ', $parts).') THEN 0 ELSE 1 END',
+            $bindings
+        );
     }
 }

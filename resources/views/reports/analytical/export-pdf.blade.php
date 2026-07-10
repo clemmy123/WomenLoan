@@ -22,11 +22,11 @@
 <body>
     <h1>{{ __('analytical_reports.overview_title') }}</h1>
     <p class="meta">
-        {{ __('analytical_reports.fiscal_year') }}: {{ $filters['fiscal_year'] }}
+        {{ __('analytical_reports.fiscal_year') }}: {{ ($filters['fiscal_year'] ?? null) === \App\Support\FiscalYear::ALL_KEY ? __('analytical_reports.all_years') : ($filters['fiscal_year'] ?? '—') }}
         &nbsp;|&nbsp;
-        {{ __('analytical_reports.date_from') }}: {{ $filters['date_from'] }}
+        {{ __('analytical_reports.date_from') }}: {{ $filters['date_from'] ?? '—' }}
         &nbsp;|&nbsp;
-        {{ __('analytical_reports.date_to') }}: {{ $filters['date_to'] }}
+        {{ __('analytical_reports.date_to') }}: {{ $filters['date_to'] ?? '—' }}
         &nbsp;|&nbsp;
         @if(!empty($filters['quarter']))
             {{ __('analytical_reports.quarter') }}: {{ __('analytical_reports.period_'.$filters['quarter']) }}

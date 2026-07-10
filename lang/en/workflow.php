@@ -11,6 +11,8 @@ return [
     'committee_minutes' => 'Committee Minutes',
     'disburse_amount_label' => 'Disbursement amount',
     'disburse_amount_fixed' => 'This amount is fixed to the approved proposed amount and cannot be changed.',
+    'grace_period_months' => 'Grace period (months)',
+    'grace_period_help' => 'Applicant will start repayments after this grace period. Default is 3 months.',
     'submit_confirm_title' => 'Submit?',
     'submit_confirm_message' => 'Are you sure you want to submit? The application will proceed to the next review step.',
     'submit_confirm_note' => 'This action cannot be undone.',

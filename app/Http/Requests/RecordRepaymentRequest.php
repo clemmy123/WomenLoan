@@ -4,6 +4,7 @@ namespace App\Http\Requests;
 
 use App\Support\IdentityNormalizer;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
 
 class RecordRepaymentRequest extends FormRequest
 {
@@ -11,12 +12,8 @@ class RecordRepaymentRequest extends FormRequest
     {
         $user = $this->user();
 
-        if (! $user?->can('record repayment')) {
+        if (! $user?->can('record repayment') || ! $user->hasRole('applicant')) {
             return false;
-        }
-
-        if ($user->hasRole(['admin', 'super_admin', 'accountant'])) {
-            return true;
         }
 
         $payment = $this->route('payment');
@@ -37,8 +34,7 @@ class RecordRepaymentRequest extends FormRequest
     {
         return [
             'amount' => ['required', 'numeric', 'min:1'],
-            'reference' => ['nullable', 'string', 'max:100'],
-            'method' => ['nullable', 'string', 'max:50'],
+            'method' => ['required', 'string', Rule::in(config('wdf.payment_methods', []))],
         ];
     }
 }

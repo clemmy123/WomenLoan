@@ -70,5 +70,9 @@ class RolePermissionUiTest extends TestCase
 
         $this->assertTrue($accountant->hasPermissionTo('disburse loan'));
         $this->assertFalse($accountant->hasPermissionTo('view all loans'));
+        $this->assertFalse($accountant->hasPermissionTo('record repayment'));
+
+        $applicant = Role::where('name', 'applicant')->firstOrFail();
+        $this->assertTrue($applicant->hasPermissionTo('record repayment'));
     }
 }

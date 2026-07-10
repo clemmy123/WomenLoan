@@ -35,5 +35,12 @@
         </div>
     </div>
     @endforeach
+    </div>
+
+    @if($roles->total() > 0)
+        <div class="mt-4 rounded-2xl border border-slate-200 dark:border-white/[0.08] bg-white dark:dark-surface px-4 py-3">
+            {{ $roles->links() }}
+        </div>
+    @endif
 </div>
 @endsection

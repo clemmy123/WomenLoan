@@ -37,6 +37,8 @@ class NavPermissions
             'viewReports' => $user->can('view reports'),
             'manageUsers' => $user->can('manage users'),
             'manageRoles' => $user->can('manage roles'),
+            'viewAuditLogs' => $user->can('view audit logs'),
+            'viewAdminDashboard' => $user->can('view administration dashboard'),
         ];
     }
 }

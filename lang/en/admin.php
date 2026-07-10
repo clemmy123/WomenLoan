@@ -1,6 +1,22 @@
 <?php
 
 return [
+    'dashboard_subtitle' => 'Summary of users, roles, and recent administration activity.',
+    'dashboard_summary_title' => 'Users summary',
+    'dashboard_summary_copy' => ':active active · :inactive inactive · :roles roles configured.',
+    'dashboard_active_rate' => ':rate% active',
+    'dashboard_total_users' => 'Total users',
+    'dashboard_active_users' => 'Active',
+    'dashboard_inactive_users' => 'Inactive',
+    'dashboard_open_users' => 'Open user list',
+    'dashboard_open_roles' => 'Open roles & permissions',
+    'dashboard_open_audit' => 'Open audit logs',
+    'dashboard_audit_today' => 'Audit today',
+    'dashboard_audit_week' => 'Audit (7 days)',
+    'dashboard_audit_locked' => 'Grant “View audit logs” to see activity here.',
+    'dashboard_users_by_role' => 'Users by role',
+    'dashboard_user_count' => 'Users',
+    'dashboard_recent_audit' => 'Recent audit activity',
     'users_subtitle' => 'Manage system users and assign roles',
     'new_user' => 'New User',
     'edit_user' => 'Edit User',

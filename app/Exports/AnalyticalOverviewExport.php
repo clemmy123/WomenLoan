@@ -19,9 +19,9 @@ class AnalyticalOverviewExport implements FromArray, WithTitle
     {
         $lines = [
             [__('analytical_reports.overview_title')],
-            [__('analytical_reports.fiscal_year'), $this->filters['fiscal_year'] ?? ''],
-            [__('analytical_reports.date_from'), $this->filters['date_from']],
-            [__('analytical_reports.date_to'), $this->filters['date_to']],
+            [__('analytical_reports.fiscal_year'), ($this->filters['fiscal_year'] ?? null) === \App\Support\FiscalYear::ALL_KEY ? __('analytical_reports.all_years') : ($this->filters['fiscal_year'] ?? '')],
+            [__('analytical_reports.date_from'), $this->filters['date_from'] ?? ''],
+            [__('analytical_reports.date_to'), $this->filters['date_to'] ?? ''],
             [
                 ! empty($this->filters['quarter'])
                     ? __('analytical_reports.quarter')

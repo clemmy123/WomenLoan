@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Models\Concerns\Auditable;
 use App\Models\Scopes\ApplicantAccess;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -9,7 +10,12 @@ use Illuminate\Support\Carbon; // <-- Ensure Carbon is accessible for safe type-
 
 class LoanPayment extends Model
 {
-    use HasFactory;
+    use Auditable, HasFactory;
+
+    /** @var list<string> */
+    protected array $auditExclude = [
+        'payment_history',
+    ];
 
     protected $fillable = [
         'loan_id',
@@ -85,6 +91,30 @@ class LoanPayment extends Model
         
         // 3. Run the evaluation against the current timestamp and outstanding debt parameters
         return $endDate->isPast() && (float) $this->outstanding_debt > 0;
+    }
+
+    public function graceEndsAt(): ?Carbon
+    {
+        if (! $this->start_date) {
+            return null;
+        }
+
+        $start = $this->start_date instanceof Carbon
+            ? $this->start_date->copy()
+            : Carbon::parse($this->start_date);
+
+        return $start->startOfDay()->addDays((int) $this->grace_period_days);
+    }
+
+    public function isInGracePeriod(): bool
+    {
+        if ((float) $this->outstanding_debt <= 0) {
+            return false;
+        }
+
+        $ends = $this->graceEndsAt();
+
+        return $ends !== null && now()->lt($ends);
     }
 
     public function getRepaymentProgressPercentageAttribute(): int

@@ -101,11 +101,11 @@
                 </div>
                 <div class="wizard-field">
                     <label class="app-label" for="date_from">{{ __('analytical_reports.date_from') }}</label>
-                    <input type="date" name="date_from" id="date_from" value="{{ $f['date_from'] }}" class="app-input" onchange="document.getElementById('use_custom_dates').value='1'; document.getElementById('quarter').value=''">
+                    <input type="date" name="date_from" id="date_from" value="{{ $f['date_from'] ?? '' }}" class="app-input" onchange="document.getElementById('use_custom_dates').value='1'; document.getElementById('quarter').value=''">
                 </div>
                 <div class="wizard-field">
                     <label class="app-label" for="date_to">{{ __('analytical_reports.date_to') }}</label>
-                    <input type="date" name="date_to" id="date_to" value="{{ $f['date_to'] }}" class="app-input" onchange="document.getElementById('use_custom_dates').value='1'; document.getElementById('quarter').value=''">
+                    <input type="date" name="date_to" id="date_to" value="{{ $f['date_to'] ?? '' }}" class="app-input" onchange="document.getElementById('use_custom_dates').value='1'; document.getElementById('quarter').value=''">
                     <input type="hidden" name="use_custom_dates" id="use_custom_dates" value="{{ ($f['use_custom_dates'] ?? null) === '1' ? '1' : '' }}">
                 </div>
                 <div class="wizard-field">
@@ -175,7 +175,8 @@
             <div>
                 <h2 class="analytical-hero-title">{{ __('analytical_reports.summary') }}</h2>
                 <p class="analytical-hero-subtitle">
-                    {{ __('analytical_reports.fiscal_year') }}: {{ $f['fiscal_year'] }}
+                    {{ __('analytical_reports.fiscal_year') }}:
+                    {{ $f['fiscal_year'] === \App\Support\FiscalYear::ALL_KEY ? __('analytical_reports.all_years') : $f['fiscal_year'] }}
                     ·
                     @if(!empty($f['quarter']))
                         {{ __('analytical_reports.quarter') }}:
@@ -184,7 +185,11 @@
                         {{ __('analytical_reports.period') }}:
                         {{ __('analytical_reports.period_'.$f['period']) }}
                     @endif
-                    · {{ $f['date_from'] }} → {{ $f['date_to'] }}
+                    @if($f['date_from'] || $f['date_to'])
+                        · {{ $f['date_from'] ?? '—' }} → {{ $f['date_to'] ?? '—' }}
+                    @else
+                        · {{ __('analytical_reports.all_years') }}
+                    @endif
                 </p>
             </div>
         </div>

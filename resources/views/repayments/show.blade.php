@@ -3,6 +3,19 @@
 @section('title', __('repayments.schedule_title'))
 
 @section('content')
+@php
+    $paid = (float) $payment->amount_paid;
+    $outstanding = (float) $payment->outstanding_debt;
+    $disbursed = (float) $payment->amount_disbursed;
+    $interest = (float) $payment->interest_amount;
+    $totalPayable = $disbursed + $interest;
+    $collectable = $paid + $outstanding;
+    $collectionRate = $collectable > 0
+        ? (int) min(100, round(($paid / $collectable) * 100))
+        : 0;
+    $statusLabel = $indexService->statusLabel($payment);
+@endphp
+
 <div class="page space-y-6">
     <div class="page-header">
         <div>
@@ -12,26 +25,67 @@
         <a href="{{ route('repayments.index') }}" class="text-sm font-semibold text-indigo-600 dark:text-indigo-400 hover:underline">← {{ __('nav.repayments') }}</a>
     </div>
 
-    <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        <div class="rounded-2xl bg-white dark:dark-surface border border-slate-200 dark:border-white/[0.08] p-5">
-            <p class="text-xs text-slate-500 uppercase font-semibold">{{ __('repayments.disbursed_col') }}</p>
-            <p class="text-xl font-bold mt-1">{{ format_tzs($payment->amount_disbursed) }}</p>
-        </div>
-        <div class="rounded-2xl bg-white dark:dark-surface border border-slate-200 dark:border-white/[0.08] p-5">
-            <p class="text-xs text-slate-500 uppercase font-semibold">{{ __('repayments.interest') }}</p>
-            <p class="text-xl font-bold mt-1">{{ format_tzs($payment->interest_amount) }}</p>
-        </div>
-        <div class="rounded-2xl bg-white dark:dark-surface border border-slate-200 dark:border-white/[0.08] p-5">
-            <p class="text-xs text-slate-500 uppercase font-semibold">{{ __('repayments.total_payable') }}</p>
-            <p class="text-xl font-bold text-indigo-600 mt-1">{{ format_tzs((float) $payment->amount_disbursed + (float) $payment->interest_amount) }}</p>
-        </div>
-        <div class="rounded-2xl bg-white dark:dark-surface border border-slate-200 dark:border-white/[0.08] p-5">
-            <p class="text-xs text-slate-500 uppercase font-semibold">{{ __('repayments.outstanding') }}</p>
-            <p class="text-xl font-bold text-amber-600 mt-1">{{ format_tzs($payment->outstanding_debt) }}</p>
-        </div>
-    </div>
+    @if(session('error'))
+        @include('partials.status-card', [
+            'type' => 'error',
+            'message' => session('error'),
+            'autoDismiss' => true,
+        ])
+    @endif
 
-    @if((float) $payment->outstanding_debt > 0)
+    @include('partials.repayment-summary-strip', [
+        'title' => __('repayments.summary_title'),
+        'copy' => __('repayments.detail_summary_copy', [
+            'name' => $payment->loan?->applicant?->full_name ?? '—',
+            'status' => $statusLabel,
+            'interest' => format_tzs($interest),
+            'total' => format_tzs($totalPayable),
+        ]),
+        'rate' => $collectionRate,
+        'metrics' => [
+            [
+                'label' => __('repayments.disbursed_col'),
+                'value' => format_tzs($disbursed),
+            ],
+            [
+                'label' => __('repayments.amount_paid_col'),
+                'value' => format_tzs($paid),
+                'tone' => 'paid',
+            ],
+            [
+                'label' => __('repayments.outstanding'),
+                'value' => format_tzs($outstanding),
+                'tone' => 'outstanding',
+            ],
+        ],
+    ])
+
+    @if($isLoanApplicant)
+        @if($inGracePeriod && $graceEndsAt)
+            <div class="rounded-2xl border border-amber-200 bg-amber-50 dark:border-amber-900/50 dark:bg-amber-950/30 p-5">
+                <p class="font-bold text-amber-900 dark:text-amber-200">{{ __('repayments.grace_active_title') }}</p>
+                <p class="mt-1 text-sm text-amber-800 dark:text-amber-300/90">
+                    {{ __('repayments.grace_active_message', ['date' => $graceEndsAt->translatedFormat('d M Y')]) }}
+                </p>
+            </div>
+        @elseif($outstanding > 0 && $nextInstallment)
+            <div class="rounded-2xl border border-emerald-200 bg-emerald-50 dark:border-emerald-900/50 dark:bg-emerald-950/30 p-5">
+                <p class="font-bold text-emerald-900 dark:text-emerald-200">{{ __('repayments.start_payment_title') }}</p>
+                <p class="mt-1 text-sm text-emerald-800 dark:text-emerald-300/90">
+                    {{ __('repayments.start_payment_message', [
+                        'number' => $nextInstallment['installment'] ?? 1,
+                        'amount' => format_tzs($nextInstallment['amount_due'] ?? $suggestedAmount),
+                        'date' => \Illuminate\Support\Carbon::parse($nextInstallment['due_date'])->translatedFormat('d M Y'),
+                    ]) }}
+                </p>
+                <p class="mt-3 font-mono text-lg font-bold text-emerald-700 dark:text-emerald-300">
+                    {{ __('repayments.payment_number', ['number' => $nextInstallment['installment'] ?? 1]) }}
+                </p>
+            </div>
+        @endif
+    @endif
+
+    @if($isLoanApplicant && (float) $payment->outstanding_debt > 0)
     <div class="app-card app-card-padded space-y-4">
         <h2 class="font-bold text-slate-900 dark:text-white">{{ __('repayments.pay_here') }}</h2>
         <div class="rounded-xl bg-indigo-50 dark:bg-indigo-950/40 border border-indigo-100 dark:border-indigo-900/50 p-4">
@@ -50,9 +104,11 @@
                     <dd class="font-semibold">{{ $account['account_name'] }}</dd>
                 </div>
             </dl>
+            <p class="mt-3 text-xs font-semibold uppercase tracking-wide text-indigo-700 dark:text-indigo-300">{{ __('repayments.accepted_methods') }}</p>
+            <p class="mt-1 text-sm text-slate-600 dark:text-zinc-400">{{ implode(' · ', $paymentMethods) }}</p>
         </div>
 
-        @can('record repayment')
+        @if($canRecordPayment)
         <form method="POST" action="{{ route('repayments.pay', $payment) }}" class="grid gap-4 sm:grid-cols-3">
             @csrf
             <div>
@@ -65,14 +121,24 @@
                 ])
             </div>
             <div>
-                <label class="app-label" for="reference">{{ __('repayments.payment_reference') }}</label>
-                <input type="text" name="reference" id="reference" value="{{ old('reference') }}" class="app-input" placeholder="{{ __('repayments.reference_placeholder') }}">
+                <label class="app-label" for="method">{{ __('repayments.method') }}</label>
+                <select name="method" id="method" required class="app-input">
+                    <option value="">{{ __('repayments.select_method') }}</option>
+                    @foreach($paymentMethods as $method)
+                        <option value="{{ $method }}" @selected(old('method') === $method)>{{ $method }}</option>
+                    @endforeach
+                </select>
+                @error('method')
+                    <p class="mt-1 text-sm text-rose-600">{{ $message }}</p>
+                @enderror
             </div>
             <div class="flex items-end">
                 <button type="submit" class="app-btn app-btn-primary w-full">{{ __('repayments.submit_payment') }}</button>
             </div>
         </form>
-        @endcan
+        @elseif($inGracePeriod)
+        <p class="text-sm text-slate-500 dark:text-zinc-400">{{ __('repayments.recording_after_grace') }}</p>
+        @endif
     </div>
     @endif
 
@@ -94,9 +160,9 @@
                 <tbody>
                     @forelse($transactions as $index => $tx)
                     <tr>
-                        <td>{{ \Illuminate\Support\Carbon::parse($tx['date'])->translatedFormat('d M Y') }}</td>
+                        <td>{{ format_payment_datetime($tx['date'] ?? null) }}</td>
                         <td>{{ format_tzs($tx['amount']) }}</td>
-                        <td>{{ $tx['reference'] ?? '—' }}</td>
+                        <td class="font-mono">{{ $tx['reference'] ?? $tx['receipt_number'] ?? '—' }}</td>
                         <td>{{ $tx['method'] ?? '—' }}</td>
                         <td class="print:hidden">
                             <a href="{{ route('repayments.receipt', [$payment, $index]) }}" class="app-btn app-btn-secondary app-btn-sm">

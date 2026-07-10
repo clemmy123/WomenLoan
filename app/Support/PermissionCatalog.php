@@ -69,7 +69,12 @@ class PermissionCatalog
             ],
             'administration' => [
                 'label' => __('permissions.groups.administration'),
-                'permissions' => ['manage users', 'manage roles'],
+                'permissions' => [
+                    'view administration dashboard',
+                    'manage users',
+                    'manage roles',
+                    'view audit logs',
+                ],
             ],
         ];
     }
@@ -94,8 +99,10 @@ class PermissionCatalog
             'manage loan groups' => __('nav.loan_groups'),
             'view repayments' => __('nav.repayments'),
             'view reports' => __('nav.reports'),
+            'view administration dashboard' => __('nav.admin_dashboard'),
             'manage users' => __('nav.users'),
             'manage roles' => __('nav.roles'),
+            'view audit logs' => __('nav.audit_logs'),
         ];
     }
 
