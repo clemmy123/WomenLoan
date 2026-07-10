@@ -1,18 +1,20 @@
-@if (session('status'))
-    @include('partials.status-card', [
-        'type' => 'success',
-        'message' => session('status'),
-        'class' => 'app-status-card--auth',
-        'autoDismiss' => true,
-    ])
+@if(session('status'))
+    <div class="app-flash-stack" data-auto-dismiss>
+        @include('partials.status-card', [
+            'type' => 'success',
+            'message' => session('status'),
+            'toast' => true,
+        ])
+    </div>
 @endif
 
 @if($errors->any())
-    @include('partials.status-card', [
-        'type' => 'error',
-        'message' => $errors->count() === 1 ? $errors->first() : __('common.errors_below'),
-        'errors' => $errors->count() > 1 ? $errors->all() : [],
-        'class' => 'app-status-card--auth',
-        'autoDismiss' => true,
-    ])
+    <div class="app-flash-stack" data-auto-dismiss>
+        @include('partials.status-card', [
+            'type' => 'error',
+            'message' => $errors->count() === 1 ? $errors->first() : __('common.errors_below'),
+            'errors' => $errors->count() > 1 ? $errors->all() : [],
+            'toast' => true,
+        ])
+    </div>
 @endif

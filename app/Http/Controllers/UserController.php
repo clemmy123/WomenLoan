@@ -53,14 +53,22 @@ class UserController extends Controller
 
     public function update(UpdateUserRequest $request, User $user)
     {
+        $unlockLogin = $request->boolean('unlock_login');
+
         $this->users->update(
             $user,
             $request->validated(),
-            $request->boolean('is_active', true)
+            $request->boolean('is_active', true),
+            $unlockLogin
         );
 
+        $message = __('messages.user_updated');
+        if ($unlockLogin) {
+            $message = __('messages.user_updated_and_unlocked');
+        }
+
         return redirect()->route('admin.users.index')
-            ->with('success', __('messages.user_updated'));
+            ->with('success', $message);
     }
 
     public function destroy(User $user)

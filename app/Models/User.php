@@ -35,6 +35,10 @@ class User extends Authenticatable
         'zoneable_type',
         'zoneable_id',
         'is_active',
+        'failed_login_attempts',
+        'login_lockout_rounds',
+        'login_locked_until',
+        'login_locked_permanently',
     ];
 
     protected $hidden = [
@@ -48,6 +52,8 @@ class User extends Authenticatable
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
             'is_active' => 'boolean',
+            'login_locked_until' => 'datetime',
+            'login_locked_permanently' => 'boolean',
         ];
     }
 

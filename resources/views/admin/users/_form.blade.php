@@ -82,6 +82,22 @@
             <input type="checkbox" name="is_active" value="1" {{ old('is_active', $user?->is_active ?? true) ? 'checked' : '' }} class="rounded border-slate-300 text-indigo-600">
             {{ __('admin.active_account') }}
         </label>
+
+        @if($user?->login_locked_permanently || $user?->login_locked_until)
+            <div class="rounded-xl border border-amber-200 bg-amber-50 dark:bg-amber-900/20 dark:border-amber-800 p-3 space-y-2">
+                <p class="text-sm font-semibold text-amber-800 dark:text-amber-200">
+                    @if($user->login_locked_permanently)
+                        {{ __('admin.login_locked_permanently_notice') }}
+                    @else
+                        {{ __('admin.login_locked_temporarily_notice') }}
+                    @endif
+                </p>
+                <label class="flex items-center gap-2 text-sm text-slate-700 dark:text-zinc-200">
+                    <input type="checkbox" name="unlock_login" value="1" {{ old('unlock_login') ? 'checked' : '' }} class="rounded border-slate-300 text-indigo-600">
+                    {{ __('admin.unlock_login') }}
+                </label>
+            </div>
+        @endif
     </div>
 
     <div class="app-card app-card-padded">

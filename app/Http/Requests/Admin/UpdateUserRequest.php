@@ -52,6 +52,7 @@ class UpdateUserRequest extends FormRequest
             'zone_type' => 'nullable|in:region,council,ward',
             'zone_id' => 'nullable|integer',
             'is_active' => 'boolean',
+            'unlock_login' => 'boolean',
         ];
     }
 }

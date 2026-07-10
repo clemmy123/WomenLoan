@@ -6,11 +6,15 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Auth\RegisterRequest;
 use App\Models\Concerns\HasDisplayName;
 use App\Models\User;
+use App\Services\LoginLockoutService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Hash;
 
 class AuthController extends Controller
 {
+    public function __construct(private LoginLockoutService $lockout) {}
+
     public function showLogin()
     {
         return view('auth.login');
@@ -23,25 +27,49 @@ class AuthController extends Controller
             'password' => ['required'],
         ]);
 
-        if (Auth::attempt($credentials, $request->boolean('remember'))) {
-            $request->session()->regenerate();
+        $email = $credentials['email'];
+        $user = $this->lockout->findByEmail($email);
 
-            if (! Auth::user()->is_active) {
-                Auth::logout();
-
-                return back()->withErrors(['email' => __('auth.inactive')]);
+        if ($user) {
+            $guard = $this->lockout->guard($user);
+            if ($guard['blocked']) {
+                return back()
+                    ->withErrors(['email' => $guard['message']])
+                    ->onlyInput('email');
             }
 
+            if (! $user->is_active) {
+                return back()
+                    ->withErrors(['email' => __('auth.inactive')])
+                    ->onlyInput('email');
+            }
+        }
+
+        if ($user && Hash::check($credentials['password'], $user->password)) {
+            Auth::login($user, $request->boolean('remember'));
+            $request->session()->regenerate();
+            $this->lockout->clearOnSuccess($user);
+
             activity('audit')
-                ->causedBy(Auth::user())
-                ->performedOn(Auth::user())
+                ->causedBy($user)
+                ->performedOn($user)
                 ->event('login')
                 ->log('User logged in');
 
             return redirect()->intended(route('dashboard'));
         }
 
-        return back()->withErrors(['email' => __('auth.failed')])->onlyInput('email');
+        if ($user) {
+            $result = $this->lockout->registerFailure($user);
+
+            return back()
+                ->withErrors(['email' => $result['message']])
+                ->onlyInput('email');
+        }
+
+        return back()
+            ->withErrors(['email' => __('auth.failed')])
+            ->onlyInput('email');
     }
 
     public function showRegister()

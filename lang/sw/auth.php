@@ -2,7 +2,17 @@
 
 return [
     'failed' => 'Taarifa hizi hazilingani na rekodi zetu.',
+    'failed_with_remaining' => '{1} Nenosiri si sahihi. Unabaki na jaribio :remaining moja kabla akaunti hii ifungwe kwa dakika :minutes.|[2,*] Nenosiri si sahihi. Unabaki na majaribio :remaining kabla akaunti hii ifungwe kwa dakika :minutes.',
+    'locked_for_minutes' => 'Umejaribu nenosiri lisilo sahihi mara nyingi. Akaunti hii imefungwa kwa dakika :minutes. Tafadhali subiri, kisha ujaribu tena. Baada ya kusubiri utapata nafasi nyingine. Ukirudia kukosea nenosiri mara 3 tena, akaunti itafungwa kabisa na utahitajika kuwasiliana na msimamizi.',
+    'locked_temporarily' => 'Akaunti hii imefungwa kwa muda kwa sababu ya majaribio ya nenosiri yasiyo sahihi. Tafadhali subiri takriban dakika :minutes, kisha ujaribu tena.',
+    'locked_permanently' => 'Akaunti hii imefungwa kabisa kwa sababu ya majaribio ya nenosiri yasiyo sahihi yaliyorudiwa. Tafadhali wasiliana na msimamizi wa mfumo ili afungue barua pepe/akaunti yako.',
     'inactive' => 'Akaunti yako imezimwa. Wasiliana na msimamizi.',
+    'unlock_email_subject' => 'Kuingia kwa akaunti yako ya WDF kumefunguliwa',
+    'unlock_email_greeting' => 'Habari :name,',
+    'unlock_email_line_1' => 'Msimamizi amefungua akaunti yako baada ya kufungiwa kwa sababu ya nenosiri.',
+    'unlock_email_line_2' => 'Sasa unaweza kuingia tena. Majaribio yako ya kuingia yamerudishwa upya, kwa hiyo unaanza na nafasi mpya.',
+    'unlock_email_action' => 'Ingia sasa',
+    'unlock_email_line_3' => 'Ikiwa hukuiomba hii, wasiliana na msimamizi mara moja.',
     'register_prompt' => 'Huna akaunti?',
     'login_prompt' => 'Tayari una akaunti?',
     'register_title' => 'Unda Akaunti',

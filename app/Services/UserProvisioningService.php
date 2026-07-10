@@ -31,7 +31,7 @@ class UserProvisioningService
         return $user;
     }
 
-    public function update(User $user, array $validated, bool $isActive = true): User
+    public function update(User $user, array $validated, bool $isActive = true, bool $unlockLogin = false): User
     {
         $payload = [
             'check_number' => $validated['check_number'],
@@ -55,6 +55,10 @@ class UserProvisioningService
         $user->update($payload);
         $user->syncZone($validated);
         $user->syncRoles($this->sanitizeRoles($validated['roles'] ?? []));
+
+        if ($unlockLogin) {
+            app(LoginLockoutService::class)->unlock($user->fresh(), notify: true);
+        }
 
         return $user;
     }

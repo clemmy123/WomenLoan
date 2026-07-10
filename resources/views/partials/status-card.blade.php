@@ -3,7 +3,8 @@
     $message = $message ?? '';
     $errors = $errors ?? [];
     $autoDismiss = $autoDismiss ?? false;
-    $class = trim(($class ?? '') . ' app-status-card app-status-card--' . $type);
+    $toast = $toast ?? $autoDismiss;
+    $class = trim(($class ?? '') . ' app-status-card app-status-card--' . $type . ($toast ? ' app-status-card--toast' : ''));
     $role = $type === 'success' ? 'status' : 'alert';
 @endphp
 <div class="{{ $class }}" role="{{ $role }}" @if($autoDismiss) data-auto-dismiss @endif>
@@ -21,15 +22,17 @@
                 </svg>
             @endif
         </div>
-        @if($message !== '')
-            <p class="app-status-card-message">{{ $message }}</p>
-        @endif
-        @if(! empty($errors))
-            <ul class="app-status-card-list">
-                @foreach($errors as $error)
-                    <li>{{ $error }}</li>
-                @endforeach
-            </ul>
-        @endif
+        <div class="app-status-card-content">
+            @if($message !== '')
+                <p class="app-status-card-message">{{ $message }}</p>
+            @endif
+            @if(! empty($errors))
+                <ul class="app-status-card-list">
+                    @foreach($errors as $error)
+                        <li>{{ $error }}</li>
+                    @endforeach
+                </ul>
+            @endif
+        </div>
     </div>
 </div>

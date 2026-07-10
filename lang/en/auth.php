@@ -2,7 +2,17 @@
 
 return [
     'failed' => 'These credentials do not match our records.',
+    'failed_with_remaining' => '{1} Wrong password. You have :remaining attempt left before this account is locked for :minutes minutes.|[2,*] Wrong password. You have :remaining attempts left before this account is locked for :minutes minutes.',
+    'locked_for_minutes' => 'Too many wrong password attempts. This account is locked for :minutes minutes. Please wait, then try again. You will get one more chance after the wait. If you enter the wrong password 3 times again, the account will be locked permanently and you must contact the administrator.',
+    'locked_temporarily' => 'This account is temporarily locked because of wrong password attempts. Please wait about :minutes minute(s), then try again.',
+    'locked_permanently' => 'This account has been locked permanently because of repeated wrong password attempts. Please contact the system administrator to unlock your email/account.',
     'inactive' => 'Your account has been deactivated. Contact administrator.',
+    'unlock_email_subject' => 'Your WDF account login has been unlocked',
+    'unlock_email_greeting' => 'Hello :name,',
+    'unlock_email_line_1' => 'An administrator has unlocked your account after the password lockout.',
+    'unlock_email_line_2' => 'You can now sign in again. Your login attempts have been reset, so you start with a fresh chance.',
+    'unlock_email_action' => 'Sign in now',
+    'unlock_email_line_3' => 'If you did not request this, please contact the administrator immediately.',
     'register_prompt' => "Don't have an account?",
     'login_prompt' => 'Already have an account?',
     'register_title' => 'Create Account',

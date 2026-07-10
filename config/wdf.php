@@ -19,4 +19,6 @@ return [
     'repayment_term_months' => (int) env('WDF_REPAYMENT_TERM_MONTHS', 12),
     'grace_period_months' => (int) env('WDF_GRACE_PERIOD_MONTHS', 3),
     'interest_rate' => 0.16,
+    'login_max_attempts' => (int) env('WDF_LOGIN_MAX_ATTEMPTS', 3),
+    'login_lockout_minutes' => (int) env('WDF_LOGIN_LOCKOUT_MINUTES', 5),
 ];

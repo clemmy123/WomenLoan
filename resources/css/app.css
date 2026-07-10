@@ -1583,32 +1583,37 @@
     }
 
     .app-flash-stack {
+        position: fixed;
+        top: 1rem;
+        right: 1rem;
+        z-index: 90;
         display: flex;
         flex-direction: column;
-        gap: 0.75rem;
-        width: 100%;
-        margin-bottom: 1.5rem;
-        align-items: center;
+        gap: 0.5rem;
+        width: min(22rem, calc(100vw - 1.5rem));
+        margin: 0;
+        align-items: stretch;
+        pointer-events: none;
+    }
+
+    .app-flash-stack > * {
+        pointer-events: auto;
     }
 
     [data-auto-dismiss].app-flash-dismissing,
     .app-flash-stack.app-flash-dismissing {
         opacity: 0;
-        transform: translateY(-0.35rem);
-        margin-bottom: 0 !important;
-        max-height: 0;
-        overflow: hidden;
+        transform: translateX(1.25rem);
         pointer-events: none;
         transition:
-            opacity 0.4s ease,
-            transform 0.4s ease,
-            max-height 0.45s ease,
-            margin 0.45s ease;
+            opacity 0.35s ease,
+            transform 0.35s ease;
     }
 
     html.a11y-reduce-motion [data-auto-dismiss].app-flash-dismissing,
     html.a11y-reduce-motion .app-flash-stack.app-flash-dismissing {
         transition: none;
+        transform: none;
     }
 
     .password-requirements {
@@ -1691,31 +1696,53 @@
         color: #4ade80;
     }
 
-    /* Status card — submission success / error feedback */
+    /* Status card — slim toast feedback */
     .app-status-card {
         position: relative;
+        display: flex;
+        align-items: stretch;
         width: 100%;
-        max-width: 26rem;
+        max-width: 22rem;
         overflow: hidden;
-        border-radius: 0.75rem;
-        background: linear-gradient(165deg, #ffffff 0%, #fafbff 42%, #f8fafc 100%);
+        border-radius: 0.55rem;
+        background: #ffffff;
         border: 1px solid #e2e8f0;
         box-shadow:
-            0 10px 30px rgba(15, 23, 42, 0.08),
-            0 0 0 1px rgba(99, 102, 241, 0.04);
+            0 8px 24px rgba(15, 23, 42, 0.1),
+            0 0 0 1px rgba(15, 23, 42, 0.03);
     }
 
     .dark .app-status-card {
-        background: linear-gradient(165deg, #121212 0%, #0f0f12 45%, #0a0a0a 100%);
-        border-color: rgba(255, 255, 255, 0.08);
+        background: #121214;
+        border-color: rgba(255, 255, 255, 0.1);
         box-shadow:
-            0 10px 30px rgba(0, 0, 0, 0.35),
+            0 10px 28px rgba(0, 0, 0, 0.4),
             0 0 0 1px rgba(255, 255, 255, 0.04);
+    }
+
+    .app-status-card--toast {
+        animation: app-toast-in 0.45s cubic-bezier(0.22, 1, 0.36, 1);
+    }
+
+    /* Standalone auto-dismiss cards (outside flash stack) still toast top-right */
+    .app-status-card--toast[data-auto-dismiss] {
+        position: fixed;
+        top: 1rem;
+        right: 1rem;
+        z-index: 90;
+        width: min(22rem, calc(100vw - 1.5rem));
+        max-width: none;
+    }
+
+    .app-flash-stack .app-status-card--toast[data-auto-dismiss] {
+        position: relative;
+        top: auto;
+        right: auto;
+        width: 100%;
     }
 
     .app-status-card--auth {
         max-width: none;
-        margin-bottom: 1rem;
     }
 
     .app-status-card.mt-4 {
@@ -1723,87 +1750,133 @@
     }
 
     .app-status-card-accent {
-        height: 0.28rem;
-        width: 100%;
+        width: 0.22rem;
+        flex-shrink: 0;
+        align-self: stretch;
     }
 
     .app-status-card--success .app-status-card-accent {
-        background: linear-gradient(90deg, #06b6d4 0%, #10b981 52%, #059669 100%);
+        background: linear-gradient(180deg, #06b6d4 0%, #10b981 100%);
     }
 
     .app-status-card--error .app-status-card-accent {
-        background: linear-gradient(90deg, #f87171 0%, #ef4444 50%, #dc2626 100%);
+        background: linear-gradient(180deg, #f87171 0%, #dc2626 100%);
     }
 
     .app-status-card-body {
-        padding: 1.35rem 1.25rem 1.5rem;
-        text-align: center;
+        display: flex;
+        align-items: flex-start;
+        gap: 0.65rem;
+        flex: 1;
+        min-width: 0;
+        padding: 0.65rem 0.8rem;
+        text-align: left;
     }
 
     .app-status-card-icon {
         display: inline-flex;
         align-items: center;
         justify-content: center;
-        height: 3.25rem;
-        width: 3.25rem;
-        margin-inline: auto;
+        height: 1.7rem;
+        width: 1.7rem;
+        margin: 0;
+        flex-shrink: 0;
         border-radius: 9999px;
     }
 
     .app-status-card-icon svg {
-        height: 1.55rem;
-        width: 1.55rem;
+        height: 0.95rem;
+        width: 0.95rem;
     }
 
     .app-status-card--success .app-status-card-icon {
-        background: linear-gradient(135deg, rgba(6, 182, 212, 0.14) 0%, rgba(16, 185, 129, 0.16) 100%);
+        background: rgba(16, 185, 129, 0.12);
         color: #059669;
     }
 
     .dark .app-status-card--success .app-status-card-icon {
-        background: linear-gradient(135deg, rgba(6, 182, 212, 0.2) 0%, rgba(16, 185, 129, 0.18) 100%);
+        background: rgba(16, 185, 129, 0.18);
         color: #34d399;
     }
 
     .app-status-card--error .app-status-card-icon {
-        background: linear-gradient(135deg, rgba(248, 113, 113, 0.16) 0%, rgba(239, 68, 68, 0.14) 100%);
+        background: rgba(239, 68, 68, 0.12);
         color: #dc2626;
     }
 
     .dark .app-status-card--error .app-status-card-icon {
-        background: linear-gradient(135deg, rgba(248, 113, 113, 0.22) 0%, rgba(239, 68, 68, 0.18) 100%);
+        background: rgba(239, 68, 68, 0.18);
         color: #f87171;
     }
 
+    .app-status-card-content {
+        min-width: 0;
+        flex: 1;
+    }
+
     .app-status-card-message {
-        margin-top: 0.85rem;
-        font-size: 0.9375rem;
-        font-weight: 800;
-        line-height: 1.45;
+        margin: 0;
+        font-size: 0.8125rem;
+        font-weight: 650;
+        line-height: 1.35;
         letter-spacing: -0.01em;
         color: #1e293b;
     }
 
     .dark .app-status-card-message {
-        color: #f8fafc;
+        color: #f1f5f9;
     }
 
     .app-status-card-list {
-        margin-top: 0.55rem;
-        font-size: 0.8125rem;
+        margin: 0.3rem 0 0;
+        font-size: 0.75rem;
         font-weight: 500;
-        line-height: 1.5;
+        line-height: 1.4;
         color: #64748b;
         list-style: none;
         padding: 0;
     }
 
     .app-status-card-list li + li {
-        margin-top: 0.25rem;
+        margin-top: 0.15rem;
     }
 
     .dark .app-status-card-list {
         color: #a1a1aa;
+    }
+
+    @keyframes app-toast-in {
+        0% {
+            opacity: 0;
+            transform: translateX(1.5rem) scale(0.98);
+        }
+
+        70% {
+            opacity: 1;
+            transform: translateX(-0.15rem) scale(1.01);
+        }
+
+        100% {
+            opacity: 1;
+            transform: translateX(0) scale(1);
+        }
+    }
+
+    html.a11y-reduce-motion .app-status-card--toast {
+        animation: none;
+    }
+
+    @media (max-width: 640px) {
+        .app-flash-stack {
+            top: 0.75rem;
+            right: 0.75rem;
+            left: 0.75rem;
+            width: auto;
+        }
+
+        .app-status-card {
+            max-width: none;
+        }
     }
 
     .app-alert {

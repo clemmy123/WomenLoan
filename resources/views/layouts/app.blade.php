@@ -56,8 +56,8 @@
         </div>
 
         <main class="app-main">
+            @include('partials.flash-messages')
             <div class="max-w-7xl mx-auto app-content-shell p-6 lg:p-10">
-                @include('partials.flash-messages')
                 @yield('content')
             </div>
         </main>
