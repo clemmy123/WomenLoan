@@ -28,6 +28,8 @@ return [
     'submit' => 'Wasilisha',
     'search' => 'Tafuta',
     'filter' => 'Chuja',
+    'show_filters' => 'Onyesha vichujio',
+    'hide_filters' => 'Ficha vichujio',
     'clear' => 'Futa',
     'actions' => 'Vitendo',
     'attachment' => 'Kiambatisho',

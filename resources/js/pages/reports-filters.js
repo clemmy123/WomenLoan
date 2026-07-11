@@ -9,12 +9,30 @@ document.addEventListener('alpine:init', () => {
         selectedStreet: config.selectedStreet ?? '',
         filtersOpen: Boolean(config.filtersOpen),
         geoApi: config.geoApi ?? {},
+        locks: config.locks ?? {},
         districts: [],
         councils: [],
         wards: [],
         streets: [],
 
+        isLocked(field) {
+            return Boolean(this.locks?.[field]);
+        },
+
         async init() {
+            if (this.locks.region_id) {
+                this.selectedRegion = String(this.locks.region_id);
+            }
+            if (this.locks.district_id) {
+                this.selectedDistrict = String(this.locks.district_id);
+            }
+            if (this.locks.council_id) {
+                this.selectedCouncil = String(this.locks.council_id);
+            }
+            if (this.locks.ward_id) {
+                this.selectedWard = String(this.locks.ward_id);
+            }
+
             if (this.selectedRegion) {
                 await this.loadDistricts(this.selectedRegion);
             }
@@ -31,6 +49,10 @@ document.addEventListener('alpine:init', () => {
 
         async fetchGeo(url, target) {
             const response = await fetch(url, { headers: { Accept: 'application/json' } });
+            if (!response.ok) {
+                this[target] = [];
+                return;
+            }
             const data = await response.json();
             this[target] = data?.data ?? data;
 
@@ -76,9 +98,13 @@ document.addEventListener('alpine:init', () => {
         },
 
         onRegionChange() {
-            this.selectedDistrict = '';
-            this.selectedCouncil = '';
-            this.selectedWard = '';
+            if (this.isLocked('region_id')) {
+                this.selectedRegion = String(this.locks.region_id);
+                return;
+            }
+            this.selectedDistrict = this.locks.district_id ? String(this.locks.district_id) : '';
+            this.selectedCouncil = this.locks.council_id ? String(this.locks.council_id) : '';
+            this.selectedWard = this.locks.ward_id ? String(this.locks.ward_id) : '';
             this.selectedStreet = '';
             this.councils = [];
             this.wards = [];
@@ -87,8 +113,12 @@ document.addEventListener('alpine:init', () => {
         },
 
         onDistrictChange() {
-            this.selectedCouncil = '';
-            this.selectedWard = '';
+            if (this.isLocked('district_id')) {
+                this.selectedDistrict = String(this.locks.district_id);
+                return;
+            }
+            this.selectedCouncil = this.locks.council_id ? String(this.locks.council_id) : '';
+            this.selectedWard = this.locks.ward_id ? String(this.locks.ward_id) : '';
             this.selectedStreet = '';
             this.wards = [];
             this.streets = [];
@@ -96,13 +126,21 @@ document.addEventListener('alpine:init', () => {
         },
 
         onCouncilChange() {
-            this.selectedWard = '';
+            if (this.isLocked('council_id')) {
+                this.selectedCouncil = String(this.locks.council_id);
+                return;
+            }
+            this.selectedWard = this.locks.ward_id ? String(this.locks.ward_id) : '';
             this.selectedStreet = '';
             this.streets = [];
             this.loadWards(this.selectedCouncil);
         },
 
         onWardChange() {
+            if (this.isLocked('ward_id')) {
+                this.selectedWard = String(this.locks.ward_id);
+                return;
+            }
             this.selectedStreet = '';
             this.loadStreets(this.selectedWard);
         },

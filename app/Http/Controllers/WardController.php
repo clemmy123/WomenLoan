@@ -40,7 +40,7 @@ class WardController extends Controller
      */
     public function getWards(int $councilId)
     {
-        return response()->json($this->geo->wardsFor(Council::findOrFail($councilId)));
+        return response()->json($this->geo->wardsForUser(Council::findOrFail($councilId)));
     }
 
     /**

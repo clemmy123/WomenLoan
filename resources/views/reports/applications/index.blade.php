@@ -30,18 +30,11 @@
     </div>
 
     <form method="GET" action="{{ route('reports.applications.index') }}" class="app-card app-card-padded space-y-5">
-        <button
-            type="button"
-            @click="filtersOpen = !filtersOpen"
-            class="flex w-full items-center justify-between gap-3 text-left"
-            :aria-expanded="filtersOpen.toString()"
-        >
-            <h2 class="text-sm font-semibold tracking-wide uppercase text-indigo-600">{{ __('application_reports.filters') }}</h2>
-            <span class="inline-flex items-center gap-2 text-xs font-semibold text-slate-500 dark:text-zinc-400">
-                <span x-text="filtersOpen ? @js(__('application_reports.hide_filters')) : @js(__('application_reports.show_filters'))"></span>
-                <svg class="h-4 w-4 transition-transform duration-200" :class="filtersOpen ? 'rotate-180' : ''" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
-            </span>
-        </button>
+        @include('partials.filters-toggle-button', [
+            'title' => __('application_reports.filters'),
+            'showLabel' => __('application_reports.show_filters'),
+            'hideLabel' => __('application_reports.hide_filters'),
+        ])
 
         <div
             x-show="filtersOpen"

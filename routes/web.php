@@ -43,13 +43,15 @@ Route::get('/', function () {
     return auth()->check() ? redirect()->route('dashboard') : view('home');
 })->name('home');
 
-Route::middleware(['auth'])->group(function () {
+Route::middleware(['auth', 'password.changed'])->group(function () {
     Route::get('/dashboard', [DashboardController::class, 'index'])
         ->middleware('can:view dashboard')
         ->name('dashboard');
 
     Route::get('/profile/password', [ProfilePasswordController::class, 'edit'])->name('profile.password.edit');
     Route::put('/profile/password', [ProfilePasswordController::class, 'update'])->name('profile.password.update');
+    Route::get('/profile/password/required', [ProfilePasswordController::class, 'editRequired'])->name('profile.password.required');
+    Route::put('/profile/password/required', [ProfilePasswordController::class, 'updateRequired'])->name('profile.password.required.update');
 
     Route::get('/track', [WorkflowController::class, 'track'])
         ->middleware('can:view loan by track id')

@@ -28,6 +28,8 @@ return [
     'submit' => 'Submit',
     'search' => 'Search',
     'filter' => 'Filter',
+    'show_filters' => 'Show filters',
+    'hide_filters' => 'Hide filters',
     'clear' => 'Clear',
     'actions' => 'Actions',
     'attachment' => 'Attachment',

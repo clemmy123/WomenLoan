@@ -44,4 +44,9 @@ return [
     'password_rule_number' => 'At least one number (0–9)',
     'password_rule_symbol' => 'At least one special character (!@#$…)',
     'password_strong' => 'Strong password',
+    'temporary_password_must_change' => 'You signed in with a temporary password. Please create your own password now. You have :minutes minutes.',
+    'temporary_password_expired' => 'Your temporary password has expired. Contact the administrator to issue a new password.',
+    'temporary_password_deadline' => 'Temporary password expires at :time. Create your own password before then.',
+    'set_own_password' => 'Create your own password',
+    'save_own_password' => 'Save password',
 ];

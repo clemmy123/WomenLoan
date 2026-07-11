@@ -55,4 +55,39 @@ class UpdateUserRequest extends FormRequest
             'unlock_login' => 'boolean',
         ];
     }
+
+    public function withValidator($validator): void
+    {
+        $validator->after(function ($validator) {
+            $actor = $this->user();
+            $target = $this->route('user');
+
+            if ($this->filled('password') && ! $actor->can('reset user password')) {
+                $validator->errors()->add('password', __('messages.cannot_reset_password'));
+            }
+
+            if (! $this->has('is_active')) {
+                return;
+            }
+
+            $desired = $this->boolean('is_active');
+            $current = (bool) $target->is_active;
+
+            if ($desired === $current) {
+                return;
+            }
+
+            if ($desired && ! $actor->can('activate users')) {
+                $validator->errors()->add('is_active', __('messages.cannot_activate_users'));
+            }
+
+            if (! $desired && ! $actor->can('deactivate users')) {
+                $validator->errors()->add('is_active', __('messages.cannot_deactivate_users'));
+            }
+
+            if (! $desired && $target->id === $actor->id) {
+                $validator->errors()->add('is_active', __('messages.cannot_deactivate_self'));
+            }
+        });
+    }
 }

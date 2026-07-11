@@ -129,6 +129,46 @@ class CdoLoanScopeTest extends TestCase
             ->assertSee(__('loans.cdo_view_only_colleague'), false);
     }
 
+    public function test_ward_cdo_report_filters_only_own_region_and_locks_zone(): void
+    {
+        $ward = Ward::where('name', 'Tambukareli')->firstOrFail();
+        $ward->loadMissing('council.district.region');
+        $ownRegion = $ward->council->district->region;
+        $otherRegion = \App\Models\Region::query()->whereKeyNot($ownRegion->id)->first();
+
+        $response = $this->actingAsRole('ward.cdo@wdf.go.tz')
+            ->get(route('reports.index'));
+
+        $response->assertOk();
+        $response->assertSee($ownRegion->name, false);
+        if ($otherRegion) {
+            $response->assertDontSee('>'.$otherRegion->name.'<', false);
+        }
+
+        $this->actingAsRole('ward.cdo@wdf.go.tz')
+            ->get(route('loans.api.districts', $otherRegion?->id ?? 999999))
+            ->assertForbidden();
+
+        $this->actingAsRole('ward.cdo@wdf.go.tz')
+            ->get(route('loans.api.districts', $ownRegion->id))
+            ->assertOk();
+    }
+
+    public function test_ministry_can_see_all_regions_in_report_filters(): void
+    {
+        $regionCount = \App\Models\Region::query()->count();
+
+        $this->actingAsRole('ministry@wdf.go.tz')
+            ->get(route('reports.index'))
+            ->assertOk();
+
+        $this->assertGreaterThan(1, $regionCount);
+        $regions = app(\App\Services\GeoHierarchyService::class)->regionsForUser(
+            User::where('email', 'ministry@wdf.go.tz')->firstOrFail()
+        );
+        $this->assertCount($regionCount, $regions);
+    }
+
     private function createLoanInWard(
         Ward $ward,
         string $trackId,

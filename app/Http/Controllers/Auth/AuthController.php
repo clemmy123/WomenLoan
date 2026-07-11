@@ -46,15 +46,33 @@ class AuthController extends Controller
         }
 
         if ($user && Hash::check($credentials['password'], $user->password)) {
+            if ($user->mustChangePassword() && $user->temporaryPasswordExpired()) {
+                return back()
+                    ->withErrors(['email' => __('auth.temporary_password_expired')])
+                    ->onlyInput('email');
+            }
+
             Auth::login($user, $request->boolean('remember'));
             $request->session()->regenerate();
             $this->lockout->clearOnSuccess($user);
+
+            if ($user->mustChangePassword()) {
+                $user->startTemporaryPasswordWindow();
+            }
 
             activity('audit')
                 ->causedBy($user)
                 ->performedOn($user)
                 ->event('login')
                 ->log('User logged in');
+
+            if ($user->mustChangePassword()) {
+                return redirect()
+                    ->route('profile.password.required')
+                    ->with('warning', __('auth.temporary_password_must_change', [
+                        'minutes' => (int) config('wdf.temporary_password_minutes', 2),
+                    ]));
+            }
 
             return redirect()->intended(route('dashboard'));
         }

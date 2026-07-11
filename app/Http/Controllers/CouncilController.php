@@ -40,7 +40,7 @@ class CouncilController extends Controller
      */
     public function getCouncils(int $districtId)
     {
-        return response()->json($this->geo->councilsFor(District::findOrFail($districtId)));
+        return response()->json($this->geo->councilsForUser(District::findOrFail($districtId)));
     }
 
     /**

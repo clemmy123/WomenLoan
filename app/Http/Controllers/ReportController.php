@@ -34,8 +34,17 @@ class ReportController extends Controller
         $rows = $this->reports->paginatedRows($filters);
         $regions = $this->reports->regions();
         $fiscalYearOptions = $this->reports->fiscalYearOptions();
+        $geoBounds = app(\App\Services\GeoHierarchyService::class)->zoneBounds();
 
-        return view('reports.index', compact('filters', 'summary', 'charts', 'rows', 'regions', 'fiscalYearOptions'));
+        return view('reports.index', compact(
+            'filters',
+            'summary',
+            'charts',
+            'rows',
+            'regions',
+            'fiscalYearOptions',
+            'geoBounds',
+        ));
     }
 
     public function applications(Request $request)
@@ -69,6 +78,7 @@ class ReportController extends Controller
         $regions = $this->analyticalReports->regions();
         $sortOptions = $this->analyticalReports->sortOptions();
         $fiscalYearOptions = $this->analyticalReports->fiscalYearOptions();
+        $geoBounds = app(\App\Services\GeoHierarchyService::class)->zoneBounds();
 
         return view('reports.analytical.overview', compact(
             'filters',
@@ -79,6 +89,7 @@ class ReportController extends Controller
             'regions',
             'sortOptions',
             'fiscalYearOptions',
+            'geoBounds',
         ));
     }
 
@@ -123,6 +134,7 @@ class ReportController extends Controller
         $sortOptions = $this->debtReports->sortOptions();
         $fiscalYearOptions = $this->debtReports->fiscalYearOptions();
         $debtReports = $this->debtReports;
+        $geoBounds = app(\App\Services\GeoHierarchyService::class)->zoneBounds();
 
         $isOverdue = $mode === AnalyticalDebtReportService::MODE_OVERDUE;
 
@@ -135,6 +147,7 @@ class ReportController extends Controller
             'sortOptions' => $sortOptions,
             'fiscalYearOptions' => $fiscalYearOptions,
             'debtReports' => $debtReports,
+            'geoBounds' => $geoBounds,
             'pageTitle' => __($isOverdue ? 'analytical_reports.overdue_title' : 'analytical_reports.outstanding_title'),
             'pageSubtitle' => __($isOverdue ? 'analytical_reports.overdue_subtitle' : 'analytical_reports.outstanding_subtitle'),
             'listTitle' => __($isOverdue ? 'analytical_reports.overdue_list' : 'analytical_reports.outstanding_list'),

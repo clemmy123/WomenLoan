@@ -10,6 +10,26 @@
         'actions' => '<a href="'.e(route('admin.users.create')).'" class="app-btn app-btn-primary">+ '.e(__('admin.new_user')).'</a>',
     ])
 
+    <div class="app-card app-card-padded mb-4">
+        @include('partials.loan-list-toolbar', [
+            'action' => route('admin.users.index'),
+            'search' => $search,
+            'sort' => $role,
+            'sortName' => 'role',
+            'sortLabel' => __('admin.sort_by_role'),
+            'status' => $status,
+            'searchPlaceholder' => __('admin.users_search_placeholder'),
+            'sortOptions' => $roleOptions,
+            'statusOptions' => [
+                '' => __('admin.status_all'),
+                'active' => __('common.active'),
+                'inactive' => __('common.inactive'),
+            ],
+            'showClear' => filled($search) || filled($status) || filled($role),
+            'clearUrl' => route('admin.users.index'),
+        ])
+    </div>
+
 <div class="app-card overflow-hidden">
     <table class="app-table">
         <thead>
@@ -51,5 +71,6 @@
         </tbody>
     </table>
     <div class="app-card-footer">{{ $users->links() }}</div>
+</div>
 </div>
 @endsection

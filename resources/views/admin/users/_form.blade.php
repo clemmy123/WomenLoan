@@ -66,22 +66,58 @@
             @error('phone') <p class="mt-1.5 text-xs font-medium text-red-600">{{ $message }}</p> @enderror
         </div>
 
-        <div>
-            <label class="app-label" for="admin_password">{{ __('common.password') }} {{ $user ? __('common.password_keep_blank') : '' }} @unless($user) @include('partials.required-mark') @endunless</label>
-            <input type="password" name="password" id="admin_password" {{ $user ? '' : 'required' }} class="app-input" autocomplete="new-password">
-            @include('partials.password-requirements', ['targetId' => 'admin_password', 'variant' => 'app'])
-            @error('password') <p class="mt-1.5 text-xs font-medium text-red-600">{{ $message }}</p> @enderror
-        </div>
+        @if (! $user || auth()->user()->can('reset user password'))
+            <div>
+                <label class="app-label" for="admin_password">{{ __('common.password') }} {{ $user ? __('common.password_keep_blank') : '' }} @unless($user) @include('partials.required-mark') @endunless</label>
+                <input type="password" name="password" id="admin_password" {{ $user ? '' : 'required' }} class="app-input" autocomplete="new-password">
+                @include('partials.password-requirements', ['targetId' => 'admin_password', 'variant' => 'app'])
+                <p class="mt-1.5 text-xs text-slate-500">{{ __('admin.temporary_password_hint', ['minutes' => (int) config('wdf.temporary_password_minutes', 2)]) }}</p>
+                @error('password') <p class="mt-1.5 text-xs font-medium text-red-600">{{ $message }}</p> @enderror
+            </div>
 
-        <div>
-            <label class="app-label" for="password_confirmation">{{ __('common.confirm_password') }} @unless($user) @include('partials.required-mark') @endunless</label>
-            <input type="password" name="password_confirmation" id="password_confirmation" {{ $user ? '' : 'required' }} class="app-input" autocomplete="new-password">
-        </div>
+            <div>
+                <label class="app-label" for="password_confirmation">{{ __('common.confirm_password') }} @unless($user) @include('partials.required-mark') @endunless</label>
+                <input type="password" name="password_confirmation" id="password_confirmation" {{ $user ? '' : 'required' }} class="app-input" autocomplete="new-password">
+            </div>
+        @elseif ($user)
+            <p class="text-sm text-slate-500">{{ __('admin.reset_password_permission_required') }}</p>
+        @endif
 
-        <label class="flex items-center gap-2 text-sm text-slate-700">
-            <input type="checkbox" name="is_active" value="1" {{ old('is_active', $user?->is_active ?? true) ? 'checked' : '' }} class="rounded border-slate-300 text-indigo-600">
-            {{ __('admin.active_account') }}
-        </label>
+        @php
+            $canActivate = auth()->user()->can('activate users');
+            $canDeactivate = auth()->user()->can('deactivate users');
+            $isActiveChecked = (bool) old('is_active', $user?->is_active ?? true);
+            $canToggleStatus = ($canActivate && $canDeactivate)
+                || ($canActivate && ! $isActiveChecked)
+                || ($canDeactivate && $isActiveChecked)
+                || (! $user && $canActivate);
+        @endphp
+
+        @if ($canToggleStatus)
+            <input type="hidden" name="is_active" value="0">
+            <label class="flex items-center gap-2 text-sm text-slate-700">
+                <input
+                    type="checkbox"
+                    name="is_active"
+                    value="1"
+                    {{ $isActiveChecked || (! $user && $canActivate && ! $canDeactivate) ? 'checked' : '' }}
+                    class="rounded border-slate-300 text-indigo-600"
+                >
+                <span>
+                    {{ __('admin.active_account') }}
+                    <span class="block text-xs text-slate-500">{{ __('admin.active_account_hint') }}</span>
+                </span>
+            </label>
+            @error('is_active') <p class="mt-1.5 text-xs font-medium text-red-600">{{ $message }}</p> @enderror
+        @elseif ($user)
+            <p class="text-sm text-slate-500">
+                {{ $user->is_active ? __('admin.account_status_active_readonly') : __('admin.account_status_inactive_readonly') }}
+            </p>
+        @elseif ($canActivate || $canDeactivate)
+            {{-- Create: only deactivate permission — start inactive --}}
+            <input type="hidden" name="is_active" value="0">
+            <p class="text-sm text-slate-500">{{ __('admin.account_status_inactive_readonly') }}</p>
+        @endif
 
         @if($user?->login_locked_permanently || $user?->login_locked_until)
             <div class="rounded-xl border border-amber-200 bg-amber-50 dark:bg-amber-900/20 dark:border-amber-800 p-3 space-y-2">

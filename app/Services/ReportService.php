@@ -58,7 +58,7 @@ class ReportService
             $useCustomDates,
         );
 
-        return [
+        return $this->geo->clampGeoFilters([
             'fiscal_year' => $fiscalYear,
             'period' => $period,
             'date_from' => $from,
@@ -74,7 +74,7 @@ class ReportService
             'has_disability' => $input['has_disability'] ?? null,
             'marital_status' => $maritalStatus,
             'use_custom_dates' => $useCustomDates ? '1' : null,
-        ];
+        ]);
     }
 
     public function fiscalYearOptions(?Carbon $asOf = null): array
@@ -459,6 +459,6 @@ class ReportService
 
     public function regions()
     {
-        return $this->geo->regions();
+        return $this->geo->regionsForUser();
     }
 }

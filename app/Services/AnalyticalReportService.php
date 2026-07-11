@@ -91,7 +91,7 @@ class AnalyticalReportService
             );
         }
 
-        return [
+        return $this->geo->clampGeoFilters([
             'fiscal_year' => $fiscalYear,
             'period' => $period,
             'quarter' => $quarter,
@@ -105,7 +105,7 @@ class AnalyticalReportService
             'sort' => $sort,
             'search' => trim((string) ($input['search'] ?? '')),
             'use_custom_dates' => $useCustomDates ? '1' : null,
-        ];
+        ]);
     }
 
     public function fiscalYearOptions(?Carbon $asOf = null): array
@@ -217,7 +217,7 @@ class AnalyticalReportService
 
     public function regions()
     {
-        return $this->geo->regions();
+        return $this->geo->regionsForUser();
     }
 
     public function sortOptions(): array

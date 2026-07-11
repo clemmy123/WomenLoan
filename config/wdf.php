@@ -21,4 +21,5 @@ return [
     'interest_rate' => 0.16,
     'login_max_attempts' => (int) env('WDF_LOGIN_MAX_ATTEMPTS', 3),
     'login_lockout_minutes' => (int) env('WDF_LOGIN_LOCKOUT_MINUTES', 5),
+    'temporary_password_minutes' => (int) env('WDF_TEMPORARY_PASSWORD_MINUTES', 2),
 ];

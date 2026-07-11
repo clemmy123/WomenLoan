@@ -4,19 +4,49 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests\Admin\StoreUserRequest;
 use App\Http\Requests\Admin\UpdateUserRequest;
+use App\Models\Role;
 use App\Models\User;
 use App\Services\UserProvisioningService;
-use App\Models\Role;
+use Illuminate\Http\Request;
 
 class UserController extends Controller
 {
     public function __construct(private UserProvisioningService $users) {}
 
-    public function index()
+    public function index(Request $request)
     {
-        $users = User::with('roles')->latest()->paginate(15);
+        $search = $request->string('search')->trim()->toString() ?: null;
+        $role = $request->string('role')->trim()->toString() ?: null;
+        $status = $request->string('status')->toString() ?: null;
 
-        return view('admin.users.index', compact('users'));
+        $roles = Role::query()->orderBy('name')->get(['id', 'name']);
+        $roleNames = $roles->pluck('name')->all();
+
+        if ($role !== null && ! in_array($role, $roleNames, true)) {
+            $role = null;
+        }
+
+        if (! in_array($status, ['active', 'inactive'], true)) {
+            $status = null;
+        }
+
+        $users = $this->users->paginated($search, $role, $status);
+
+        $roleOptions = ['' => __('admin.role_all')];
+        foreach ($roles as $item) {
+            if ($item->name === 'super_admin' && ! $request->user()?->hasRole('super_admin')) {
+                continue;
+            }
+            $roleOptions[$item->name] = role_label($item->name);
+        }
+
+        return view('admin.users.index', [
+            'users' => $users,
+            'search' => $search ?? '',
+            'role' => $role ?? '',
+            'status' => $status ?? '',
+            'roleOptions' => $roleOptions,
+        ]);
     }
 
     public function create()
@@ -33,7 +63,7 @@ class UserController extends Controller
     {
         $this->users->create(
             $request->validated(),
-            $request->boolean('is_active', true)
+            $this->resolveIsActiveForCreate($request)
         );
 
         return redirect()->route('admin.users.index')
@@ -58,7 +88,7 @@ class UserController extends Controller
         $this->users->update(
             $user,
             $request->validated(),
-            $request->boolean('is_active', true),
+            $this->resolveIsActiveForUpdate($request, $user),
             $unlockLogin
         );
 
@@ -81,5 +111,59 @@ class UserController extends Controller
 
         return redirect()->route('admin.users.index')
             ->with('success', __('messages.user_deleted'));
+    }
+
+    private function resolveIsActiveForCreate(Request $request): bool
+    {
+        $actor = $request->user();
+        $canActivate = $actor->can('activate users');
+        $canDeactivate = $actor->can('deactivate users');
+
+        if (! $canActivate && ! $canDeactivate) {
+            return true;
+        }
+
+        $desired = $request->boolean('is_active');
+
+        if ($desired && ! $canActivate) {
+            return false;
+        }
+
+        if (! $desired && ! $canDeactivate) {
+            return true;
+        }
+
+        return $desired;
+    }
+
+    private function resolveIsActiveForUpdate(Request $request, User $user): bool
+    {
+        $actor = $request->user();
+        $canActivate = $actor->can('activate users');
+        $canDeactivate = $actor->can('deactivate users');
+
+        if (! $canActivate && ! $canDeactivate) {
+            return (bool) $user->is_active;
+        }
+
+        if (! $request->has('is_active')) {
+            return (bool) $user->is_active;
+        }
+
+        $desired = $request->boolean('is_active');
+
+        if ($desired === (bool) $user->is_active) {
+            return (bool) $user->is_active;
+        }
+
+        if ($desired && ! $canActivate) {
+            return (bool) $user->is_active;
+        }
+
+        if (! $desired && ! $canDeactivate) {
+            return (bool) $user->is_active;
+        }
+
+        return $desired;
     }
 }

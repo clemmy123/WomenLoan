@@ -40,7 +40,7 @@ class StreetController extends Controller
      */
     public function getStreets(int $wardId)
     {
-        return response()->json($this->geo->streetsFor(Ward::findOrFail($wardId)));
+        return response()->json($this->geo->streetsForUser(Ward::findOrFail($wardId)));
     }
 
     /**

@@ -74,20 +74,14 @@
             'selectedStreet' => (string) ($f['street_id'] ?? ''),
             'filtersOpen' => $hasActiveFilters,
             'geoApi' => \App\Services\GeoHierarchyService::apiUrls(),
+            'locks' => (($geoBounds ?? [])['lock'] ?? []),
         ]))"
     >
-        <button
-            type="button"
-            @click="filtersOpen = !filtersOpen"
-            class="flex w-full items-center justify-between gap-3 text-left"
-            :aria-expanded="filtersOpen.toString()"
-        >
-            <h2 class="text-sm font-semibold tracking-wide uppercase text-indigo-600">{{ __('analytical_reports.filters') }}</h2>
-            <span class="inline-flex items-center gap-2 text-xs font-semibold text-slate-500 dark:text-zinc-400">
-                <span x-text="filtersOpen ? @js(__('analytical_reports.hide_filters')) : @js(__('analytical_reports.show_filters'))"></span>
-                <svg class="h-4 w-4 transition-transform duration-200" :class="filtersOpen ? 'rotate-180' : ''" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
-            </span>
-        </button>
+        @include('partials.filters-toggle-button', [
+            'title' => __('analytical_reports.filters'),
+            'showLabel' => __('analytical_reports.show_filters'),
+            'hideLabel' => __('analytical_reports.hide_filters'),
+        ])
 
         <div
             x-show="filtersOpen"
@@ -116,42 +110,7 @@
                     <label class="app-label" for="search">{{ __('common.search') }}</label>
                     <input type="search" name="search" id="search" value="{{ $f['search'] ?? '' }}" class="app-input" placeholder="{{ __('analytical_reports.search_placeholder') }}">
                 </div>
-                <div class="wizard-field">
-                    <label class="app-label" for="region_id">{{ __('geo.region') }}</label>
-                    <select name="region_id" id="region_id" class="app-select" x-model="selectedRegion" @change="onRegionChange()">
-                        <option value="">{{ __('geo.select_region') }}</option>
-                        @foreach($regions as $region)
-                            <option value="{{ $region->id }}">{{ $region->name }}</option>
-                        @endforeach
-                    </select>
-                </div>
-                <div class="wizard-field">
-                    <label class="app-label" for="district_id">{{ __('geo.district') }}</label>
-                    <select name="district_id" id="district_id" class="app-select" x-model="selectedDistrict" @change="onDistrictChange()">
-                        <option value="">{{ __('geo.select_district') }}</option>
-                        <template x-for="item in districts" :key="item.id">
-                            <option :value="String(item.id)" x-text="item.name" :selected="String(item.id) === selectedDistrict"></option>
-                        </template>
-                    </select>
-                </div>
-                <div class="wizard-field">
-                    <label class="app-label" for="council_id">{{ __('geo.council') }}</label>
-                    <select name="council_id" id="council_id" class="app-select" x-model="selectedCouncil" @change="onCouncilChange()">
-                        <option value="">{{ __('geo.select_council') }}</option>
-                        <template x-for="item in councils" :key="item.id">
-                            <option :value="String(item.id)" x-text="item.name" :selected="String(item.id) === selectedCouncil"></option>
-                        </template>
-                    </select>
-                </div>
-                <div class="wizard-field">
-                    <label class="app-label" for="ward_id">{{ __('geo.ward') }}</label>
-                    <select name="ward_id" id="ward_id" class="app-select" x-model="selectedWard" @change="onWardChange()">
-                        <option value="">{{ __('geo.select_ward') }}</option>
-                        <template x-for="item in wards" :key="item.id">
-                            <option :value="String(item.id)" x-text="item.name" :selected="String(item.id) === selectedWard"></option>
-                        </template>
-                    </select>
-                </div>
+                @include('partials.report-geo-filters')
                 <div class="wizard-field">
                     <label class="app-label" for="date_from">{{ __('analytical_reports.date_from') }}</label>
                     <input type="date" name="date_from" id="date_from" value="{{ $f['date_from'] ?? '' }}" class="app-input">

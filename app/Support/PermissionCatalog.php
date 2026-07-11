@@ -72,6 +72,9 @@ class PermissionCatalog
                 'permissions' => [
                     'view administration dashboard',
                     'manage users',
+                    'reset user password',
+                    'activate users',
+                    'deactivate users',
                     'manage roles',
                     'view audit logs',
                 ],

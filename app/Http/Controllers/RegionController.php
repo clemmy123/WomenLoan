@@ -96,21 +96,21 @@ class RegionController extends Controller
     {
         $region = Region::findOrFail($regionId);
 
-        return response()->json($this->geo->districtsFor($region));
+        return response()->json($this->geo->districtsForUser($region));
     }
 
     public function getCouncils(int $districtId)
     {
-        return response()->json($this->geo->councilsFor(District::findOrFail($districtId)));
+        return response()->json($this->geo->councilsForUser(District::findOrFail($districtId)));
     }
 
     public function getWards(int $councilId)
     {
-        return response()->json($this->geo->wardsFor(\App\Models\Council::findOrFail($councilId)));
+        return response()->json($this->geo->wardsForUser(\App\Models\Council::findOrFail($councilId)));
     }
 
     public function getStreets(int $wardId)
     {
-        return response()->json($this->geo->streetsFor(\App\Models\Ward::findOrFail($wardId)));
+        return response()->json($this->geo->streetsForUser(\App\Models\Ward::findOrFail($wardId)));
     }
 }

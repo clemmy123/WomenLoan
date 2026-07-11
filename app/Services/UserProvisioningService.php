@@ -4,9 +4,49 @@ namespace App\Services;
 
 use App\Models\Concerns\HasDisplayName;
 use App\Models\User;
+use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 
 class UserProvisioningService
 {
+    public function paginated(
+        ?string $search = null,
+        ?string $role = null,
+        ?string $status = null,
+        int $perPage = 15
+    ): LengthAwarePaginator {
+        $query = User::query()->with('roles');
+
+        if (filled($search)) {
+            $term = '%'.$search.'%';
+            $query->where(function ($q) use ($term) {
+                $q->where('name', 'like', $term)
+                    ->orWhere('first_name', 'like', $term)
+                    ->orWhere('middle_name', 'like', $term)
+                    ->orWhere('last_name', 'like', $term)
+                    ->orWhere('email', 'like', $term)
+                    ->orWhere('phone', 'like', $term)
+                    ->orWhere('check_number', 'like', $term)
+                    ->orWhereHas('roles', fn ($roles) => $roles->where('name', 'like', $term));
+            });
+        }
+
+        if (filled($role)) {
+            $query->whereHas('roles', fn ($roles) => $roles->where('name', $role));
+        }
+
+        if ($status === 'active') {
+            $query->where('is_active', true);
+        } elseif ($status === 'inactive') {
+            $query->where('is_active', false);
+        }
+
+        return $query
+            ->orderBy('name')
+            ->orderBy('id')
+            ->paginate($perPage)
+            ->withQueryString();
+    }
+
     public function create(array $validated, bool $isActive = true): User
     {
         $user = User::create([
@@ -23,6 +63,8 @@ class UserProvisioningService
             'phone' => $validated['phone'],
             'password' => $validated['password'],
             'is_active' => $isActive,
+            'must_change_password' => true,
+            'temporary_password_expires_at' => null,
         ]);
 
         $user->syncZone($validated);
@@ -50,6 +92,8 @@ class UserProvisioningService
 
         if (! empty($validated['password'])) {
             $payload['password'] = $validated['password'];
+            $payload['must_change_password'] = true;
+            $payload['temporary_password_expires_at'] = null;
         }
 
         $user->update($payload);

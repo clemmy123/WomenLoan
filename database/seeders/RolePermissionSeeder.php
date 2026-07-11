@@ -23,7 +23,8 @@ class RolePermissionSeeder extends Seeder
             'admin' => [
                 'view dashboard', 'manage applicants', 'register applicant', 'view all loans',
                 'view repayments', 'view reports', 'view analytical reports', 'rollback workflow step',
-                'view administration dashboard', 'manage users', 'manage roles', 'view audit logs',
+                'view administration dashboard', 'manage users', 'reset user password',
+                'activate users', 'deactivate users', 'manage roles', 'view audit logs',
                 'manage loan groups', 'view loan by track id',
             ],
             'applicant' => [

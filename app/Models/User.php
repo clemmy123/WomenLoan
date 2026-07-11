@@ -9,6 +9,7 @@ use App\Models\Ward;
 use App\Services\LoanQueryService;
 use App\Models\Concerns\Auditable;
 use App\Models\Concerns\HasHashid;
+use App\Models\Concerns\Searchable;
 use Database\Factories\UserFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\HasOne;
@@ -21,7 +22,7 @@ use Spatie\Permission\Traits\HasRoles;
 class User extends Authenticatable
 {
     /** @use HasFactory<UserFactory> */
-    use Auditable, CausesActivity, HasFactory, HasHashid, HasRoles, Notifiable;
+    use Auditable, CausesActivity, HasFactory, HasHashid, HasRoles, Notifiable, Searchable;
 
     protected $fillable = [
         'check_number',
@@ -39,6 +40,8 @@ class User extends Authenticatable
         'login_lockout_rounds',
         'login_locked_until',
         'login_locked_permanently',
+        'must_change_password',
+        'temporary_password_expires_at',
     ];
 
     protected $hidden = [
@@ -54,7 +57,50 @@ class User extends Authenticatable
             'is_active' => 'boolean',
             'login_locked_until' => 'datetime',
             'login_locked_permanently' => 'boolean',
+            'must_change_password' => 'boolean',
+            'temporary_password_expires_at' => 'datetime',
         ];
+    }
+
+    public function mustChangePassword(): bool
+    {
+        return (bool) $this->must_change_password;
+    }
+
+    public function temporaryPasswordExpired(): bool
+    {
+        return $this->must_change_password
+            && $this->temporary_password_expires_at !== null
+            && $this->temporary_password_expires_at->isPast();
+    }
+
+    public function markTemporaryPasswordIssued(): void
+    {
+        $this->forceFill([
+            'must_change_password' => true,
+            'temporary_password_expires_at' => null,
+        ])->save();
+    }
+
+    public function startTemporaryPasswordWindow(): void
+    {
+        if (! $this->must_change_password || $this->temporary_password_expires_at !== null) {
+            return;
+        }
+
+        $this->forceFill([
+            'temporary_password_expires_at' => now()->addMinutes(
+                (int) config('wdf.temporary_password_minutes', 2)
+            ),
+        ])->save();
+    }
+
+    public function clearTemporaryPasswordRequirement(): void
+    {
+        $this->forceFill([
+            'must_change_password' => false,
+            'temporary_password_expires_at' => null,
+        ])->save();
     }
 
     public function applicant(): HasOne

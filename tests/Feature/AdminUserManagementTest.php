@@ -43,6 +43,8 @@ class AdminUserManagementTest extends TestCase
         $this->assertSame('Asha Juma Mushi', $user->name);
         $this->assertSame('255712345999', $user->phone);
         $this->assertTrue($user->hasRole('accountant'));
+        $this->assertTrue($user->must_change_password);
+        $this->assertNull($user->temporary_password_expires_at);
     }
 
     public function test_staff_user_create_requires_check_number_and_strong_password(): void
@@ -116,5 +118,23 @@ class AdminUserManagementTest extends TestCase
         $response->assertSee(__('applicants.last_name'), false);
         $response->assertSee(__('auth.password_requirements_title'), false);
         $response->assertSee('data-phone-field', false);
+    }
+
+    public function test_users_index_can_search_and_filter_by_role(): void
+    {
+        $response = $this->actingAsRole('admin@wdf.go.tz')
+            ->get(route('admin.users.index', [
+                'search' => 'Sarah',
+                'role' => 'accountant',
+                'status' => 'active',
+            ]));
+
+        $response->assertOk();
+        $response->assertSee('accountant1@wdf.go.tz', false);
+        $response->assertDontSee('ward.cdo@wdf.go.tz', false);
+        $response->assertSee(__('admin.users_search_placeholder'), false);
+        $response->assertSee(__('admin.sort_by_role'), false);
+        $response->assertSee(e(role_label('accountant')), false);
+        $response->assertSee(e(role_label('cdo_ward')), false);
     }
 }

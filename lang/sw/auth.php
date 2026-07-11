@@ -44,4 +44,9 @@ return [
     'password_rule_number' => 'Angalau nambari moja (0–9)',
     'password_rule_symbol' => 'Angalau alama maalum moja (!@#$…)',
     'password_strong' => 'Nenosiri imara',
+    'temporary_password_must_change' => 'Umeingia kwa nenosiri la muda. Tafadhali tengeneza nenosiri lako sasa. Una dakika :minutes.',
+    'temporary_password_expired' => 'Nenosiri lako la muda limeisha muda. Wasiliana na msimamizi ili akupe nenosiri jipya.',
+    'temporary_password_deadline' => 'Nenosiri la muda litaisha saa :time. Tengeneza nenosiri lako kabla ya muda huo.',
+    'set_own_password' => 'Tengeneza nenosiri lako',
+    'save_own_password' => 'Hifadhi nenosiri',
 ];

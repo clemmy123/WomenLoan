@@ -47,4 +47,31 @@ class StoreUserRequest extends FormRequest
             'is_active' => 'boolean',
         ];
     }
+
+    public function withValidator($validator): void
+    {
+        $validator->after(function ($validator) {
+            $actor = $this->user();
+            $canActivate = $actor->can('activate users');
+            $canDeactivate = $actor->can('deactivate users');
+
+            if (! $canActivate && ! $canDeactivate) {
+                return;
+            }
+
+            if (! $this->has('is_active')) {
+                return;
+            }
+
+            $desired = $this->boolean('is_active');
+
+            if ($desired && ! $canActivate) {
+                $validator->errors()->add('is_active', __('messages.cannot_activate_users'));
+            }
+
+            if (! $desired && ! $canDeactivate) {
+                $validator->errors()->add('is_active', __('messages.cannot_deactivate_users'));
+            }
+        });
+    }
 }

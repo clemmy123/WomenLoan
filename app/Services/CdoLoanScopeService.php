@@ -10,6 +10,16 @@ class CdoLoanScopeService
 {
     public function applyBusinessDetailsScope(Builder $query, User $user, string $relation = 'businessDetails'): void
     {
+        if (! $this->isGeoCdo($user)) {
+            return;
+        }
+
+        if (! $user->zoneable_id || ! $user->zoneable_type) {
+            $query->whereRaw('0 = 1');
+
+            return;
+        }
+
         if ($user->hasRole('cdo_ward')) {
             $query->whereHas($relation, fn (Builder $details) => $details->where('ward_id', $user->zoneable_id));
 
@@ -27,8 +37,44 @@ class CdoLoanScopeService
         }
     }
 
+    public function loanInUserZone(User $user, Loan $loan): bool
+    {
+        if (! $this->isGeoCdo($user)) {
+            return true;
+        }
+
+        if (! $user->zoneable_id || ! $user->zoneable_type) {
+            return false;
+        }
+
+        $loan->loadMissing('businessDetails');
+        $details = $loan->businessDetails;
+
+        if (! $details) {
+            return false;
+        }
+
+        if ($user->hasRole('cdo_ward')) {
+            return (int) $details->ward_id === (int) $user->zoneable_id;
+        }
+
+        if ($user->hasRole('cdo_council')) {
+            return (int) $details->council_id === (int) $user->zoneable_id;
+        }
+
+        if ($user->hasRole('cdo_region')) {
+            return (int) $details->region_id === (int) $user->zoneable_id;
+        }
+
+        return false;
+    }
+
     public function canActOnLoan(User $user, Loan $loan): bool
     {
+        if ($this->isGeoCdo($user) && ! $this->loanInUserZone($user, $loan)) {
+            return false;
+        }
+
         if ($this->isGeoCdo($user) && $this->colleagueHandledLoan($user, $loan)) {
             return false;
         }
