@@ -34,12 +34,7 @@ class WorkflowActionRequest extends FormRequest
 
         return [
             'action' => 'required|string',
-            'comments' => [
-                Rule::requiredIf(in_array($action, ['forward_director', 'forward_km', 'decline_amount', 'rollback_step'], true)),
-                'nullable',
-                'string',
-                'max:2000',
-            ],
+            'comments' => ['required', 'string', 'max:2000'],
             'proposed_amount' => [
                 Rule::requiredIf($action === 'propose_amount'),
                 'nullable',

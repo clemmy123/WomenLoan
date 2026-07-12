@@ -5,6 +5,7 @@ return [
     'user_created' => 'User created successfully.',
     'user_updated' => 'User updated successfully.',
     'user_updated_and_unlocked' => 'User updated. Login lockout cleared and unlock email sent.',
+    'user_roles_updated' => 'User roles updated successfully.',
     'user_deleted' => 'User deleted successfully.',
     'role_updated' => 'Role permissions updated successfully.',
     'role_created' => 'Role created successfully.',

@@ -1,20 +1,18 @@
 @php
     $user = auth()->user();
+    $auth = app(\App\Services\WorkflowAuthorizationService::class);
     $step = $loan->current_step;
 
-    $canForwardMinistry = $user->can('forward to ministry') && $step === 1 && $loan->status === 'received';
-    $canProposeAmount = $user->can('propose loan amount') && $step === 2;
-    $canApplicantRespond = $user->hasRole('applicant') && $step === 3;
-    $canForwardAssDir = $user->can('forward to assistant director') && $step === 4;
-    $canForwardDirector = $user->can('forward to director') && $step === 5;
-    $canForwardKm = $user->can('forward to km') && $step === 6;
-    $canApproveKm = $user->can('approve as km') && $step === 7;
-    $canAssignAccountant = $user->can('assign accountant') && $step === 8;
-    $canDisburse = $user->can('disburse loan')
-        && $step === 9
-        && $loan->status === 'ready_for_disbursement'
-        && $loan->officer_id === $user->id;
-    $canRollback = app(\App\Services\WorkflowAuthorizationService::class)->canPerform($user, $loan, 'rollback_step');
+    $canForwardMinistry = $auth->canPerform($user, $loan, 'forward_ministry');
+    $canProposeAmount = $auth->canPerform($user, $loan, 'propose_amount');
+    $canApplicantRespond = $auth->canPerform($user, $loan, 'accept_amount');
+    $canForwardAssDir = $auth->canPerform($user, $loan, 'forward_ass_dir');
+    $canForwardDirector = $auth->canPerform($user, $loan, 'forward_director');
+    $canForwardKm = $auth->canPerform($user, $loan, 'forward_km');
+    $canApproveKm = $auth->canPerform($user, $loan, 'approve_km');
+    $canAssignAccountant = $auth->canPerform($user, $loan, 'assign_accountant');
+    $canDisburse = $auth->canPerform($user, $loan, 'disburse');
+    $canRollback = $auth->canPerform($user, $loan, 'rollback_step');
     $rollbackToApplicant = $canRollback && $step === 1 && $loan->status === 'received';
     $rollbackLabel = $rollbackToApplicant
         ? __('workflow.buttons.rollback_to_applicant')

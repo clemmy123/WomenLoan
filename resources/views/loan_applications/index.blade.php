@@ -23,7 +23,9 @@
                 @else
                     {{ __('loans.apply_subtitle') }}
                 @endif
-                <span class="block mt-1 text-xs text-amber-700 dark:text-amber-300 font-medium">{{ __('loans.action_priority_hint') }}</span>
+                <span class="block mt-1 text-xs text-amber-700 dark:text-amber-300 font-medium">
+                    {{ trans_choice('loans.action_priority_hint', $actionableCount ?? 0, ['count' => $actionableCount ?? 0]) }}
+                </span>
             </p>
         </div>
         @can('create loan application')

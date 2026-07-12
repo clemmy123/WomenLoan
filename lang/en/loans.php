@@ -156,7 +156,7 @@ return [
     'cdo_view_only_colleague' => 'This application has already been handled by another officer assigned to your zone.',
     'action_new' => 'New',
     'needs_your_action' => 'Needs your action — open to review and proceed',
-    'action_priority_hint' => 'Applications waiting for your action appear first and are marked New.',
+    'action_priority_hint' => '{0} You have no requests that need approval for the next step.|{1} You have :count request that needs approval for the next step.|[2,*] You have :count requests that need approval for the next step.',
     'business_ward' => 'Business Ward',
     'list_name' => 'Applicant / Group',
     'view_full_details' => 'View Full Details',

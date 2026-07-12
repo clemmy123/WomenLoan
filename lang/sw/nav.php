@@ -9,7 +9,7 @@ return [
     'users' => 'Watumiaji',
     'roles' => 'Majukumu na Ruhusa',
     'admin_dashboard' => 'Muhtasari wa Usimamizi',
-    'audit_logs' => 'Rekodi za Ukaguzi',
+    'audit_logs' => 'Nyayo za Ukaguzi',
     'applicants' => 'Waombaji',
     'register_applicant' => 'Kamilisha Taarifa za Awali',
     'my_profile' => 'Wasifu Wangu',

@@ -156,7 +156,7 @@ return [
     'cdo_view_only_colleague' => 'Ombi hili tayari limeshughulikiwa na mfanyakazi mwingine aliyekabidhiwa eneo lako.',
     'action_new' => 'Mpya',
     'needs_your_action' => 'Inahitaji hatua yako — fungua ili ukague na uendelee',
-    'action_priority_hint' => 'Maombi yanayohitaji hatua yako yanaonekana kwanza na yana alama Mpya.',
+    'action_priority_hint' => '{0} Huna maombi yanayohitaji kuidhinishwa kwa hatua zaidi.|{1} Una ombi :count linalohitaji kuidhinishwa kwa hatua zaidi.|[2,*] Una maombi :count yanayohitaji kuidhinishwa kwa hatua zaidi.',
     'business_ward' => 'Kata ya Biashara',
     'list_name' => 'Mwombaji / Kundi',
     'view_full_details' => 'Angalia Maelezo Kamili',

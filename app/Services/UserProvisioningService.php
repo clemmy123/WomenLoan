@@ -107,6 +107,13 @@ class UserProvisioningService
         return $user;
     }
 
+    public function syncRolesOnly(User $user, array $roles): User
+    {
+        $user->syncRoles($this->sanitizeRoles($roles));
+
+        return $user->fresh('roles');
+    }
+
     public function formOptions(): array
     {
         $geo = app(GeoHierarchyService::class);

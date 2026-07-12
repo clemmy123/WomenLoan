@@ -2,7 +2,7 @@
 
 return [
     'failed' => 'These credentials do not match our records.',
-    'failed_with_remaining' => '{1} Wrong password. You have :remaining attempt left before this account is locked for :minutes minutes.|[2,*] Wrong password. You have :remaining attempts left before this account is locked for :minutes minutes.',
+    'failed_with_remaining' => '{1} Wrong credentials. You have :remaining attempt left. If it fails again, this account will be locked for :minutes minutes.|[2,*] Wrong credentials. You have :remaining attempts left. After that, this account will be locked for :minutes minutes.',
     'locked_for_minutes' => 'Too many wrong password attempts. This account is locked for :minutes minutes. Please wait, then try again. You will get one more chance after the wait. If you enter the wrong password 3 times again, the account will be locked permanently and you must contact the administrator.',
     'locked_temporarily' => 'This account is temporarily locked because of wrong password attempts. Please wait about :minutes minute(s), then try again.',
     'locked_permanently' => 'This account has been locked permanently because of repeated wrong password attempts. Please contact the system administrator to unlock your email/account.',

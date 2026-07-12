@@ -24,6 +24,7 @@ class RepaymentTest extends TestCase
             ->post(route('loans.workflow', $loan->hashid), [
                 'action' => 'disburse',
                 'grace_period_months' => 3,
+                'comments' => 'Funds disbursed.',
             ])
             ->assertRedirect();
 
@@ -91,6 +92,7 @@ class RepaymentTest extends TestCase
             ->post(route('loans.workflow', $loan->hashid), [
                 'action' => 'disburse',
                 'grace_period_months' => 3,
+                'comments' => 'Funds disbursed.',
             ])
             ->assertRedirect();
 

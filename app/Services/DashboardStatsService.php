@@ -40,7 +40,7 @@ class DashboardStatsService
 
             $row = (clone $query)->selectRaw('COUNT(*) as total')
                 ->selectRaw("SUM(CASE WHEN status IN ('pending','received','in_review','awaiting_applicant') THEN 1 ELSE 0 END) as pending")
-                ->selectRaw("SUM(CASE WHEN status IN ('approved','ready_for_disbursement') THEN 1 ELSE 0 END) as approved")
+                ->selectRaw("SUM(CASE WHEN status IN ('approved','ready_for_disbursement','disbursed') THEN 1 ELSE 0 END) as approved")
                 ->selectRaw("SUM(CASE WHEN status = 'disbursed' THEN 1 ELSE 0 END) as disbursed")
                 ->first();
 
@@ -120,7 +120,7 @@ class DashboardStatsService
     {
         match ($filter) {
             'pending' => $query->whereIn('status', ['pending', 'received', 'in_review', 'awaiting_applicant']),
-            'approved' => $query->whereIn('status', ['approved', 'ready_for_disbursement']),
+            'approved' => $query->whereIn('status', ['approved', 'ready_for_disbursement', 'disbursed']),
             'disbursed' => $query->where('status', 'disbursed'),
             default => null,
         };

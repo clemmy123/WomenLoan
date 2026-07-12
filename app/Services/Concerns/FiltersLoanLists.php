@@ -127,10 +127,27 @@ trait FiltersLoanLists
      */
     protected function applyActionableFirst(Builder $query, ?User $user = null): void
     {
+        $predicate = $this->actionableSqlPredicate($user);
+
+        if ($predicate === null) {
+            return;
+        }
+
+        $query->orderByRaw(
+            'CASE WHEN ('.$predicate['sql'].') THEN 0 ELSE 1 END',
+            $predicate['bindings']
+        );
+    }
+
+    /**
+     * @return array{sql: string, bindings: list<mixed>}|null
+     */
+    protected function actionableSqlPredicate(?User $user = null): ?array
+    {
         $user ??= auth()->user();
 
         if (! $user) {
-            return;
+            return null;
         }
 
         $parts = [];
@@ -186,12 +203,25 @@ trait FiltersLoanLists
         }
 
         if ($parts === []) {
-            return;
+            return null;
         }
 
-        $query->orderByRaw(
-            'CASE WHEN ('.implode(' OR ', $parts).') THEN 0 ELSE 1 END',
-            $bindings
-        );
+        return [
+            'sql' => implode(' OR ', $parts),
+            'bindings' => $bindings,
+        ];
+    }
+
+    public function countActionableForUser(?User $user = null): int
+    {
+        $predicate = $this->actionableSqlPredicate($user);
+
+        if ($predicate === null) {
+            return 0;
+        }
+
+        return \App\Models\Loan::query()
+            ->whereRaw('('.$predicate['sql'].')', $predicate['bindings'])
+            ->count();
     }
 }

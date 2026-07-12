@@ -119,6 +119,7 @@ class WorkflowTest extends TestCase
         $response = $this->actingAsRole('applicant9@wdf.go.tz')
             ->post(route('loans.workflow', $loan->hashid), [
                 'action' => 'accept_amount',
+                'comments' => 'I accept the proposed amount.',
             ]);
 
         $response->assertRedirect(route('loan-applications.show', $loan->hashid));
@@ -213,6 +214,7 @@ class WorkflowTest extends TestCase
             ->post(route('loans.workflow', $loan->hashid), [
                 'action' => 'assign_accountant',
                 'accountant_id' => $accountant->id,
+                'comments' => 'Assigning disbursement officer.',
             ]);
 
         $response->assertRedirect(route('loan-applications.show', $loan->hashid));
@@ -230,6 +232,7 @@ class WorkflowTest extends TestCase
             ->post(route('loans.workflow', $loan->hashid), [
                 'action' => 'disburse',
                 'grace_period_months' => 3,
+                'comments' => 'Funds disbursed.',
             ]);
 
         $response->assertRedirect(route('loan-applications.show', $loan->hashid));
@@ -263,6 +266,7 @@ class WorkflowTest extends TestCase
             ->post(route('loans.workflow', $loan->hashid), [
                 'action' => 'disburse',
                 'grace_period_months' => 3,
+                'comments' => 'Funds disbursed.',
             ])
             ->assertRedirect(route('loan-applications.show', $loan->hashid));
 
@@ -284,6 +288,7 @@ class WorkflowTest extends TestCase
                 'action' => 'disburse',
                 'grace_period_months' => 3,
                 'disbursed_amount' => 1000000,
+                'comments' => 'Attempt custom amount.',
             ])
             ->assertSessionHasErrors('disbursed_amount');
     }
@@ -352,6 +357,101 @@ class WorkflowTest extends TestCase
             ->assertSee(__('loans.edit_application'), false);
     }
 
+    public function test_workflow_action_requires_comments(): void
+    {
+        $loan = $this->loanByTrack('WL000008');
+
+        $this->actingAsRole('km@wdf.go.tz')
+            ->from(route('loan-applications.show', $loan->hashid))
+            ->post(route('loans.workflow', $loan->hashid), [
+                'action' => 'approve_km',
+            ])
+            ->assertRedirect(route('loan-applications.show', $loan->hashid))
+            ->assertSessionHasErrors('comments');
+    }
+
+    public function test_km_can_rollback_before_approval_but_not_after(): void
+    {
+        $atKm = $this->loanByTrack('WL000008');
+
+        $this->actingAsRole('km@wdf.go.tz')
+            ->get(route('loan-applications.show', $atKm->hashid))
+            ->assertOk()
+            ->assertSee("modal = 'rollback_step'", false);
+
+        $this->actingAsRole('km@wdf.go.tz')
+            ->post(route('loans.workflow', $atKm->hashid), [
+                'action' => 'rollback_step',
+                'comments' => 'Needs director clarification.',
+            ])
+            ->assertRedirect(route('loan-applications.show', $atKm->hashid));
+
+        $atKm->refresh();
+        $this->assertSame(6, $atKm->current_step);
+        $this->assertSame('in_review', $atKm->status);
+
+        $approved = $this->loanByTrack('WL000009');
+
+        $this->actingAsRole('km@wdf.go.tz')
+            ->get(route('loan-applications.show', $approved->hashid))
+            ->assertOk()
+            ->assertDontSee("modal = 'rollback_step'", false);
+
+        $this->actingAsRole('km@wdf.go.tz')
+            ->post(route('loans.workflow', $approved->hashid), [
+                'action' => 'rollback_step',
+                'comments' => 'Should be blocked after approval.',
+            ])
+            ->assertForbidden();
+    }
+
+    public function test_director_loses_rollback_after_forwarding_to_km(): void
+    {
+        $loan = $this->loanByTrack('WL000008');
+
+        $this->actingAsRole('director@wdf.go.tz')
+            ->get(route('loan-applications.show', $loan->hashid))
+            ->assertOk()
+            ->assertDontSee("modal = 'rollback_step'", false);
+
+        $this->actingAsRole('director@wdf.go.tz')
+            ->post(route('loans.workflow', $loan->hashid), [
+                'action' => 'rollback_step',
+                'comments' => 'Director should not rollback at KM step.',
+            ])
+            ->assertForbidden();
+    }
+
+    public function test_chief_and_accountant_cannot_rollback(): void
+    {
+        $approved = $this->loanByTrack('WL000009');
+        $ready = $this->loanByTrack('WL000010');
+
+        $this->actingAsRole('chief@wdf.go.tz')
+            ->get(route('loan-applications.show', $approved->hashid))
+            ->assertOk()
+            ->assertDontSee("modal = 'rollback_step'", false);
+
+        $this->actingAsRole('chief@wdf.go.tz')
+            ->post(route('loans.workflow', $approved->hashid), [
+                'action' => 'rollback_step',
+                'comments' => 'Chief cannot rollback.',
+            ])
+            ->assertForbidden();
+
+        $this->actingAsRole('accountant1@wdf.go.tz')
+            ->get(route('loan-applications.show', $ready->hashid))
+            ->assertOk()
+            ->assertDontSee("modal = 'rollback_step'", false);
+
+        $this->actingAsRole('accountant1@wdf.go.tz')
+            ->post(route('loans.workflow', $ready->hashid), [
+                'action' => 'rollback_step',
+                'comments' => 'Accountant cannot rollback.',
+            ])
+            ->assertForbidden();
+    }
+
     public function test_unauthorized_workflow_action_is_forbidden(): void
     {
         $loan = $this->loanByTrack('WL000001');
@@ -359,6 +459,7 @@ class WorkflowTest extends TestCase
         $response = $this->actingAsRole('km@wdf.go.tz')
             ->post(route('loans.workflow', $loan->hashid), [
                 'action' => 'receive',
+                'comments' => 'Unauthorized action.',
             ]);
 
         $response->assertForbidden();
@@ -367,7 +468,10 @@ class WorkflowTest extends TestCase
     public function test_invalid_loan_hash_returns_not_found(): void
     {
         $this->actingAsRole('admin@wdf.go.tz')
-            ->post('/loans/invalidhash/workflow', ['action' => 'receive'])
+            ->post('/loans/invalidhash/workflow', [
+                'action' => 'receive',
+                'comments' => 'Invalid loan.',
+            ])
             ->assertNotFound();
     }
 }

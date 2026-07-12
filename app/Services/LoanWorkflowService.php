@@ -148,8 +148,9 @@ class LoanWorkflowService
 
     protected function rollbackStep(Loan $loan, User $user, array $data): void
     {
-        if ($loan->status === 'disbursed') {
-            throw new \InvalidArgumentException('Cannot rollback a disbursed loan.');
+        if (in_array($loan->status, ['approved', 'ready_for_disbursement', 'disbursed'], true)
+            || $loan->current_step >= 8) {
+            throw new \InvalidArgumentException('Cannot rollback an approved or later loan.');
         }
 
         [$previousStep, $status] = $this->rollbackTarget($loan);
@@ -165,15 +166,7 @@ class LoanWorkflowService
             'status' => $status,
         ];
 
-        if ($loan->current_step === 8) {
-            $updates['officer_id'] = null;
-        }
-
-        if ($loan->current_step === 7) {
-            $updates['approved_by'] = null;
-        }
-
-        if ($loan->current_step === 3) {
+        if ($previousStep === 3) {
             $updates['applicant_acceptance'] = 'pending';
         }
 
@@ -188,13 +181,10 @@ class LoanWorkflowService
 
         return match ($loan->current_step) {
             2 => [1, 'received'],
-            3 => [2, 'in_review'],
             4 => [3, 'awaiting_applicant'],
             5 => [4, 'in_review'],
             6 => [5, 'in_review'],
             7 => [6, 'in_review'],
-            8 => [7, 'in_review'],
-            9 => [8, 'approved'],
             default => throw new \InvalidArgumentException('This loan cannot be rolled back.'),
         };
     }

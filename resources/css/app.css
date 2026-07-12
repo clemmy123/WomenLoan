@@ -2949,6 +2949,185 @@
         gap: 0.35rem;
     }
 
+    .app-kebab {
+        position: relative;
+        display: inline-flex;
+    }
+
+    .app-kebab-trigger {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 2.125rem;
+        height: 2.125rem;
+        border-radius: 0.65rem;
+        border: 1px solid rgba(148, 163, 184, 0.35);
+        background: #ffffff;
+        color: #475569;
+        transition:
+            border-color 0.18s ease,
+            color 0.18s ease,
+            box-shadow 0.18s ease,
+            background 0.18s ease,
+            transform 0.18s ease;
+    }
+
+    .app-kebab-trigger:hover,
+    .app-kebab-trigger:focus-visible,
+    .app-kebab-trigger[aria-expanded="true"] {
+        border-color: transparent;
+        color: #ffffff;
+        background: linear-gradient(135deg, #06b6d4 0%, #6366f1 48%, #8b5cf6 100%);
+        box-shadow:
+            0 6px 16px rgba(99, 102, 241, 0.38),
+            0 0 0 3px rgba(99, 102, 241, 0.14);
+        transform: translateY(-1px);
+        outline: none;
+    }
+
+    .app-kebab-trigger:active {
+        border-color: transparent;
+        color: #ffffff;
+        background: linear-gradient(135deg, #0891b2 0%, #4f46e5 48%, #7c3aed 100%);
+        box-shadow: 0 3px 10px rgba(79, 70, 229, 0.42);
+        transform: translateY(0) scale(0.96);
+    }
+
+    .app-kebab-dots {
+        width: 1.125rem;
+        height: 1.125rem;
+    }
+
+    .app-kebab-menu {
+        position: absolute;
+        right: 0;
+        top: calc(100% + 0.35rem);
+        z-index: 40;
+        min-width: 11.5rem;
+        padding: 0.35rem;
+        border-radius: 0.85rem;
+        border: 1px solid rgba(148, 163, 184, 0.28);
+        background: #ffffff;
+        box-shadow: 0 12px 28px rgba(15, 23, 42, 0.14);
+    }
+
+    .app-kebab-item {
+        display: flex;
+        align-items: center;
+        gap: 0.65rem;
+        width: 100%;
+        padding: 0.55rem 0.65rem;
+        border-radius: 0.65rem;
+        font-size: 0.8125rem;
+        font-weight: 600;
+        color: #334155;
+        text-decoration: none;
+        transition: background 0.12s ease, color 0.12s ease;
+    }
+
+    .app-kebab-item:hover {
+        background: #f8fafc;
+        color: #1e293b;
+    }
+
+    .app-kebab-item-icon {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 1.65rem;
+        height: 1.65rem;
+        border-radius: 0.5rem;
+        flex-shrink: 0;
+    }
+
+    .app-kebab-item-icon svg {
+        width: 0.95rem;
+        height: 0.95rem;
+    }
+
+    .app-kebab-item-icon--view {
+        background: linear-gradient(135deg, #06b6d4 0%, #2563eb 100%);
+        color: #ffffff;
+    }
+
+    .app-kebab-item-icon--edit {
+        background: linear-gradient(135deg, #f5f3ff 0%, #ede9fe 100%);
+        color: #6d28d9;
+    }
+
+    .app-kebab-item-icon--roles {
+        background: linear-gradient(135deg, #ecfdf5 0%, #d1fae5 100%);
+        color: #047857;
+    }
+
+    .app-detail-list {
+        display: grid;
+        gap: 0.85rem;
+    }
+
+    .app-detail-list > div {
+        display: grid;
+        gap: 0.2rem;
+    }
+
+    .app-detail-list dt {
+        font-size: 0.75rem;
+        font-weight: 600;
+        letter-spacing: 0.02em;
+        text-transform: uppercase;
+        color: #64748b;
+    }
+
+    .app-detail-list dd {
+        font-size: 0.9375rem;
+        font-weight: 500;
+        color: #0f172a;
+    }
+
+    .dark .app-kebab-trigger {
+        border-color: rgba(148, 163, 184, 0.25);
+        background: rgba(15, 23, 42, 0.65);
+        color: #cbd5e1;
+    }
+
+    .dark .app-kebab-trigger:hover,
+    .dark .app-kebab-trigger:focus-visible,
+    .dark .app-kebab-trigger[aria-expanded="true"] {
+        border-color: transparent;
+        color: #ffffff;
+        background: linear-gradient(135deg, #22d3ee 0%, #818cf8 48%, #a78bfa 100%);
+        box-shadow:
+            0 6px 18px rgba(129, 140, 248, 0.42),
+            0 0 0 3px rgba(129, 140, 248, 0.18);
+    }
+
+    .dark .app-kebab-trigger:active {
+        background: linear-gradient(135deg, #06b6d4 0%, #6366f1 48%, #8b5cf6 100%);
+    }
+
+    .dark .app-kebab-menu {
+        border-color: rgba(148, 163, 184, 0.2);
+        background: #0f172a;
+        box-shadow: 0 12px 28px rgba(0, 0, 0, 0.4);
+    }
+
+    .dark .app-kebab-item {
+        color: #e2e8f0;
+    }
+
+    .dark .app-kebab-item:hover {
+        background: rgba(255, 255, 255, 0.06);
+        color: #fff;
+    }
+
+    .dark .app-detail-list dt {
+        color: #94a3b8;
+    }
+
+    .dark .app-detail-list dd {
+        color: #f1f5f9;
+    }
+
     .app-icon-btn {
         display: inline-flex;
         align-items: center;

@@ -5,6 +5,7 @@ return [
     'user_created' => 'Mtumiaji ameundwa.',
     'user_updated' => 'Mtumiaji amesasishwa.',
     'user_updated_and_unlocked' => 'Mtumiaji amesasishwa. Kufunga kuingia kumeondolewa na barua pepe ya kufungua imetumwa.',
+    'user_roles_updated' => 'Majukumu ya mtumiaji yamesasishwa.',
     'user_deleted' => 'Mtumiaji amefutwa.',
     'role_updated' => 'Ruhusa za jukumu zimesasishwa.',
     'role_created' => 'Jukumu limeundwa.',

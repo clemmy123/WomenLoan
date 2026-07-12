@@ -2,8 +2,8 @@
     @csrf
     <input type="hidden" name="action" value="forward_ass_dir">
     <div>
-        <label class="app-label">{{ __('workflow.comments') }}</label>
-        <textarea name="comments" rows="3" class="app-textarea" placeholder="{{ __('workflow.comments_optional') }}"></textarea>
+        <label class="app-label">{{ __('workflow.comments') }} @include('partials.required-mark')</label>
+        <textarea name="comments" rows="3" required class="app-textarea" placeholder="{{ __('workflow.comments') }}"></textarea>
     </div>
     <x-document-upload
         name="attachment"

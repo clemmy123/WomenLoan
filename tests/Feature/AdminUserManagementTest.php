@@ -137,4 +137,54 @@ class AdminUserManagementTest extends TestCase
         $response->assertSee(e(role_label('accountant')), false);
         $response->assertSee(e(role_label('cdo_ward')), false);
     }
+
+    public function test_admin_can_view_user_read_only(): void
+    {
+        $target = User::where('email', 'accountant1@wdf.go.tz')->firstOrFail();
+
+        $response = $this->actingAsRole('admin@wdf.go.tz')
+            ->get(route('admin.users.show', $target));
+
+        $response->assertOk();
+        $response->assertSee(__('admin.view_user'), false);
+        $response->assertSee($target->email, false);
+        $response->assertSee($target->name, false);
+        $response->assertDontSee('name="email"', false);
+        $response->assertDontSee('name="roles[]"', false);
+    }
+
+    public function test_admin_can_open_assign_roles_and_update_roles(): void
+    {
+        $target = User::where('email', 'accountant1@wdf.go.tz')->firstOrFail();
+
+        $this->actingAsRole('admin@wdf.go.tz')
+            ->get(route('admin.users.assign-roles', $target))
+            ->assertOk()
+            ->assertSee(__('admin.assign_roles'), false)
+            ->assertSee('name="roles[]"', false);
+
+        $this->actingAsRole('admin@wdf.go.tz')
+            ->put(route('admin.users.assign-roles.update', $target), [
+                'roles' => ['chief'],
+            ])
+            ->assertRedirect(route('admin.users.assign-roles', $target))
+            ->assertSessionHas('success');
+
+        $target->refresh();
+        $this->assertTrue($target->hasRole('chief'));
+        $this->assertFalse($target->hasRole('accountant'));
+    }
+
+    public function test_users_index_shows_row_action_menu_links(): void
+    {
+        $target = User::where('email', 'accountant1@wdf.go.tz')->firstOrFail();
+
+        $response = $this->actingAsRole('admin@wdf.go.tz')
+            ->get(route('admin.users.index', ['search' => 'accountant1@wdf.go.tz']));
+
+        $response->assertOk();
+        $response->assertSee(route('admin.users.show', $target), false);
+        $response->assertSee(route('admin.users.edit', $target), false);
+        $response->assertSee(route('admin.users.assign-roles', $target), false);
+    }
 }

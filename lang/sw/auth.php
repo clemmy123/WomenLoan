@@ -2,7 +2,7 @@
 
 return [
     'failed' => 'Taarifa hizi hazilingani na rekodi zetu.',
-    'failed_with_remaining' => '{1} Nenosiri si sahihi. Unabaki na jaribio :remaining moja kabla akaunti hii ifungwe kwa dakika :minutes.|[2,*] Nenosiri si sahihi. Unabaki na majaribio :remaining kabla akaunti hii ifungwe kwa dakika :minutes.',
+    'failed_with_remaining' => '{1} Taarifa si sahihi. Unabaki na nafasi :remaining moja. Ukirudia kukosea, akaunti itafungwa kwa dakika :minutes.|[2,*] Taarifa si sahihi. Unabaki na nafasi :remaining. Baada ya hapo akaunti itafungwa kwa dakika :minutes.',
     'locked_for_minutes' => 'Umejaribu nenosiri lisilo sahihi mara nyingi. Akaunti hii imefungwa kwa dakika :minutes. Tafadhali subiri, kisha ujaribu tena. Baada ya kusubiri utapata nafasi nyingine. Ukirudia kukosea nenosiri mara 3 tena, akaunti itafungwa kabisa na utahitajika kuwasiliana na msimamizi.',
     'locked_temporarily' => 'Akaunti hii imefungwa kwa muda kwa sababu ya majaribio ya nenosiri yasiyo sahihi. Tafadhali subiri takriban dakika :minutes, kisha ujaribu tena.',
     'locked_permanently' => 'Akaunti hii imefungwa kabisa kwa sababu ya majaribio ya nenosiri yasiyo sahihi yaliyorudiwa. Tafadhali wasiliana na msimamizi wa mfumo ili afungue barua pepe/akaunti yako.',

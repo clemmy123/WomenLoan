@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests\Admin\StoreUserRequest;
 use App\Http\Requests\Admin\UpdateUserRequest;
+use App\Http\Requests\Admin\UpdateUserRolesRequest;
 use App\Models\Role;
 use App\Models\User;
 use App\Services\UserProvisioningService;
@@ -70,6 +71,13 @@ class UserController extends Controller
             ->with('success', __('messages.user_created'));
     }
 
+    public function show(User $user)
+    {
+        $user->load(['roles', 'zoneable']);
+
+        return view('admin.users.show', compact('user'));
+    }
+
     public function edit(User $user)
     {
         $roles = Role::orderBy('name')->get();
@@ -79,6 +87,23 @@ class UserController extends Controller
             compact('user', 'roles', 'userRoles'),
             $this->users->formOptions()
         ));
+    }
+
+    public function assignRoles(User $user)
+    {
+        $roles = Role::orderBy('name')->get();
+        $userRoles = $user->roles->pluck('name')->toArray();
+
+        return view('admin.users.assign-roles', compact('user', 'roles', 'userRoles'));
+    }
+
+    public function updateRoles(UpdateUserRolesRequest $request, User $user)
+    {
+        $this->users->syncRolesOnly($user, $request->validated('roles') ?? []);
+
+        return redirect()
+            ->route('admin.users.assign-roles', $user)
+            ->with('success', __('messages.user_roles_updated'));
     }
 
     public function update(UpdateUserRequest $request, User $user)

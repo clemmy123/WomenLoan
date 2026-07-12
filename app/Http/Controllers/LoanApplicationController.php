@@ -34,6 +34,7 @@ class LoanApplicationController extends Controller
 
         $loans = $this->loans->paginatedIndex($search, $sort, $status);
         $listStatusOptions = $this->loans->listStatusOptions();
+        $actionableCount = $this->loans->countActionableForUser(Auth::user());
         $drafts = DraftLoan::where('user_id', Auth::id())->latest()->get();
         $canStartNew = Auth::user()->can('create loan application')
             && Auth::user()->hasCompletedProfile()
@@ -52,6 +53,7 @@ class LoanApplicationController extends Controller
             'search',
             'status',
             'listStatusOptions',
+            'actionableCount',
         ));
     }
 

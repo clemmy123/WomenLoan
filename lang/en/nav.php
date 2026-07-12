@@ -9,7 +9,7 @@ return [
     'users' => 'Users',
     'roles' => 'Roles & Permissions',
     'admin_dashboard' => 'Admin Overview',
-    'audit_logs' => 'Audit Logs',
+    'audit_logs' => 'Audit Trails',
     'applicants' => 'Applicants',
     'register_applicant' => 'Complete Preliminary Information',
     'my_profile' => 'My Profile',

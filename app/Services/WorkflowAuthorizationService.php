@@ -9,6 +9,10 @@ class WorkflowAuthorizationService
 {
     public function canPerform(User $user, Loan $loan, string $action): bool
     {
+        if ($action === 'rollback_step') {
+            return $this->canRollback($user, $loan);
+        }
+
         if ($user->hasRole(['admin', 'super_admin'])) {
             return true;
         }
@@ -32,7 +36,6 @@ class WorkflowAuthorizationService
                 && $step === 9
                 && $status === 'ready_for_disbursement'
                 && $loan->officer_id === $user->id,
-            'rollback_step' => $this->canRollback($user, $loan),
             default => false,
         };
     }
@@ -44,18 +47,26 @@ class WorkflowAuthorizationService
         }
     }
 
+    /**
+     * Rollback is available only to the current-step actor (forward or return for improvements).
+     * Once the loan is approved (step 8+), rollback ends — chief/accountant never roll back.
+     */
     protected function canRollback(User $user, Loan $loan): bool
     {
-        if ($loan->status === 'disbursed') {
+        if (in_array($loan->status, ['approved', 'ready_for_disbursement', 'disbursed'], true)) {
+            return false;
+        }
+
+        if ($loan->current_step >= 8) {
+            return false;
+        }
+
+        if ($user->hasRole(['chief', 'accountant'])) {
             return false;
         }
 
         if ($user->hasRole(['admin', 'super_admin'])) {
             return ! ($loan->current_step === 1 && $loan->status === 'pending');
-        }
-
-        if ($user->hasRole(['chief', 'accountant'])) {
-            return false;
         }
 
         if (! $user->can('rollback workflow step')) {
@@ -67,17 +78,13 @@ class WorkflowAuthorizationService
                 && app(CdoLoanScopeService::class)->canActOnLoan($user, $loan);
         }
 
-        if ($loan->current_step <= 1) {
-            return false;
-        }
-
+        // Current actor only — after they forward, the next step owner gets the buttons.
         return match ($loan->current_step) {
-            2, 3, 4 => $user->can('propose loan amount') || $user->can('forward to assistant director'),
-            5 => $user->can('comment as assistant director'),
-            6 => $user->can('comment as director'),
-            7 => $user->can('forward to km'),
-            8 => $user->can('approve as km'),
-            9 => $user->can('assign accountant') || $user->can('disburse loan'),
+            2 => $user->can('propose loan amount'),
+            4 => $user->can('forward to assistant director'),
+            5 => $user->can('forward to director') || $user->can('comment as assistant director'),
+            6 => $user->can('forward to km') || $user->can('comment as director'),
+            7 => $user->can('approve as km'),
             default => false,
         };
     }

@@ -61,7 +61,7 @@
                 </td>
                 <td class="text-right">
                     <div class="inline-flex items-center justify-end">
-                        @include('partials.table-icon', ['action' => 'edit', 'href' => route('admin.users.edit', $user), 'label' => __('common.edit')])
+                        @include('partials.user-row-actions', ['user' => $user])
                     </div>
                 </td>
             </tr>
