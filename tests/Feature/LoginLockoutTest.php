@@ -111,4 +111,24 @@ class LoginLockoutTest extends TestCase
             \App\Notifications\AccountUnlockedNotification::class
         );
     }
+
+    public function test_login_skips_forbidden_intended_url_instead_of_403(): void
+    {
+        $this->seed([
+            \Database\Seeders\LocationSeeder::class,
+            \Database\Seeders\BusinessSectorSeeder::class,
+            \Database\Seeders\DummyDataSeeder::class,
+        ]);
+
+        $this->get(route('reports.by-region.index'))
+            ->assertRedirect(route('login'));
+
+        $this->post(route('login'), [
+            'email' => 'applicant2@wdf.go.tz',
+            'password' => 'password',
+        ])
+            ->assertRedirect(route('dashboard'));
+
+        $this->get(route('dashboard'))->assertOk();
+    }
 }

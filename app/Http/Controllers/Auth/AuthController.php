@@ -7,9 +7,11 @@ use App\Http\Requests\Auth\RegisterRequest;
 use App\Models\Concerns\HasDisplayName;
 use App\Models\User;
 use App\Services\LoginLockoutService;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Route;
 
 class AuthController extends Controller
 {
@@ -74,7 +76,7 @@ class AuthController extends Controller
                     ]));
             }
 
-            return redirect()->intended(route('dashboard'));
+            return $this->redirectAfterLogin($request, $user);
         }
 
         if ($user) {
@@ -133,5 +135,79 @@ class AuthController extends Controller
         $request->session()->regenerateToken();
 
         return redirect()->route('login');
+    }
+
+    /**
+     * Prefer the intended URL after login, but never land on a 403 page.
+     */
+    protected function redirectAfterLogin(Request $request, User $user): RedirectResponse
+    {
+        $default = route('dashboard');
+        $intended = $request->session()->pull('url.intended');
+
+        if (! is_string($intended) || $intended === '' || $intended === $default) {
+            return redirect()->to($default);
+        }
+
+        if (! $this->userCanAccessIntendedUrl($user, $intended)) {
+            return redirect()->to($default);
+        }
+
+        return redirect()->to($intended);
+    }
+
+    protected function userCanAccessIntendedUrl(User $user, string $intended): bool
+    {
+        $path = parse_url($intended, PHP_URL_PATH);
+
+        if (! is_string($path) || $path === '' || str_starts_with($path, '//')) {
+            return false;
+        }
+
+        $appUrl = rtrim((string) config('app.url'), '/');
+        if (str_starts_with($intended, 'http://') || str_starts_with($intended, 'https://')) {
+            if ($appUrl !== '' && ! str_starts_with($intended, $appUrl)) {
+                return false;
+            }
+        }
+
+        try {
+            $route = Route::getRoutes()->match(Request::create($intended, 'GET'));
+        } catch (\Throwable) {
+            return false;
+        }
+
+        foreach ($route->gatherMiddleware() as $middleware) {
+            if (! is_string($middleware)) {
+                continue;
+            }
+
+            if (str_starts_with($middleware, 'can:')) {
+                $abilities = explode(',', substr($middleware, 4));
+
+                foreach ($abilities as $ability) {
+                    $ability = trim($ability);
+                    if ($ability !== '' && ! $user->can($ability)) {
+                        return false;
+                    }
+                }
+            }
+
+            if (str_starts_with($middleware, 'role:')) {
+                $roles = array_map('trim', explode('|', substr($middleware, 5)));
+                if ($roles !== [] && ! $user->hasAnyRole($roles)) {
+                    return false;
+                }
+            }
+
+            if (str_starts_with($middleware, 'permission:')) {
+                $permissions = array_map('trim', explode('|', substr($middleware, 11)));
+                if ($permissions !== [] && ! $user->canAny($permissions)) {
+                    return false;
+                }
+            }
+        }
+
+        return true;
     }
 }
