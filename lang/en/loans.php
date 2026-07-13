@@ -157,6 +157,7 @@ return [
     'action_new' => 'New',
     'needs_your_action' => 'Needs your action — open to review and proceed',
     'action_priority_hint' => '{0} You have no requests that need approval for the next step.|{1} You have :count request that needs approval for the next step.|[2,*] You have :count requests that need approval for the next step.',
+    'action_priority_hint_km' => '{0} You have no requests that need your final approve.|{1} You have :count request that needs your final approve.|[2,*] You have :count requests that need your final approve.',
     'business_ward' => 'Business Ward',
     'list_name' => 'Applicant / Group',
     'view_full_details' => 'View Full Details',

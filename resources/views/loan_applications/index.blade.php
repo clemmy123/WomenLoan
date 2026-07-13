@@ -24,7 +24,11 @@
                     {{ __('loans.apply_subtitle') }}
                 @endif
                 <span class="block mt-1 text-xs text-amber-700 dark:text-amber-300 font-medium">
-                    {{ trans_choice('loans.action_priority_hint', $actionableCount ?? 0, ['count' => $actionableCount ?? 0]) }}
+                    @if(auth()->user()?->hasRole('km'))
+                        {{ trans_choice('loans.action_priority_hint_km', $actionableCount ?? 0, ['count' => $actionableCount ?? 0]) }}
+                    @else
+                        {{ trans_choice('loans.action_priority_hint', $actionableCount ?? 0, ['count' => $actionableCount ?? 0]) }}
+                    @endif
                 </span>
             </p>
         </div>
