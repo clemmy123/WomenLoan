@@ -2,12 +2,13 @@
 
 return [
     'title' => 'General Reports',
-    'subtitle' => 'Filter disbursements and repayments across time, location, and demographics.',
+    'subtitle' => 'Choose a financial year, period, or date range, then apply filters to view results.',
     'filters' => 'Report Filters',
     'show_filters' => 'Show Filters',
     'hide_filters' => 'Hide Filters',
     'apply_filters' => 'Apply Filters',
     'reset_filters' => 'Reset',
+    'apply_filters_prompt' => 'No data is shown yet. Apply filters to view statistics and reports.',
     'fiscal_year' => 'Financial year',
     'all_years' => 'All',
     'period' => 'Period',
@@ -54,4 +55,6 @@ return [
     'export_excel' => 'Export Excel',
     'export_pdf' => 'Export PDF',
     'generated_at' => 'Generated',
+    'pdf_ministry' => 'Wizara ya Maendeleo ya Jamii, Jinsia Wanawake na Makundi Maalum',
+    'pdf_fund' => 'Mfuko wa Maendeleo ya Wanawake',
 ];

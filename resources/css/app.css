@@ -1236,6 +1236,37 @@
         font-size: 0.8125rem;
     }
 
+    .app-sidebar nav a.sidebar-sublink:not(.sidebar-sublink-active) {
+        color: #475569;
+    }
+
+    .dark .app-sidebar nav a.sidebar-sublink:not(.sidebar-sublink-active) {
+        color: #a1a1aa;
+    }
+
+    .app-sidebar nav a.sidebar-sublink:not(.sidebar-sublink-active):hover {
+        background: rgba(148, 163, 184, 0.14);
+        color: #0f172a;
+    }
+
+    .dark .app-sidebar nav a.sidebar-sublink:not(.sidebar-sublink-active):hover {
+        background: rgba(255, 255, 255, 0.06);
+        color: #f4f4f5;
+    }
+
+    .app-sidebar nav a.sidebar-sublink-active {
+        background: rgba(148, 163, 184, 0.22);
+        color: #0f172a !important;
+        box-shadow: none;
+    }
+
+    .dark .app-sidebar nav a.sidebar-sublink-active {
+        background: rgba(255, 255, 255, 0.1);
+        color: #fafafa !important;
+        outline: none;
+        box-shadow: none;
+    }
+
     .dark-auth-bg {
         background-color: #000000;
         background-image:

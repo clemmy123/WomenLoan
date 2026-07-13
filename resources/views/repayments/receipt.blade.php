@@ -57,9 +57,6 @@
                     @include('partials.detail-field', ['label' => __('repayments.payment_amount'), 'value' => format_tzs($tx['amount'])])
                     @include('partials.detail-field', ['label' => __('repayments.payment_reference'), 'value' => $tx['reference'] ?? '—'])
                     @include('partials.detail-field', ['label' => __('repayments.method'), 'value' => $tx['method'] ?? '—'])
-                    @if(isset($tx['outstanding_before']))
-                        @include('partials.detail-field', ['label' => __('repayments.outstanding_before'), 'value' => format_tzs($tx['outstanding_before'])])
-                    @endif
                     @if(isset($tx['outstanding_after']))
                         @include('partials.detail-field', ['label' => __('repayments.outstanding_after'), 'value' => format_tzs($tx['outstanding_after'])])
                     @endif

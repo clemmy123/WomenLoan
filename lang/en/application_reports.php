@@ -16,6 +16,7 @@ return [
     'all_statuses' => 'All Statuses',
     'track_id' => 'Track ID',
     'full_name' => 'Full Name',
+    'group_members' => 'Group members',
     'amount_requested' => 'Amount Requested',
     'amount_disbursed' => 'Amount Disbursed',
     'bank_name' => 'Bank Name',

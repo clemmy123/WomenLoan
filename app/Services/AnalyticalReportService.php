@@ -17,7 +17,7 @@ class AnalyticalReportService
         'daily',
         'weekly',
         'monthly',
-        'semi_annual',
+        'quarterly',
         'annually',
     ];
 
@@ -517,7 +517,7 @@ class AnalyticalReportService
         $chartPeriod = match ($period) {
             'daily' => 'daily',
             'weekly' => 'weekly',
-            'q1', 'q2', 'q3', 'q4', 'semi_annual', 'annually' => 'monthly',
+            'quarterly', 'q1', 'q2', 'q3', 'q4', 'semi_annual', 'annually' => 'monthly',
             default => 'monthly',
         };
 

@@ -20,7 +20,9 @@
     </style>
 </head>
 <body>
-    <h1>{{ __('analytical_reports.overview_title') }}</h1>
+    @include('partials.report-pdf-letterhead', [
+        'reportTitle' => __('analytical_reports.overview_title'),
+    ])
     <p class="meta">
         {{ __('analytical_reports.fiscal_year') }}: {{ ($filters['fiscal_year'] ?? null) === \App\Support\FiscalYear::ALL_KEY ? __('analytical_reports.all_years') : ($filters['fiscal_year'] ?? '—') }}
         &nbsp;|&nbsp;

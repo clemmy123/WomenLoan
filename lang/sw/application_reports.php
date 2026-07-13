@@ -16,6 +16,7 @@ return [
     'all_statuses' => 'Hali Zote',
     'track_id' => 'Kitambulisho cha Ufuatiliaji',
     'full_name' => 'Majina Kamili',
+    'group_members' => 'Wanachama wa kikundi',
     'amount_requested' => 'Kiasi Kilichoombwa',
     'amount_disbursed' => 'Kiasi Kilichotolewa',
     'bank_name' => 'Jina la Benki',

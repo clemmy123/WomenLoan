@@ -65,7 +65,19 @@ class PermissionCatalog
             ],
             'reports' => [
                 'label' => __('permissions.groups.reports'),
-                'permissions' => ['view reports', 'view analytical reports'],
+                'permissions' => [
+                    'view reports overview',
+                    'view application reports',
+                    'view payment reports',
+                    'view outstanding reports',
+                    'view overdue reports',
+                    'view by region reports',
+                    'view by type reports',
+                    'view by sector reports',
+                    'view by bank reports',
+                    'view by monthly reports',
+                    'view by age reports',
+                ],
             ],
             'administration' => [
                 'label' => __('permissions.groups.administration'),
@@ -101,8 +113,17 @@ class PermissionCatalog
             'disburse loan' => __('nav.my_disbursements'),
             'manage loan groups' => __('nav.loan_groups'),
             'view repayments' => __('nav.repayments'),
-            'view reports' => __('nav.reports'),
-            'view analytical reports' => __('nav.analytical_reports'),
+            'view reports overview' => __('nav.reports_overview'),
+            'view application reports' => __('nav.application_reports'),
+            'view payment reports' => __('nav.analytical_overview'),
+            'view outstanding reports' => __('nav.analytical_outstanding'),
+            'view overdue reports' => __('nav.analytical_overdue'),
+            'view by region reports' => __('nav.by_region'),
+            'view by type reports' => __('nav.by_types'),
+            'view by sector reports' => __('nav.by_sectors'),
+            'view by bank reports' => __('nav.by_banks'),
+            'view by monthly reports' => __('nav.by_monthly'),
+            'view by age reports' => __('nav.by_age'),
             'view administration dashboard' => __('nav.admin_dashboard'),
             'manage users' => __('nav.users'),
             'manage roles' => __('nav.roles'),
@@ -137,7 +158,75 @@ class PermissionCatalog
             ]);
         }
 
+        self::migrateLegacyReportPermissions();
+
         return $names;
+    }
+
+    /**
+     * Map old broad report permissions onto the new submenu permissions.
+     */
+    public static function migrateLegacyReportPermissions(): void
+    {
+        $map = [
+            'view reports' => [
+                'view reports overview',
+                'view application reports',
+                'view by region reports',
+                'view by type reports',
+                'view by sector reports',
+                'view by bank reports',
+                'view by monthly reports',
+                'view by age reports',
+            ],
+            'view analytical reports' => [
+                'view payment reports',
+                'view outstanding reports',
+                'view overdue reports',
+            ],
+        ];
+
+        foreach ($map as $legacyName => $replacements) {
+            $legacy = Permission::query()
+                ->where('name', $legacyName)
+                ->where('guard_name', 'web')
+                ->first();
+
+            if (! $legacy) {
+                continue;
+            }
+
+            foreach ($replacements as $name) {
+                Permission::firstOrCreate([
+                    'name' => $name,
+                    'guard_name' => 'web',
+                ]);
+            }
+
+            $roleIds = \Illuminate\Support\Facades\DB::table('role_has_permissions')
+                ->where('permission_id', $legacy->id)
+                ->pluck('role_id');
+
+            foreach ($roleIds as $roleId) {
+                $role = \App\Models\Role::query()->find($roleId);
+                $role?->givePermissionTo($replacements);
+            }
+
+            $modelRows = \Illuminate\Support\Facades\DB::table('model_has_permissions')
+                ->where('permission_id', $legacy->id)
+                ->get();
+
+            foreach ($modelRows as $row) {
+                $model = $row->model_type::query()->find($row->model_id);
+                if ($model && method_exists($model, 'givePermissionTo')) {
+                    $model->givePermissionTo($replacements);
+                }
+            }
+
+            $legacy->delete();
+        }
+
+        app()[\Spatie\Permission\PermissionRegistrar::class]->forgetCachedPermissions();
     }
 
     public static function orderedPermissions()

@@ -42,6 +42,19 @@ class AnalyticalReportTest extends TestCase
         $response->assertSee(__('analytical_reports.group_repayments'), false);
         $response->assertSee(__('analytical_reports.chart_by_type'), false);
         $response->assertSee(__('analytical_reports.hide_filters'), false);
+        $response->assertDontSee('name="quarter"', false);
+        $response->assertDontSee('name="sort"', false);
+    }
+
+    public function test_payment_report_hides_data_until_filters_applied(): void
+    {
+        $response = $this->actingAsRole('ministry@wdf.go.tz')
+            ->get(route('reports.analytical.overview'));
+
+        $response->assertOk();
+        $response->assertSee(__('analytical_reports.apply_filters_prompt'), false);
+        $response->assertDontSee(__('analytical_reports.individual_repayments'), false);
+        $response->assertDontSee(__('analytical_reports.chart_by_type'), false);
     }
 
     public function test_default_fiscal_year_is_current_july_to_june(): void

@@ -8,6 +8,20 @@ class NavPermissions
 {
     public static function for(User $user): array
     {
+        $reportFlags = [
+            'viewReportsOverview' => $user->can('view reports overview'),
+            'viewApplicationReports' => $user->can('view application reports'),
+            'viewPaymentReports' => $user->can('view payment reports'),
+            'viewOutstandingReports' => $user->can('view outstanding reports'),
+            'viewOverdueReports' => $user->can('view overdue reports'),
+            'viewByRegionReports' => $user->can('view by region reports'),
+            'viewByTypeReports' => $user->can('view by type reports'),
+            'viewBySectorReports' => $user->can('view by sector reports'),
+            'viewByBankReports' => $user->can('view by bank reports'),
+            'viewByMonthlyReports' => $user->can('view by monthly reports'),
+            'viewByAgeReports' => $user->can('view by age reports'),
+        ];
+
         return [
             'viewDashboard' => $user->can('view dashboard'),
             'trackLoan' => $user->can('view loan by track id'),
@@ -34,8 +48,8 @@ class NavPermissions
             'isAccountant' => $user->hasRole('accountant'),
             'manageGroups' => $user->can('manage loan groups'),
             'viewRepayments' => $user->can('view repayments'),
-            'viewReports' => $user->can('view reports'),
-            'viewAnalyticalReports' => $user->can('view analytical reports'),
+            ...$reportFlags,
+            'viewReportsSection' => collect($reportFlags)->contains(true),
             'manageUsers' => $user->can('manage users'),
             'manageRoles' => $user->can('manage roles'),
             'viewAuditLogs' => $user->can('view audit logs'),

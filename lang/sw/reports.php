@@ -2,12 +2,13 @@
 
 return [
     'title' => 'Ripoti za Jumla',
-    'subtitle' => 'Chuja malipo na marejesho kwa muda, eneo, na idadi ya watu.',
+    'subtitle' => 'Chagua mwaka wa fedha, kipindi, au tarehe, kisha tumia vichujio kuona matokeo.',
     'filters' => 'Vichujio vya Ripoti',
     'show_filters' => 'Onyesha Vichujio',
     'hide_filters' => 'Ficha Vichujio',
     'apply_filters' => 'Tumia Vichujio',
     'reset_filters' => 'Weka Upya',
+    'apply_filters_prompt' => 'Hakuna data inayoonyeshwa bado. Tumia vichujio kuona takwimu na ripoti.',
     'fiscal_year' => 'Mwaka wa fedha',
     'all_years' => 'Zote',
     'period' => 'Kipindi',
@@ -54,4 +55,6 @@ return [
     'export_excel' => 'Pakua Excel',
     'export_pdf' => 'Pakua PDF',
     'generated_at' => 'Imetengenezwa',
+    'pdf_ministry' => 'Wizara ya Maendeleo ya Jamii, Jinsia Wanawake na Makundi Maalum',
+    'pdf_fund' => 'Mfuko wa Maendeleo ya Wanawake',
 ];

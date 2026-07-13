@@ -5,7 +5,6 @@
     <title>{{ __('application_reports.title') }}</title>
     <style>
         body { font-family: DejaVu Sans, sans-serif; font-size: 11px; color: #1e293b; }
-        h1 { font-size: 18px; margin: 0 0 4px; color: #312e81; }
         .meta { color: #64748b; margin-bottom: 16px; font-size: 10px; }
         .summary { width: 100%; margin-bottom: 20px; border-collapse: collapse; }
         .summary td { padding: 6px 8px; border: 1px solid #e2e8f0; }
@@ -15,11 +14,15 @@
         table.data td { padding: 7px 6px; border-bottom: 1px solid #e2e8f0; vertical-align: top; }
         table.data tr:nth-child(even) td { background: #f8fafc; }
         .amount { text-align: right; white-space: nowrap; }
+        .members { font-size: 9px; color: #64748b; margin-top: 2px; }
         .footer { margin-top: 16px; font-size: 9px; color: #94a3b8; }
     </style>
 </head>
 <body>
-    <h1>{{ __('application_reports.title') }}</h1>
+    @include('partials.report-pdf-letterhead', [
+        'reportTitle' => __('application_reports.title'),
+    ])
+
     <p class="meta">
         {{ __('reports.fiscal_year') }}: {{ ($filters['fiscal_year'] ?? null) === \App\Support\FiscalYear::ALL_KEY ? __('reports.all_years') : ($filters['fiscal_year'] ?? '—') }}
         &nbsp;|&nbsp;
@@ -46,7 +49,6 @@
                 <th>{{ __('application_reports.full_name') }}</th>
                 <th class="amount">{{ __('application_reports.amount_requested') }}</th>
                 <th class="amount">{{ __('application_reports.amount_disbursed') }}</th>
-                <th>{{ __('application_reports.bank_name') }}</th>
                 <th class="amount">{{ __('application_reports.outstanding') }}</th>
                 <th class="amount">{{ __('application_reports.amount_repaid') }}</th>
             </tr>
@@ -55,21 +57,28 @@
             @forelse($rows as $row)
             <tr>
                 <td>{{ $row['track_id'] }}</td>
-                <td>{{ $row['full_name'] }}</td>
+                <td>
+                    {{ $row['full_name'] }}
+                    @if(($row['loan_type'] ?? null) === 'group')
+                        <div class="members">
+                            {{ __('application_reports.group_members') }}:
+                            {{ ! empty($row['members']) ? implode(', ', $row['members']) : '—' }}
+                        </div>
+                    @endif
+                </td>
                 <td class="amount">{{ format_tzs($row['amount_requested']) }}</td>
                 <td class="amount">{{ format_tzs($row['amount_disbursed']) }}</td>
-                <td>{{ $row['bank_name'] }}</td>
                 <td class="amount">{{ format_tzs($row['outstanding']) }}</td>
                 <td class="amount">{{ format_tzs($row['amount_repaid']) }}</td>
             </tr>
             @empty
             <tr>
-                <td colspan="7">{{ __('application_reports.no_results') }}</td>
+                <td colspan="6">{{ __('application_reports.no_results') }}</td>
             </tr>
             @endforelse
         </tbody>
     </table>
 
-    <p class="footer">Women Development Fund — {{ __('application_reports.title') }}</p>
+    <p class="footer">{{ __('reports.pdf_fund') }} — {{ __('application_reports.title') }}</p>
 </body>
 </html>

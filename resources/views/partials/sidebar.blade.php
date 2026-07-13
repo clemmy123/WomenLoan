@@ -65,24 +65,30 @@
         </a>
     @endif
 
-    @if($nav['viewReports'] || ($nav['viewAnalyticalReports'] ?? false))
+    @if($nav['viewReportsSection'] ?? false)
         @php
-            $reportsMenuOpen = request()->routeIs('reports.index', 'reports.export.*', 'reports.applications.*');
+            $reportsMenuOpen = request()->routeIs('reports.*');
             $reportsOverviewActive = request()->routeIs('reports.index', 'reports.export.*');
             $applicationReportsActive = request()->routeIs('reports.applications.*');
-            $analyticalReportsActive = request()->routeIs('reports.analytical.*');
+            $analyticalOverviewActive = request()->routeIs('reports.analytical.overview', 'reports.analytical.export.*');
+            $analyticalOutstandingActive = request()->routeIs('reports.analytical.outstanding*');
+            $analyticalOverdueActive = request()->routeIs('reports.analytical.overdue*');
+            $byRegionActive = request()->routeIs('reports.by-region.*');
+            $byTypeActive = request()->routeIs('reports.by-type.*');
+            $bySectorActive = request()->routeIs('reports.by-sector.*');
+            $byBankActive = request()->routeIs('reports.by-bank.*');
+            $byMonthlyActive = request()->routeIs('reports.by-monthly.*');
+            $byAgeActive = request()->routeIs('reports.by-age.*');
         @endphp
-        <p class="text-[10px] font-bold text-slate-400 dark:text-zinc-500 uppercase tracking-widest px-4 mb-2 mt-4">{{ __('nav.reports_section') }}</p>
-        @if($nav['viewReports'])
-        <div class="space-y-1" x-data="{ open: {{ $reportsMenuOpen ? 'true' : 'false' }} }">
+        <div class="mt-4 space-y-1" x-data="{ open: {{ $reportsMenuOpen ? 'true' : 'false' }} }">
             <button
                 type="button"
                 @click="open = !open"
                 class="sidebar-link sidebar-menu-toggle flex w-full items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-medium transition-all {{ $reportsMenuOpen ? 'sidebar-menu-open' : '' }}"
                 :aria-expanded="open.toString()"
             >
-                <svg class="h-4 w-4 opacity-70 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>
-                <span class="flex-1 text-left">{{ __('nav.reports') }}</span>
+                <svg class="h-4 w-4 opacity-70 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"/></svg>
+                <span class="flex-1 text-left">{{ __('nav.reports_section') }}</span>
                 <svg class="h-4 w-4 opacity-60 shrink-0 transition-transform duration-200" :class="open ? 'rotate-180' : ''" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
             </button>
 
@@ -95,58 +101,65 @@
                 x-transition:leave="transition ease-in duration-100"
                 x-transition:leave-start="opacity-100 translate-y-0"
                 x-transition:leave-end="opacity-0 -translate-y-1"
-                class="sidebar-submenu space-y-1 pl-4 ml-4 border-l border-slate-200/80 dark:border-white/10"
+                class="sidebar-submenu space-y-0.5 pl-3 ml-5 border-l border-slate-200 dark:border-white/10"
             >
-                <a href="{{ route('reports.index') }}" class="sidebar-link flex items-center gap-3 px-3 py-2 rounded-xl text-sm font-medium transition-all {{ $reportsOverviewActive ? 'sidebar-active' : '' }}">
-                    <svg class="h-4 w-4 opacity-70 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zm10 0a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zm10 0a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"/></svg>
-                    {{ __('nav.reports_overview') }}
-                </a>
-                <a href="{{ route('reports.applications.index') }}" class="sidebar-link flex items-center gap-3 px-3 py-2 rounded-xl text-sm font-medium transition-all {{ $applicationReportsActive ? 'sidebar-active' : '' }}">
-                    <svg class="h-4 w-4 opacity-70 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
-                    {{ __('nav.application_reports') }}
-                </a>
+                @if($nav['viewReportsOverview'] ?? false)
+                    <a href="{{ route('reports.index') }}" class="sidebar-link sidebar-sublink block px-3 py-2 rounded-lg text-sm font-medium transition-all {{ $reportsOverviewActive ? 'sidebar-sublink-active' : '' }}">
+                        {{ __('nav.reports_overview') }}
+                    </a>
+                @endif
+                @if($nav['viewApplicationReports'] ?? false)
+                    <a href="{{ route('reports.applications.index') }}" class="sidebar-link sidebar-sublink block px-3 py-2 rounded-lg text-sm font-medium transition-all {{ $applicationReportsActive ? 'sidebar-sublink-active' : '' }}">
+                        {{ __('nav.application_reports') }}
+                    </a>
+                @endif
+                @if($nav['viewPaymentReports'] ?? false)
+                    <a href="{{ route('reports.analytical.overview') }}" class="sidebar-link sidebar-sublink block px-3 py-2 rounded-lg text-sm font-medium transition-all {{ $analyticalOverviewActive ? 'sidebar-sublink-active' : '' }}">
+                        {{ __('nav.analytical_overview') }}
+                    </a>
+                @endif
+                @if($nav['viewOutstandingReports'] ?? false)
+                    <a href="{{ route('reports.analytical.outstanding') }}" class="sidebar-link sidebar-sublink block px-3 py-2 rounded-lg text-sm font-medium transition-all {{ $analyticalOutstandingActive ? 'sidebar-sublink-active' : '' }}">
+                        {{ __('nav.analytical_outstanding') }}
+                    </a>
+                @endif
+                @if($nav['viewOverdueReports'] ?? false)
+                    <a href="{{ route('reports.analytical.overdue') }}" class="sidebar-link sidebar-sublink block px-3 py-2 rounded-lg text-sm font-medium transition-all {{ $analyticalOverdueActive ? 'sidebar-sublink-active' : '' }}">
+                        {{ __('nav.analytical_overdue') }}
+                    </a>
+                @endif
+                @if($nav['viewByRegionReports'] ?? false)
+                    <a href="{{ route('reports.by-region.index') }}" class="sidebar-link sidebar-sublink block px-3 py-2 rounded-lg text-sm font-medium transition-all {{ $byRegionActive ? 'sidebar-sublink-active' : '' }}">
+                        {{ __('nav.by_region') }}
+                    </a>
+                @endif
+                @if($nav['viewByTypeReports'] ?? false)
+                    <a href="{{ route('reports.by-type.index') }}" class="sidebar-link sidebar-sublink block px-3 py-2 rounded-lg text-sm font-medium transition-all {{ $byTypeActive ? 'sidebar-sublink-active' : '' }}">
+                        {{ __('nav.by_types') }}
+                    </a>
+                @endif
+                @if($nav['viewBySectorReports'] ?? false)
+                    <a href="{{ route('reports.by-sector.index') }}" class="sidebar-link sidebar-sublink block px-3 py-2 rounded-lg text-sm font-medium transition-all {{ $bySectorActive ? 'sidebar-sublink-active' : '' }}">
+                        {{ __('nav.by_sectors') }}
+                    </a>
+                @endif
+                @if($nav['viewByBankReports'] ?? false)
+                    <a href="{{ route('reports.by-bank.index') }}" class="sidebar-link sidebar-sublink block px-3 py-2 rounded-lg text-sm font-medium transition-all {{ $byBankActive ? 'sidebar-sublink-active' : '' }}">
+                        {{ __('nav.by_banks') }}
+                    </a>
+                @endif
+                @if($nav['viewByMonthlyReports'] ?? false)
+                    <a href="{{ route('reports.by-monthly.index') }}" class="sidebar-link sidebar-sublink block px-3 py-2 rounded-lg text-sm font-medium transition-all {{ $byMonthlyActive ? 'sidebar-sublink-active' : '' }}">
+                        {{ __('nav.by_monthly') }}
+                    </a>
+                @endif
+                @if($nav['viewByAgeReports'] ?? false)
+                    <a href="{{ route('reports.by-age.index') }}" class="sidebar-link sidebar-sublink block px-3 py-2 rounded-lg text-sm font-medium transition-all {{ $byAgeActive ? 'sidebar-sublink-active' : '' }}">
+                        {{ __('nav.by_age') }}
+                    </a>
+                @endif
             </div>
         </div>
-        @endif
-        @if($nav['viewAnalyticalReports'] ?? false)
-        <div class="space-y-1" x-data="{ open: {{ $analyticalReportsActive ? 'true' : 'false' }} }">
-            <button
-                type="button"
-                @click="open = !open"
-                class="sidebar-link sidebar-menu-toggle flex w-full items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-medium transition-all {{ $analyticalReportsActive ? 'sidebar-menu-open' : '' }}"
-                :aria-expanded="open.toString()"
-            >
-                <svg class="h-4 w-4 opacity-70 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 3v18M6 13v8M16 8v13M21 5v16"/></svg>
-                <span class="flex-1 text-left">{{ __('nav.analytical_reports') }}</span>
-                <svg class="h-4 w-4 opacity-60 shrink-0 transition-transform duration-200" :class="open ? 'rotate-180' : ''" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
-            </button>
-
-            <div
-                x-show="open"
-                x-cloak
-                x-transition:enter="transition ease-out duration-150"
-                x-transition:enter-start="opacity-0 -translate-y-1"
-                x-transition:enter-end="opacity-100 translate-y-0"
-                x-transition:leave="transition ease-in duration-100"
-                x-transition:leave-start="opacity-100 translate-y-0"
-                x-transition:leave-end="opacity-0 -translate-y-1"
-                class="sidebar-submenu space-y-1 pl-4 ml-4 border-l border-slate-200/80 dark:border-white/10"
-            >
-                <a href="{{ route('reports.analytical.overview') }}" class="sidebar-link flex items-center gap-3 px-3 py-2 rounded-xl text-sm font-medium transition-all {{ request()->routeIs('reports.analytical.overview', 'reports.analytical.export.*') ? 'sidebar-active' : '' }}">
-                    <svg class="h-4 w-4 opacity-70 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zm10 0a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zm10 0a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"/></svg>
-                    {{ __('nav.analytical_overview') }}
-                </a>
-                <a href="{{ route('reports.analytical.outstanding') }}" class="sidebar-link flex items-center gap-3 px-3 py-2 rounded-xl text-sm font-medium transition-all {{ request()->routeIs('reports.analytical.outstanding*') ? 'sidebar-active' : '' }}">
-                    <svg class="h-4 w-4 opacity-70 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-                    {{ __('nav.analytical_outstanding') }}
-                </a>
-                <a href="{{ route('reports.analytical.overdue') }}" class="sidebar-link flex items-center gap-3 px-3 py-2 rounded-xl text-sm font-medium transition-all {{ request()->routeIs('reports.analytical.overdue*') ? 'sidebar-active' : '' }}">
-                    <svg class="h-4 w-4 opacity-70 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-                    {{ __('nav.analytical_overdue') }}
-                </a>
-            </div>
-        </div>
-        @endif
     @endif
 
     @if($nav['viewAdminDashboard'] || $nav['manageUsers'] || $nav['manageRoles'] || ($nav['viewAuditLogs'] ?? false))

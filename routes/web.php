@@ -104,52 +104,106 @@ Route::middleware(['auth', 'password.changed'])->group(function () {
         ->middleware('can:record repayment')
         ->name('repayments.pay');
     Route::get('/reports', [ReportController::class, 'index'])
-        ->middleware('can:view reports')
+        ->middleware('can:view reports overview')
         ->name('reports.index');
     Route::get('/reports/applications', [ReportController::class, 'applications'])
-        ->middleware('can:view reports')
+        ->middleware('can:view application reports')
         ->name('reports.applications.index');
     Route::get('/reports/applications/export/excel', [ReportController::class, 'exportApplicationsExcel'])
-        ->middleware('can:view reports')
+        ->middleware('can:view application reports')
         ->name('reports.applications.export.excel');
     Route::get('/reports/applications/export/pdf', [ReportController::class, 'exportApplicationsPdf'])
-        ->middleware('can:view reports')
+        ->middleware('can:view application reports')
         ->name('reports.applications.export.pdf');
+    Route::get('/reports/by-region', [ReportController::class, 'byRegion'])
+        ->middleware('can:view by region reports')
+        ->name('reports.by-region.index');
+    Route::get('/reports/by-region/export/excel', [ReportController::class, 'exportByRegionExcel'])
+        ->middleware('can:view by region reports')
+        ->name('reports.by-region.export.excel');
+    Route::get('/reports/by-region/export/pdf', [ReportController::class, 'exportByRegionPdf'])
+        ->middleware('can:view by region reports')
+        ->name('reports.by-region.export.pdf');
+    Route::get('/reports/by-type', [ReportController::class, 'byType'])
+        ->middleware('can:view by type reports')
+        ->name('reports.by-type.index');
+    Route::get('/reports/by-type/export/excel', [ReportController::class, 'exportByTypeExcel'])
+        ->middleware('can:view by type reports')
+        ->name('reports.by-type.export.excel');
+    Route::get('/reports/by-type/export/pdf', [ReportController::class, 'exportByTypePdf'])
+        ->middleware('can:view by type reports')
+        ->name('reports.by-type.export.pdf');
+    Route::get('/reports/by-sector', [ReportController::class, 'bySector'])
+        ->middleware('can:view by sector reports')
+        ->name('reports.by-sector.index');
+    Route::get('/reports/by-sector/export/excel', [ReportController::class, 'exportBySectorExcel'])
+        ->middleware('can:view by sector reports')
+        ->name('reports.by-sector.export.excel');
+    Route::get('/reports/by-sector/export/pdf', [ReportController::class, 'exportBySectorPdf'])
+        ->middleware('can:view by sector reports')
+        ->name('reports.by-sector.export.pdf');
+    Route::get('/reports/by-bank', [ReportController::class, 'byBank'])
+        ->middleware('can:view by bank reports')
+        ->name('reports.by-bank.index');
+    Route::get('/reports/by-bank/export/excel', [ReportController::class, 'exportByBankExcel'])
+        ->middleware('can:view by bank reports')
+        ->name('reports.by-bank.export.excel');
+    Route::get('/reports/by-bank/export/pdf', [ReportController::class, 'exportByBankPdf'])
+        ->middleware('can:view by bank reports')
+        ->name('reports.by-bank.export.pdf');
+    Route::get('/reports/by-monthly', [ReportController::class, 'byMonthly'])
+        ->middleware('can:view by monthly reports')
+        ->name('reports.by-monthly.index');
+    Route::get('/reports/by-monthly/export/excel', [ReportController::class, 'exportByMonthlyExcel'])
+        ->middleware('can:view by monthly reports')
+        ->name('reports.by-monthly.export.excel');
+    Route::get('/reports/by-monthly/export/pdf', [ReportController::class, 'exportByMonthlyPdf'])
+        ->middleware('can:view by monthly reports')
+        ->name('reports.by-monthly.export.pdf');
+    Route::get('/reports/by-age', [ReportController::class, 'byAge'])
+        ->middleware('can:view by age reports')
+        ->name('reports.by-age.index');
+    Route::get('/reports/by-age/export/excel', [ReportController::class, 'exportByAgeExcel'])
+        ->middleware('can:view by age reports')
+        ->name('reports.by-age.export.excel');
+    Route::get('/reports/by-age/export/pdf', [ReportController::class, 'exportByAgePdf'])
+        ->middleware('can:view by age reports')
+        ->name('reports.by-age.export.pdf');
     Route::get('/reports/analytical', [ReportController::class, 'analytical'])
-        ->middleware('can:view analytical reports')
+        ->middleware('can:view payment reports')
         ->name('reports.analytical.index');
     Route::get('/reports/analytical/overview', [ReportController::class, 'analyticalOverview'])
-        ->middleware('can:view analytical reports')
+        ->middleware('can:view payment reports')
         ->name('reports.analytical.overview');
     Route::get('/reports/analytical/outstanding', [ReportController::class, 'analyticalOutstanding'])
-        ->middleware('can:view analytical reports')
+        ->middleware('can:view outstanding reports')
         ->name('reports.analytical.outstanding');
     Route::get('/reports/analytical/overdue', [ReportController::class, 'analyticalOverdue'])
-        ->middleware('can:view analytical reports')
+        ->middleware('can:view overdue reports')
         ->name('reports.analytical.overdue');
     Route::get('/reports/analytical/export/excel', [ReportController::class, 'exportAnalyticalExcel'])
-        ->middleware('can:view analytical reports')
+        ->middleware('can:view payment reports')
         ->name('reports.analytical.export.excel');
     Route::get('/reports/analytical/export/pdf', [ReportController::class, 'exportAnalyticalPdf'])
-        ->middleware('can:view analytical reports')
+        ->middleware('can:view payment reports')
         ->name('reports.analytical.export.pdf');
     Route::get('/reports/analytical/outstanding/export/excel', [ReportController::class, 'exportAnalyticalOutstandingExcel'])
-        ->middleware('can:view analytical reports')
+        ->middleware('can:view outstanding reports')
         ->name('reports.analytical.outstanding.export.excel');
     Route::get('/reports/analytical/outstanding/export/pdf', [ReportController::class, 'exportAnalyticalOutstandingPdf'])
-        ->middleware('can:view analytical reports')
+        ->middleware('can:view outstanding reports')
         ->name('reports.analytical.outstanding.export.pdf');
     Route::get('/reports/analytical/overdue/export/excel', [ReportController::class, 'exportAnalyticalOverdueExcel'])
-        ->middleware('can:view analytical reports')
+        ->middleware('can:view overdue reports')
         ->name('reports.analytical.overdue.export.excel');
     Route::get('/reports/analytical/overdue/export/pdf', [ReportController::class, 'exportAnalyticalOverduePdf'])
-        ->middleware('can:view analytical reports')
+        ->middleware('can:view overdue reports')
         ->name('reports.analytical.overdue.export.pdf');
     Route::get('/reports/export/excel', [ReportController::class, 'exportExcel'])
-        ->middleware('can:view reports')
+        ->middleware('can:view reports overview')
         ->name('reports.export.excel');
     Route::get('/reports/export/pdf', [ReportController::class, 'exportPdf'])
-        ->middleware('can:view reports')
+        ->middleware('can:view reports overview')
         ->name('reports.export.pdf');
 
     Route::prefix('admin')->name('admin.')->middleware('can:view administration dashboard')->group(function () {

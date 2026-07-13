@@ -5,10 +5,23 @@ namespace App\Http\Controllers;
 use App\Exports\AnalyticalDebtExport;
 use App\Exports\AnalyticalOverviewExport;
 use App\Exports\ApplicationReportsExport;
+use App\Exports\ByAgeExport;
+use App\Exports\ByBankExport;
+use App\Exports\ByMonthlyExport;
+use App\Exports\ByRegionExport;
+use App\Exports\BySectorExport;
+use App\Exports\ByTypeExport;
 use App\Exports\ReportsExport;
 use App\Services\AnalyticalDebtReportService;
 use App\Services\AnalyticalReportService;
 use App\Services\ApplicationReportService;
+use App\Services\ByAgeReportService;
+use App\Services\ByBankReportService;
+use App\Services\ByMonthlyReportService;
+use App\Services\ByRegionReportService;
+use App\Services\BySectorReportService;
+use App\Services\ByTypeReportService;
+use App\Services\GeoHierarchyService;
 use App\Services\ReportService;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\Request;
@@ -22,34 +35,45 @@ class ReportController extends Controller
         private ApplicationReportService $applicationReports,
         private AnalyticalReportService $analyticalReports,
         private AnalyticalDebtReportService $debtReports,
+        private ByRegionReportService $byRegionReports,
+        private ByTypeReportService $byTypeReports,
+        private BySectorReportService $bySectorReports,
+        private ByBankReportService $byBankReports,
+        private ByMonthlyReportService $byMonthlyReports,
+        private ByAgeReportService $byAgeReports,
     ) {}
 
     public function index(Request $request)
     {
-        $this->authorize('view reports');
+        $this->authorize('view reports overview');
 
+        $filtersApplied = $request->hasAny(['fiscal_year', 'period', 'date_from', 'date_to']);
         $filters = $this->reports->normalizeFilters($request->all());
-        $summary = $this->reports->summary($filters);
-        $charts = $this->reports->chartData($filters);
-        $rows = $this->reports->paginatedRows($filters);
-        $regions = $this->reports->regions();
         $fiscalYearOptions = $this->reports->fiscalYearOptions();
-        $geoBounds = app(\App\Services\GeoHierarchyService::class)->zoneBounds();
+
+        $summary = null;
+        $charts = null;
+        $rows = null;
+
+        if ($filtersApplied) {
+            $summary = $this->reports->summary($filters);
+            $charts = $this->reports->chartData($filters);
+            $rows = $this->reports->paginatedRows($filters);
+        }
 
         return view('reports.index', compact(
             'filters',
+            'filtersApplied',
             'summary',
             'charts',
             'rows',
-            'regions',
             'fiscalYearOptions',
-            'geoBounds',
         ));
     }
 
     public function applications(Request $request)
     {
-        $this->authorize('view reports');
+        $this->authorize('view application reports');
 
         $filters = $this->applicationReports->normalizeFilters($request->all());
         $rows = $this->applicationReports->paginatedRows($filters);
@@ -59,37 +83,371 @@ class ReportController extends Controller
         return view('reports.applications.index', compact('filters', 'rows', 'statuses', 'fiscalYearOptions'));
     }
 
+    public function byRegion(Request $request)
+    {
+        $this->authorize('view by region reports');
+
+        $filtersApplied = $request->hasAny(['fiscal_year', 'period', 'date_from', 'date_to', 'region_id', 'sort']);
+        $filters = $this->byRegionReports->normalizeFilters($request->all());
+        $fiscalYearOptions = $this->byRegionReports->fiscalYearOptions();
+        $regions = $this->byRegionReports->regions();
+        $sortOptions = $this->byRegionReports->sortOptions();
+        $geoBounds = app(GeoHierarchyService::class)->zoneBounds();
+
+        $summary = null;
+        $rows = null;
+
+        if ($filtersApplied) {
+            $summary = $this->byRegionReports->summary($filters);
+            $rows = $this->byRegionReports->paginatedRows($filters);
+        }
+
+        return view('reports.by-region.index', compact(
+            'filters',
+            'filtersApplied',
+            'summary',
+            'rows',
+            'fiscalYearOptions',
+            'regions',
+            'sortOptions',
+            'geoBounds',
+        ));
+    }
+
+    public function exportByRegionExcel(Request $request): BinaryFileResponse
+    {
+        $this->authorize('view by region reports');
+
+        $data = $this->byRegionExportData($request);
+
+        return Excel::download(
+            new ByRegionExport(
+                $data['summary'],
+                $data['rows'],
+                $data['filters'],
+                $data['regionLabel'],
+            ),
+            $this->byRegionReports->exportFilename('xlsx')
+        );
+    }
+
+    public function exportByRegionPdf(Request $request)
+    {
+        $this->authorize('view by region reports');
+
+        $data = $this->byRegionExportData($request);
+
+        return Pdf::loadView('reports.by-region.export-pdf', $data)
+            ->setPaper('a4', 'landscape')
+            ->download($this->byRegionReports->exportFilename('pdf'));
+    }
+
+    public function byType(Request $request)
+    {
+        $this->authorize('view by type reports');
+
+        $filtersApplied = $request->hasAny(['fiscal_year', 'period', 'date_from', 'date_to', 'loan_type', 'sort']);
+        $filters = $this->byTypeReports->normalizeFilters($request->all());
+        $fiscalYearOptions = $this->byTypeReports->fiscalYearOptions();
+        $sortOptions = $this->byTypeReports->sortOptions();
+
+        $summary = null;
+        $rows = null;
+
+        if ($filtersApplied) {
+            $summary = $this->byTypeReports->summary($filters);
+            $rows = $this->byTypeReports->paginatedRows($filters);
+        }
+
+        return view('reports.by-type.index', compact(
+            'filters',
+            'filtersApplied',
+            'summary',
+            'rows',
+            'fiscalYearOptions',
+            'sortOptions',
+        ));
+    }
+
+    public function exportByTypeExcel(Request $request): BinaryFileResponse
+    {
+        $this->authorize('view by type reports');
+
+        $data = $this->byTypeExportData($request);
+
+        return Excel::download(
+            new ByTypeExport(
+                $data['summary'],
+                $data['rows'],
+                $data['filters'],
+                $data['typeLabel'],
+            ),
+            $this->byTypeReports->exportFilename('xlsx')
+        );
+    }
+
+    public function exportByTypePdf(Request $request)
+    {
+        $this->authorize('view by type reports');
+
+        $data = $this->byTypeExportData($request);
+
+        return Pdf::loadView('reports.by-type.export-pdf', $data)
+            ->setPaper('a4', 'landscape')
+            ->download($this->byTypeReports->exportFilename('pdf'));
+    }
+
+    public function bySector(Request $request)
+    {
+        $this->authorize('view by sector reports');
+
+        $filtersApplied = $request->hasAny(['period', 'date_from', 'date_to', 'business_sector']);
+        $filters = $this->bySectorReports->normalizeFilters($request->all());
+        $sectors = $this->bySectorReports->sectors();
+
+        $summary = null;
+        $rows = null;
+
+        if ($filtersApplied) {
+            $summary = $this->bySectorReports->summary($filters);
+            $rows = $this->bySectorReports->paginatedRows($filters);
+        }
+
+        return view('reports.by-sector.index', compact(
+            'filters',
+            'filtersApplied',
+            'summary',
+            'rows',
+            'sectors',
+        ));
+    }
+
+    public function exportBySectorExcel(Request $request): BinaryFileResponse
+    {
+        $this->authorize('view by sector reports');
+
+        $data = $this->bySectorExportData($request);
+
+        return Excel::download(
+            new BySectorExport(
+                $data['summary'],
+                $data['rows'],
+                $data['filters'],
+                $data['sectorLabel'],
+            ),
+            $this->bySectorReports->exportFilename('xlsx')
+        );
+    }
+
+    public function exportBySectorPdf(Request $request)
+    {
+        $this->authorize('view by sector reports');
+
+        $data = $this->bySectorExportData($request);
+
+        return Pdf::loadView('reports.by-sector.export-pdf', $data)
+            ->setPaper('a4', 'landscape')
+            ->download($this->bySectorReports->exportFilename('pdf'));
+    }
+
+    public function byBank(Request $request)
+    {
+        $this->authorize('view by bank reports');
+
+        $filtersApplied = $request->hasAny(['fiscal_year', 'date_from', 'date_to', 'bank_name']);
+        $filters = $this->byBankReports->normalizeFilters($request->all());
+        $fiscalYearOptions = $this->byBankReports->fiscalYearOptions();
+        $banks = $this->byBankReports->banks();
+
+        $summary = null;
+        $rows = null;
+
+        if ($filtersApplied) {
+            $summary = $this->byBankReports->summary($filters);
+            $rows = $this->byBankReports->paginatedRows($filters);
+        }
+
+        return view('reports.by-bank.index', compact(
+            'filters',
+            'filtersApplied',
+            'summary',
+            'rows',
+            'fiscalYearOptions',
+            'banks',
+        ));
+    }
+
+    public function exportByBankExcel(Request $request): BinaryFileResponse
+    {
+        $this->authorize('view by bank reports');
+
+        $data = $this->byBankExportData($request);
+
+        return Excel::download(
+            new ByBankExport(
+                $data['summary'],
+                $data['rows'],
+                $data['filters'],
+                $data['bankLabel'],
+            ),
+            $this->byBankReports->exportFilename('xlsx')
+        );
+    }
+
+    public function exportByBankPdf(Request $request)
+    {
+        $this->authorize('view by bank reports');
+
+        $data = $this->byBankExportData($request);
+
+        return Pdf::loadView('reports.by-bank.export-pdf', $data)
+            ->setPaper('a4', 'landscape')
+            ->download($this->byBankReports->exportFilename('pdf'));
+    }
+
+    public function byMonthly(Request $request)
+    {
+        $this->authorize('view by monthly reports');
+
+        $filtersApplied = $request->hasAny(['month', 'date_from', 'date_to']);
+        $filters = $this->byMonthlyReports->normalizeFilters($request->all());
+        $monthOptions = $this->byMonthlyReports->monthOptions();
+
+        $summary = null;
+        $rows = null;
+
+        if ($filtersApplied) {
+            $summary = $this->byMonthlyReports->summary($filters);
+            $rows = $this->byMonthlyReports->paginatedRows($filters);
+        }
+
+        return view('reports.by-monthly.index', compact(
+            'filters',
+            'filtersApplied',
+            'summary',
+            'rows',
+            'monthOptions',
+        ));
+    }
+
+    public function exportByMonthlyExcel(Request $request): BinaryFileResponse
+    {
+        $this->authorize('view by monthly reports');
+
+        $data = $this->byMonthlyExportData($request);
+
+        return Excel::download(
+            new ByMonthlyExport(
+                $data['summary'],
+                $data['rows'],
+                $data['filters'],
+                $data['monthLabel'],
+            ),
+            $this->byMonthlyReports->exportFilename('xlsx')
+        );
+    }
+
+    public function exportByMonthlyPdf(Request $request)
+    {
+        $this->authorize('view by monthly reports');
+
+        $data = $this->byMonthlyExportData($request);
+
+        return Pdf::loadView('reports.by-monthly.export-pdf', $data)
+            ->setPaper('a4', 'landscape')
+            ->download($this->byMonthlyReports->exportFilename('pdf'));
+    }
+
+    public function byAge(Request $request)
+    {
+        $this->authorize('view by age reports');
+
+        $filtersApplied = $request->hasAny(['region_id', 'age_min', 'age_max']);
+        $filters = $this->byAgeReports->normalizeFilters($request->all());
+        $regions = $this->byAgeReports->regions();
+        $geoBounds = app(GeoHierarchyService::class)->zoneBounds();
+
+        $summary = null;
+        $rows = null;
+
+        if ($filtersApplied) {
+            $summary = $this->byAgeReports->summary($filters);
+            $rows = $this->byAgeReports->paginatedRows($filters);
+        }
+
+        return view('reports.by-age.index', compact(
+            'filters',
+            'filtersApplied',
+            'summary',
+            'rows',
+            'regions',
+            'geoBounds',
+        ));
+    }
+
+    public function exportByAgeExcel(Request $request): BinaryFileResponse
+    {
+        $this->authorize('view by age reports');
+
+        $data = $this->byAgeExportData($request);
+
+        return Excel::download(
+            new ByAgeExport(
+                $data['summary'],
+                $data['rows'],
+                $data['filters'],
+                $data['regionLabel'],
+            ),
+            $this->byAgeReports->exportFilename('xlsx')
+        );
+    }
+
+    public function exportByAgePdf(Request $request)
+    {
+        $this->authorize('view by age reports');
+
+        $data = $this->byAgeExportData($request);
+
+        return Pdf::loadView('reports.by-age.export-pdf', $data)
+            ->setPaper('a4', 'landscape')
+            ->download($this->byAgeReports->exportFilename('pdf'));
+    }
+
     public function analytical()
     {
-        $this->authorize('view analytical reports');
+        $this->authorize('view payment reports');
 
         return redirect()->route('reports.analytical.overview');
     }
 
     public function analyticalOverview(Request $request)
     {
-        $this->authorize('view analytical reports');
+        $this->authorize('view payment reports');
 
+        $filtersApplied = $request->hasAny(['fiscal_year', 'period', 'date_from', 'date_to']);
         $filters = $this->analyticalReports->normalizeFilters($request->all());
-        $summary = $this->analyticalReports->summary($filters);
-        $charts = $this->analyticalReports->chartData($filters);
-        $individuals = $this->analyticalReports->paginatedIndividuals($filters);
-        $groups = $this->analyticalReports->paginatedGroups($filters);
-        $regions = $this->analyticalReports->regions();
-        $sortOptions = $this->analyticalReports->sortOptions();
         $fiscalYearOptions = $this->analyticalReports->fiscalYearOptions();
-        $geoBounds = app(\App\Services\GeoHierarchyService::class)->zoneBounds();
+
+        $summary = null;
+        $charts = null;
+        $individuals = null;
+        $groups = null;
+
+        if ($filtersApplied) {
+            $summary = $this->analyticalReports->summary($filters);
+            $charts = $this->analyticalReports->chartData($filters);
+            $individuals = $this->analyticalReports->paginatedIndividuals($filters);
+            $groups = $this->analyticalReports->paginatedGroups($filters);
+        }
 
         return view('reports.analytical.overview', compact(
             'filters',
+            'filtersApplied',
             'summary',
             'charts',
             'individuals',
             'groups',
-            'regions',
-            'sortOptions',
             'fiscalYearOptions',
-            'geoBounds',
         ));
     }
 
@@ -125,29 +483,33 @@ class ReportController extends Controller
 
     protected function analyticalDebtPage(Request $request, string $mode)
     {
-        $this->authorize('view analytical reports');
+        $this->authorize(
+            $mode === AnalyticalDebtReportService::MODE_OVERDUE
+                ? 'view overdue reports'
+                : 'view outstanding reports'
+        );
 
+        $filtersApplied = $request->hasAny(['fiscal_year', 'period', 'date_from', 'date_to']);
         $filters = $this->debtReports->normalizeFilters($request->all());
-        $summary = $this->debtReports->summary($filters, $mode);
-        $rows = $this->debtReports->paginatedRows($filters, $mode);
-        $regions = $this->debtReports->regions();
-        $sortOptions = $this->debtReports->sortOptions();
         $fiscalYearOptions = $this->debtReports->fiscalYearOptions();
-        $debtReports = $this->debtReports;
-        $geoBounds = app(\App\Services\GeoHierarchyService::class)->zoneBounds();
+
+        $summary = null;
+        $rows = null;
+
+        if ($filtersApplied) {
+            $summary = $this->debtReports->summary($filters, $mode);
+            $rows = $this->debtReports->paginatedRows($filters, $mode);
+        }
 
         $isOverdue = $mode === AnalyticalDebtReportService::MODE_OVERDUE;
 
         return view('reports.analytical.debts', [
             'mode' => $mode,
             'filters' => $filters,
+            'filtersApplied' => $filtersApplied,
             'summary' => $summary,
             'rows' => $rows,
-            'regions' => $regions,
-            'sortOptions' => $sortOptions,
             'fiscalYearOptions' => $fiscalYearOptions,
-            'debtReports' => $debtReports,
-            'geoBounds' => $geoBounds,
             'pageTitle' => __($isOverdue ? 'analytical_reports.overdue_title' : 'analytical_reports.outstanding_title'),
             'pageSubtitle' => __($isOverdue ? 'analytical_reports.overdue_subtitle' : 'analytical_reports.outstanding_subtitle'),
             'listTitle' => __($isOverdue ? 'analytical_reports.overdue_list' : 'analytical_reports.outstanding_list'),
@@ -159,7 +521,11 @@ class ReportController extends Controller
 
     protected function exportAnalyticalDebtExcel(Request $request, string $mode): BinaryFileResponse
     {
-        $this->authorize('view analytical reports');
+        $this->authorize(
+            $mode === AnalyticalDebtReportService::MODE_OVERDUE
+                ? 'view overdue reports'
+                : 'view outstanding reports'
+        );
         $data = $this->analyticalDebtExportData($request, $mode);
 
         return Excel::download(
@@ -170,7 +536,11 @@ class ReportController extends Controller
 
     protected function exportAnalyticalDebtPdf(Request $request, string $mode)
     {
-        $this->authorize('view analytical reports');
+        $this->authorize(
+            $mode === AnalyticalDebtReportService::MODE_OVERDUE
+                ? 'view overdue reports'
+                : 'view outstanding reports'
+        );
         $data = $this->analyticalDebtExportData($request, $mode);
         $isOverdue = $mode === AnalyticalDebtReportService::MODE_OVERDUE;
 
@@ -197,7 +567,7 @@ class ReportController extends Controller
 
     public function exportAnalyticalExcel(Request $request): BinaryFileResponse
     {
-        $this->authorize('view analytical reports');
+        $this->authorize('view payment reports');
 
         $data = $this->analyticalExportData($request);
 
@@ -214,7 +584,7 @@ class ReportController extends Controller
 
     public function exportAnalyticalPdf(Request $request)
     {
-        $this->authorize('view analytical reports');
+        $this->authorize('view payment reports');
 
         $data = $this->analyticalExportData($request);
 
@@ -225,7 +595,7 @@ class ReportController extends Controller
 
     public function exportExcel(Request $request): BinaryFileResponse
     {
-        $this->authorize('view reports');
+        $this->authorize('view reports overview');
 
         $data = $this->exportData($request);
 
@@ -237,7 +607,7 @@ class ReportController extends Controller
 
     public function exportPdf(Request $request)
     {
-        $this->authorize('view reports');
+        $this->authorize('view reports overview');
 
         $data = $this->exportData($request);
 
@@ -247,7 +617,7 @@ class ReportController extends Controller
 
     public function exportApplicationsExcel(Request $request): BinaryFileResponse
     {
-        $this->authorize('view reports');
+        $this->authorize('view application reports');
 
         $data = $this->applicationExportData($request);
 
@@ -259,7 +629,7 @@ class ReportController extends Controller
 
     public function exportApplicationsPdf(Request $request)
     {
-        $this->authorize('view reports');
+        $this->authorize('view application reports');
 
         $data = $this->applicationExportData($request);
 
@@ -297,6 +667,102 @@ class ReportController extends Controller
             'summary' => $this->analyticalReports->summary($filters),
             'individuals' => $this->analyticalReports->allIndividualRows($filters),
             'groups' => $this->analyticalReports->allGroupRows($filters),
+        ];
+    }
+
+    protected function byRegionExportData(Request $request): array
+    {
+        $filters = $this->byRegionReports->normalizeFilters($request->all());
+        $regionLabel = null;
+
+        if (! empty($filters['region_id'])) {
+            $regionLabel = $this->byRegionReports->regions()
+                ->firstWhere('id', (int) $filters['region_id'])
+                ?->name;
+        }
+
+        return [
+            'filters' => $filters,
+            'summary' => $this->byRegionReports->summary($filters),
+            'rows' => $this->byRegionReports->allRows($filters),
+            'regionLabel' => $regionLabel,
+        ];
+    }
+
+    protected function byTypeExportData(Request $request): array
+    {
+        $filters = $this->byTypeReports->normalizeFilters($request->all());
+        $typeLabel = null;
+
+        if (! empty($filters['loan_type'])) {
+            $typeLabel = loan_type_label($filters['loan_type']);
+        }
+
+        return [
+            'filters' => $filters,
+            'summary' => $this->byTypeReports->summary($filters),
+            'rows' => $this->byTypeReports->allRows($filters),
+            'typeLabel' => $typeLabel,
+        ];
+    }
+
+    protected function bySectorExportData(Request $request): array
+    {
+        $filters = $this->bySectorReports->normalizeFilters($request->all());
+
+        return [
+            'filters' => $filters,
+            'summary' => $this->bySectorReports->summary($filters),
+            'rows' => $this->bySectorReports->allRows($filters),
+            'sectorLabel' => $filters['business_sector'] ?? null,
+        ];
+    }
+
+    protected function byBankExportData(Request $request): array
+    {
+        $filters = $this->byBankReports->normalizeFilters($request->all());
+
+        return [
+            'filters' => $filters,
+            'summary' => $this->byBankReports->summary($filters),
+            'rows' => $this->byBankReports->allRows($filters),
+            'bankLabel' => $filters['bank_name'] ?? null,
+        ];
+    }
+
+    protected function byMonthlyExportData(Request $request): array
+    {
+        $filters = $this->byMonthlyReports->normalizeFilters($request->all());
+        $monthLabel = null;
+
+        if (! empty($filters['month'])) {
+            $monthLabel = __('by_monthly_reports.month_'.(int) $filters['month']);
+        }
+
+        return [
+            'filters' => $filters,
+            'summary' => $this->byMonthlyReports->summary($filters),
+            'rows' => $this->byMonthlyReports->allRows($filters),
+            'monthLabel' => $monthLabel,
+        ];
+    }
+
+    protected function byAgeExportData(Request $request): array
+    {
+        $filters = $this->byAgeReports->normalizeFilters($request->all());
+        $regionLabel = null;
+
+        if (! empty($filters['region_id'])) {
+            $regionLabel = $this->byAgeReports->regions()
+                ->firstWhere('id', (int) $filters['region_id'])
+                ?->name;
+        }
+
+        return [
+            'filters' => $filters,
+            'summary' => $this->byAgeReports->summary($filters),
+            'rows' => $this->byAgeReports->allRows($filters),
+            'regionLabel' => $regionLabel,
         ];
     }
 }

@@ -30,9 +30,9 @@ class ApplicationReportsExport implements FromArray, WithTitle
             [
                 __('application_reports.track_id'),
                 __('application_reports.full_name'),
+                __('application_reports.group_members'),
                 __('application_reports.amount_requested'),
                 __('application_reports.amount_disbursed'),
-                __('application_reports.bank_name'),
                 __('application_reports.outstanding'),
                 __('application_reports.amount_repaid'),
             ],
@@ -42,9 +42,11 @@ class ApplicationReportsExport implements FromArray, WithTitle
             $lines[] = [
                 $row['track_id'],
                 $row['full_name'],
+                ($row['loan_type'] ?? null) === 'group'
+                    ? implode(', ', $row['members'] ?? [])
+                    : '',
                 $row['amount_requested'],
                 $row['amount_disbursed'],
-                $row['bank_name'],
                 $row['outstanding'],
                 $row['amount_repaid'],
             ];

@@ -22,18 +22,34 @@ class AnalyticalDebtReportTest extends TestCase
     public function test_ministry_can_view_outstanding_and_overdue_reports(): void
     {
         $this->actingAsRole('ministry@wdf.go.tz')
-            ->get(route('reports.analytical.outstanding'))
+            ->get(route('reports.analytical.outstanding', [
+                'fiscal_year' => 'all',
+                'period' => 'annually',
+            ]))
             ->assertOk()
             ->assertSee(__('analytical_reports.outstanding_title'), false)
             ->assertSee(__('analytical_reports.col_name'), false)
             ->assertSee(__('analytical_reports.col_disbursed'), false)
             ->assertSee(__('analytical_reports.col_outstanding'), false)
-            ->assertSee(__('analytical_reports.col_elapsed'), false);
+            ->assertDontSee(__('analytical_reports.col_elapsed'), false)
+            ->assertDontSee(__('common.actions'), false);
 
         $this->actingAsRole('ministry@wdf.go.tz')
-            ->get(route('reports.analytical.overdue'))
+            ->get(route('reports.analytical.overdue', [
+                'fiscal_year' => 'all',
+                'period' => 'annually',
+            ]))
             ->assertOk()
             ->assertSee(__('analytical_reports.overdue_title'), false);
+    }
+
+    public function test_outstanding_hides_data_until_filters_applied(): void
+    {
+        $this->actingAsRole('ministry@wdf.go.tz')
+            ->get(route('reports.analytical.outstanding'))
+            ->assertOk()
+            ->assertSee(__('analytical_reports.apply_filters_prompt'), false)
+            ->assertDontSee(__('analytical_reports.col_elapsed'), false);
     }
 
     public function test_overdue_mode_includes_missed_installment_balances(): void

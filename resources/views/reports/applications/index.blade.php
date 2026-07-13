@@ -103,7 +103,6 @@
                         <th>{{ __('application_reports.full_name') }}</th>
                         <th>{{ __('application_reports.amount_requested') }}</th>
                         <th>{{ __('application_reports.amount_disbursed') }}</th>
-                        <th>{{ __('application_reports.bank_name') }}</th>
                         <th>{{ __('application_reports.outstanding') }}</th>
                         <th>{{ __('application_reports.amount_repaid') }}</th>
                     </tr>
@@ -114,15 +113,26 @@
                         <td>
                             <a href="{{ route('loan-applications.show', $row['hashid']) }}" class="font-mono text-xs font-semibold text-indigo-600 hover:underline">{{ $row['track_id'] }}</a>
                         </td>
-                        <td class="font-medium text-slate-900 dark:text-white">{{ $row['full_name'] }}</td>
+                        <td class="font-medium text-slate-900 dark:text-white">
+                            {{ $row['full_name'] }}
+                            @if(($row['loan_type'] ?? null) === 'group')
+                                <div class="mt-1 text-xs font-normal text-slate-500 dark:text-zinc-400">
+                                    {{ __('application_reports.group_members') }}:
+                                    @if(! empty($row['members']))
+                                        {{ implode(', ', $row['members']) }}
+                                    @else
+                                        {{ __('common.na') }}
+                                    @endif
+                                </div>
+                            @endif
+                        </td>
                         <td>{{ format_tzs($row['amount_requested']) }}</td>
                         <td>{{ format_tzs($row['amount_disbursed']) }}</td>
-                        <td>{{ $row['bank_name'] }}</td>
                         <td class="font-semibold text-amber-700 dark:text-amber-400">{{ format_tzs($row['outstanding']) }}</td>
                         <td class="font-semibold text-indigo-600 dark:text-indigo-400">{{ format_tzs($row['amount_repaid']) }}</td>
                     </tr>
                     @empty
-                    <tr><td colspan="7" class="app-table-empty">{{ __('application_reports.no_results') }}</td></tr>
+                    <tr><td colspan="6" class="app-table-empty">{{ __('application_reports.no_results') }}</td></tr>
                     @endforelse
                 </tbody>
             </table>

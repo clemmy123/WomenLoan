@@ -140,10 +140,7 @@ class CdoLoanScopeTest extends TestCase
             ->get(route('reports.index'));
 
         $response->assertOk();
-        $response->assertSee($ownRegion->name, false);
-        if ($otherRegion) {
-            $response->assertDontSee('>'.$otherRegion->name.'<', false);
-        }
+        $response->assertSee(__('reports.apply_filters_prompt'), false);
 
         $this->actingAsRole('ward.cdo@wdf.go.tz')
             ->get(route('loans.api.districts', $otherRegion?->id ?? 999999))

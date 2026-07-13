@@ -110,6 +110,9 @@ class ApplicationReportService
         $query = $this->scopedLoanQuery()
             ->with([
                 'applicant:id,full_name',
+                'group:id,name',
+                'group.members:id,loan_group_id,full_name',
+                'group.applicants:id,full_name',
                 'loanPayments',
             ]);
 
@@ -148,15 +151,51 @@ class ApplicationReportService
             ? $loan->loanPayments->sortBy('id')->first()
             : $loan->loanPayments()->orderBy('id')->first();
 
+        $isGroup = $loan->loan_type === 'group';
+        $members = $isGroup ? $this->groupMemberNames($loan) : [];
+
         return [
             'track_id' => $loan->loan_track_id,
             'hashid' => $loan->hashid,
-            'full_name' => $loan->applicant?->full_name ?? __('common.na'),
+            'loan_type' => $loan->loan_type,
+            'full_name' => $isGroup
+                ? ($loan->group?->name ?? __('common.na'))
+                : ($loan->applicant?->full_name ?? __('common.na')),
+            'members' => $members,
             'amount_requested' => (float) ($loan->requested_amount ?? 0),
             'amount_disbursed' => max(0.0, (float) ($loan->disbursed_amount ?? 0)),
-            'bank_name' => $loan->bank_name ?? __('common.na'),
             'outstanding' => (float) ($payment?->outstanding_debt ?? 0),
             'amount_repaid' => (float) ($payment?->amount_paid ?? 0),
         ];
+    }
+
+    /**
+     * @return list<string>
+     */
+    protected function groupMemberNames(Loan $loan): array
+    {
+        $members = $loan->group?->members;
+
+        if ($members && $members->isNotEmpty()) {
+            return $members
+                ->pluck('full_name')
+                ->filter()
+                ->values()
+                ->all();
+        }
+
+        $applicants = $loan->group?->applicants;
+
+        if ($applicants && $applicants->isNotEmpty()) {
+            return $applicants
+                ->pluck('full_name')
+                ->filter()
+                ->values()
+                ->all();
+        }
+
+        $fallback = $loan->applicant?->full_name;
+
+        return $fallback ? [$fallback] : [];
     }
 }

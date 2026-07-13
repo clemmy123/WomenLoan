@@ -43,7 +43,7 @@ class ApplicationReportTest extends TestCase
         $response->assertSee(__('application_reports.full_name'), false);
         $response->assertSee(__('application_reports.amount_requested'), false);
         $response->assertSee(__('application_reports.amount_disbursed'), false);
-        $response->assertSee(__('application_reports.bank_name'), false);
+        $response->assertDontSee(__('application_reports.bank_name'), false);
         $response->assertSee(__('application_reports.outstanding'), false);
         $response->assertSee(__('application_reports.amount_repaid'), false);
     }
@@ -59,6 +59,31 @@ class ApplicationReportTest extends TestCase
 
         $response->assertOk();
         $response->assertSee('WL000011');
+    }
+
+    public function test_group_application_lists_member_names(): void
+    {
+        $this->actingAsRole('ministry@wdf.go.tz');
+
+        $loan = \App\Models\Loan::withoutGlobalScope(\App\Models\Scopes\ApprovalLevelScope::class)
+            ->where('loan_type', 'group')
+            ->first();
+
+        $this->assertNotNull($loan);
+
+        $filters = app(\App\Services\ApplicationReportService::class)->normalizeFilters([
+            'fiscal_year' => 'all',
+            'period' => 'annually',
+        ]);
+
+        $row = app(\App\Services\ApplicationReportService::class)
+            ->allRows($filters)
+            ->firstWhere('track_id', $loan->loan_track_id);
+
+        $this->assertNotNull($row);
+        $this->assertSame('group', $row['loan_type']);
+        $this->assertNotEmpty($row['members']);
+        $this->assertSame($loan->group?->name, $row['full_name']);
     }
 
     public function test_application_reports_show_export_buttons(): void

@@ -30,11 +30,27 @@ class ReportFilterTest extends TestCase
         $response->assertOk();
         $response->assertSee(__('reports.filters'), false);
         $response->assertSee(__('reports.fiscal_year'), false);
+        $response->assertSee(__('reports.period'), false);
+        $response->assertSee(__('reports.date_from'), false);
+        $response->assertSee(__('reports.date_to'), false);
         $response->assertSeeText(__('reports.detail_table'));
         $response->assertSee(__('reports.financial_trend'), false);
-        $response->assertSee(__('reports.marital_status'), false);
+        $response->assertDontSee('name="marital_status"', false);
+        $response->assertDontSee('name="loan_type"', false);
         $response->assertDontSee('name="is_widowed"', false);
         $response->assertSee('WL000011');
+    }
+
+    public function test_reports_overview_hides_data_until_filters_applied(): void
+    {
+        $response = $this->actingAsRole('ministry@wdf.go.tz')
+            ->get(route('reports.index'));
+
+        $response->assertOk();
+        $response->assertSee(__('reports.apply_filters_prompt'), false);
+        $response->assertDontSeeText(__('reports.detail_table'));
+        $response->assertDontSee(__('reports.financial_trend'), false);
+        $response->assertDontSee('WL000011');
     }
 
     public function test_ministry_can_view_analytical_reports_menu_page(): void

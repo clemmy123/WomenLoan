@@ -19,7 +19,9 @@
     </style>
 </head>
 <body>
-    <h1>{{ __('reports.title') }}</h1>
+    @include('partials.report-pdf-letterhead', [
+        'reportTitle' => __('reports.title'),
+    ])
     <p class="meta">
         {{ __('reports.fiscal_year') }}: {{ ($filters['fiscal_year'] ?? null) === \App\Support\FiscalYear::ALL_KEY ? __('reports.all_years') : ($filters['fiscal_year'] ?? '—') }}
         &nbsp;|&nbsp;
@@ -82,6 +84,6 @@
         </tbody>
     </table>
 
-    <p class="footer">Women Development Fund — {{ __('reports.title') }}</p>
+    <p class="footer">{{ __('reports.pdf_fund') }} — {{ __('reports.title') }}</p>
 </body>
 </html>
