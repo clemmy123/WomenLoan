@@ -13,7 +13,7 @@
     --font-sans: 'Inter', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji',
         'Segoe UI Symbol', 'Noto Color Emoji';
 
-    /* Cursor-like dark palette — pure black base with charcoal elevation */
+    /* Dark palette — pure black base with charcoal elevation */
     --color-dm-950: #000000;
     --color-dm-900: #0a0a0a;
     --color-dm-850: #0f0f0f;
@@ -37,7 +37,7 @@
         color-scheme: dark;
     }
 
-    /* Main shell — black with subtle radial + vertical gradient (Cursor-style) */
+    /* Main shell — black with subtle radial + vertical gradient */
     .dark body {
         color: #e4e4e7;
         background-color: #000000;

@@ -1,4 +1,4 @@
-{{-- DomPDF letterhead: nembo2 + ministry heading on system gradient --}}
+{{-- Report PDF letterhead: emblem, ministry heading, gradient banner --}}
 @php
     $reportTitle = $reportTitle ?? '';
 

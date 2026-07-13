@@ -668,7 +668,7 @@ Built with **Vite**, **Tailwind CSS 4**, and **Alpine.js**. No external CDN depe
 | `.app-input`, `.app-label`, `.app-select`, `.app-textarea` | Form controls with dark-mode support |
 | `.table-icon-btn` | Outline icon action buttons (view/edit/delete) |
 | `.badge`, `.badge-*` | Bootstrap-style status/count badges |
-| `.dark` variant | Cursor-inspired dark theme (black base, charcoal elevation) |
+| `.dark` variant | Dark theme (black base, charcoal elevation) |
 
 Dark mode is toggled via the `admin_dark_mode` cookie and the `.dark` class on `<html>`.
 
