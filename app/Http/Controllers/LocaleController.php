@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Support\AccessibleHome;
 use Illuminate\Http\Request;
 
 class LocaleController extends Controller
@@ -33,7 +34,7 @@ class LocaleController extends Controller
         }
 
         return $request->user()
-            ? route('dashboard')
+            ? AccessibleHome::url($request->user())
             : route('login');
     }
 }

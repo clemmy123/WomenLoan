@@ -21,6 +21,7 @@ use App\Http\Controllers\StreetController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\WardController;
 use App\Http\Controllers\WorkflowController;
+use App\Support\AccessibleHome;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/locale/{locale}', [LocaleController::class, 'switch'])->name('locale.switch');
@@ -40,7 +41,11 @@ Route::middleware('guest')->group(function () {
 Route::post('/logout', [AuthController::class, 'logout'])->name('logout')->middleware('auth');
 
 Route::get('/', function () {
-    return auth()->check() ? redirect()->route('dashboard') : view('home');
+    if (! auth()->check()) {
+        return view('home');
+    }
+
+    return redirect()->to(AccessibleHome::url(auth()->user()));
 })->name('home');
 
 Route::middleware(['auth', 'password.changed'])->group(function () {

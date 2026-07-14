@@ -7,6 +7,7 @@ use App\Http\Requests\Auth\RegisterRequest;
 use App\Models\Concerns\HasDisplayName;
 use App\Models\User;
 use App\Services\LoginLockoutService;
+use App\Support\AccessibleHome;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -116,7 +117,7 @@ class AuthController extends Controller
 
         Auth::login($user);
 
-        return redirect()->route('dashboard')
+        return redirect()->to(AccessibleHome::url($user))
             ->with('success', __('messages.register_success'));
     }
 
@@ -142,7 +143,7 @@ class AuthController extends Controller
      */
     protected function redirectAfterLogin(Request $request, User $user): RedirectResponse
     {
-        $default = route('dashboard');
+        $default = AccessibleHome::url($user);
         $intended = $request->session()->pull('url.intended');
 
         if (! is_string($intended) || $intended === '' || $intended === $default) {

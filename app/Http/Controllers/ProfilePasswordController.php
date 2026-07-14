@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Support\AccessibleHome;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rules\Password;
 
@@ -68,7 +69,7 @@ class ProfilePasswordController extends Controller
         $user->clearTemporaryPasswordRequirement();
 
         return redirect()
-            ->route('dashboard')
+            ->to(AccessibleHome::url($user))
             ->with('success', __('messages.password_changed'));
     }
 }

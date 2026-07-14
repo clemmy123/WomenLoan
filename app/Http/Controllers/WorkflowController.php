@@ -6,6 +6,7 @@ use App\Http\Requests\WorkflowActionRequest;
 use App\Models\Loan;
 use App\Services\LoanWorkflowService;
 use App\Services\WorkflowAuthorizationService;
+use App\Support\AccessibleHome;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -60,7 +61,7 @@ class WorkflowController extends Controller
         }
 
         return redirect()
-            ->route('dashboard')
+            ->to(AccessibleHome::url($user))
             ->with('success', __('messages.workflow_action_success'));
     }
 }

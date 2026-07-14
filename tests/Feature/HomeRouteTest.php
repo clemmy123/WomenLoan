@@ -21,7 +21,7 @@ class HomeRouteTest extends TestCase
         $response->assertSee(__('home.footer_copyright'), false);
     }
 
-    public function test_home_redirects_authenticated_users_to_dashboard(): void
+    public function test_home_redirects_authenticated_users_to_their_accessible_home(): void
     {
         $this->seedApplication();
         $this->actingAsRole('admin@wdf.go.tz');
