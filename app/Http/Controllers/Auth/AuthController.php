@@ -102,7 +102,10 @@ class AuthController extends Controller
     {
         $validated = $request->validated();
 
-        $user = User::create([
+        $userPayload = [
+            'first_name' => $validated['first_name'],
+            'middle_name' => $validated['middle_name'] ?? null,
+            'last_name' => $validated['last_name'],
             'name' => HasDisplayName::buildFullName(
                 $validated['first_name'],
                 $validated['middle_name'] ?? null,
@@ -111,7 +114,31 @@ class AuthController extends Controller
             'email' => $validated['email'],
             'phone' => $validated['phone'],
             'password' => $validated['password'],
-        ]);
+        ];
+
+        if ((bool) config('services.nida.enabled') && ! empty($validated['nin'])) {
+            $nida = app(\App\Services\Nida\NidaService::class);
+            $identity = $nida->pullVerified($validated['nin']);
+
+            $userPayload['nin'] = $validated['nin'];
+            $userPayload['dob'] = $validated['dob'] ?? null;
+            $userPayload['sex'] = $validated['sex'] ?? 'Female';
+            $userPayload['nationality'] = $validated['nationality'] ?? 'Tanzanian';
+            $userPayload['nida_verified_at'] = now();
+
+            if ($identity?->photoBase64) {
+                $binary = base64_decode($identity->photoBase64, true);
+                if ($binary !== false) {
+                    $isSvg = str_starts_with(ltrim($binary), '<svg') || str_starts_with($identity->photoBase64, 'PHN2Zy');
+                    $path = 'applicants/photos/'.$validated['nin'].'.'.($isSvg ? 'svg' : 'jpg');
+                    \Illuminate\Support\Facades\Storage::disk('public')->put($path, $binary);
+                    $userPayload['nida_photo_path'] = $path;
+                }
+                $nida->forgetVerified($validated['nin']);
+            }
+        }
+
+        $user = User::create($userPayload);
 
         $user->assignRole('applicant');
 

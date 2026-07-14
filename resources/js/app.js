@@ -12,6 +12,7 @@ import './age-display';
 import './amount-inputs';
 import './track-id-copy';
 import './pages/loan-wizard';
+import './pages/nida-register';
 import Alpine from 'alpinejs';
 
 window.Alpine = Alpine;

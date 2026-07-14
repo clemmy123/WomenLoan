@@ -8,7 +8,6 @@ use App\Models\LoanGroup;
 use App\Models\User;
 use App\Support\IdentityNormalizer;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
-use Illuminate\Database\Eloquent\Collection;
 
 class ApplicantService
 {
@@ -34,10 +33,29 @@ class ApplicantService
     {
         $nameParts = HasDisplayName::splitFullName($user->name ?? '');
 
+        if (filled($user->nin)) {
+            $defaults = [
+                'first_name' => $user->first_name ?: $nameParts['first_name'],
+                'middle_name' => $user->middle_name ?: $nameParts['middle_name'],
+                'last_name' => $user->last_name ?: $nameParts['last_name'],
+                'email' => $user->email,
+                'phone' => IdentityNormalizer::normalizePhone($user->phone),
+                'nin' => IdentityNormalizer::normalizeNin($user->nin),
+                'dob' => $user->dob?->format('Y-m-d'),
+                'sex' => $user->sex ?: 'Female',
+                'nationality' => $user->nationality ?: 'Tanzanian',
+                'photo_path' => $user->nida_photo_path,
+                'nida_verified' => $user->nida_verified_at !== null,
+                'nida_verified_at' => $user->nida_verified_at,
+            ];
+
+            return $defaults;
+        }
+
         return [
-            'first_name' => $nameParts['first_name'],
-            'middle_name' => $nameParts['middle_name'],
-            'last_name' => $nameParts['last_name'],
+            'first_name' => $nameParts['first_name'] ?: $user->first_name,
+            'middle_name' => $nameParts['middle_name'] ?: $user->middle_name,
+            'last_name' => $nameParts['last_name'] ?: $user->last_name,
             'email' => $user->email,
             'phone' => IdentityNormalizer::normalizePhone($user->phone),
         ];
@@ -63,6 +81,15 @@ class ApplicantService
         $validated['phone'] = IdentityNormalizer::normalizePhone($validated['phone'] ?? '');
         $validated['nin'] = IdentityNormalizer::normalizeNin($validated['nin'] ?? '');
         $validated['email'] = IdentityNormalizer::normalizeEmail($validated['email'] ?? '');
+
+        $user = auth()->user();
+        if ($user && filled($user->nin) && $user->nin === $validated['nin']) {
+            $validated['photo_path'] = $validated['photo_path'] ?? $user->nida_photo_path;
+            if ($user->nida_verified_at) {
+                $validated['nida_verified'] = true;
+                $validated['nida_verified_at'] = $user->nida_verified_at;
+            }
+        }
 
         return Applicant::create($validated);
     }

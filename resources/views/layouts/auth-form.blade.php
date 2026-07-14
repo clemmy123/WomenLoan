@@ -3,6 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="csrf-token" content="{{ csrf_token() }}">
     <meta name="google" content="notranslate">
     <title>{{ __('nav.welcome') }} | @yield('auth_title', __('nav.register'))</title>
     <link rel="icon" href="{{ asset('images/nembo2.png') }}" type="image/png">

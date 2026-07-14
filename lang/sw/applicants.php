@@ -9,6 +9,7 @@ return [
     'edit_title' => 'Hariri Mwombaji',
     'show_title' => 'Wasifu wa Mwombaji',
     'add_new' => 'Ongeza Mwombaji',
+    'manual_entry_subtitle' => 'Weka taarifa za mwombaji kwa mkono kwa maombi ya zamani au karatasi. Uthibitishaji wa NIDA hauhitajiki kwenye fomu hii.',
     'save_profile' => 'Hifadhi Wasifu',
     'search_placeholder' => 'Tafuta kwa jina, NIN, simu au barua pepe…',
     'section_identification' => 'Utambulisho',

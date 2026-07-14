@@ -35,4 +35,13 @@ return [
         ],
     ],
 
+    'nida' => [
+        'enabled' => (bool) env('NIDA_ENABLED', true),
+        'driver' => env('NIDA_DRIVER', 'fake'),
+        'base_url' => env('NIDA_BASE_URL'),
+        'user_id' => env('NIDA_USER_ID'),
+        'challenge_ttl' => (int) env('NIDA_CHALLENGE_TTL', 300),
+        'verified_ttl' => (int) env('NIDA_VERIFIED_TTL', 600),
+    ],
+
 ];

@@ -20,6 +20,7 @@ use App\Http\Controllers\RoleController;
 use App\Http\Controllers\StreetController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\WardController;
+use App\Http\Controllers\NidaController;
 use App\Http\Controllers\WorkflowController;
 use App\Support\AccessibleHome;
 use Illuminate\Support\Facades\Route;
@@ -39,6 +40,11 @@ Route::middleware('guest')->group(function () {
 });
 
 Route::post('/logout', [AuthController::class, 'logout'])->name('logout')->middleware('auth');
+
+Route::middleware('throttle:30,1')->prefix('api/nida')->name('nida.api.')->group(function () {
+    Route::post('/start', [NidaController::class, 'start'])->name('start');
+    Route::post('/answer', [NidaController::class, 'answer'])->name('answer');
+});
 
 Route::get('/', function () {
     if (! auth()->check()) {

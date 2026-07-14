@@ -43,7 +43,7 @@ class StoreApplicantRequest extends FormRequest
             'first_name' => ['required', 'string', 'max:255', 'min:2'],
             'middle_name' => ['nullable', 'string', 'max:255'],
             'last_name' => ['required', 'string', 'max:255', 'min:2'],
-            'nin' => ['required', 'string', new TanzanianNin, new UniqueNin],
+            'nin' => ['required', 'string', new TanzanianNin, new UniqueNin(ignoreUserId: $user?->id)],
             'dob' => ['required', 'date', 'before:today'],
             'email' => ['required', 'email', 'max:255', new UniqueEmail($user?->id)],
             'phone' => ['required', 'string', new TanzaniaPhone, new UniquePhone($user?->id)],

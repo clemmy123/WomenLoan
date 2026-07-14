@@ -9,6 +9,7 @@ return [
     'edit_title' => 'Edit Applicant',
     'show_title' => 'Applicant Profile',
     'add_new' => 'Add New Applicant',
+    'manual_entry_subtitle' => 'Enter applicant details manually for backlog or paper applications. NIDA verification is not required on this form.',
     'save_profile' => 'Save Profile',
     'search_placeholder' => 'Search by name, NIN, phone or email…',
     'section_identification' => 'Identification',

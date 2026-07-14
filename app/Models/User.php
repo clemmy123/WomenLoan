@@ -32,6 +32,12 @@ class User extends Authenticatable
         'name',
         'email',
         'phone',
+        'nin',
+        'dob',
+        'sex',
+        'nationality',
+        'nida_photo_path',
+        'nida_verified_at',
         'password',
         'zoneable_type',
         'zoneable_id',
@@ -59,6 +65,8 @@ class User extends Authenticatable
             'login_locked_permanently' => 'boolean',
             'must_change_password' => 'boolean',
             'temporary_password_expires_at' => 'datetime',
+            'dob' => 'date',
+            'nida_verified_at' => 'datetime',
         ];
     }
 

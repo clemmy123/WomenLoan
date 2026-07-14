@@ -2,20 +2,32 @@
 
 namespace App\Providers;
 
+use App\Contracts\NidaClientInterface;
 use App\Services\GeoHierarchyService;
 use App\Services\HashidService;
+use App\Services\Nida\FakeNidaClient;
+use App\Services\Nida\HttpNidaClient;
 use App\Support\NavPermissions;
 use Illuminate\Pagination\Paginator;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\View;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Validation\Rules\Password;
+use InvalidArgumentException;
 
 class AppServiceProvider extends ServiceProvider
 {
     public function register(): void
     {
         $this->app->singleton(HashidService::class);
+
+        $this->app->singleton(NidaClientInterface::class, function () {
+            return match ((string) config('services.nida.driver', 'fake')) {
+                'fake' => new FakeNidaClient,
+                'http' => new HttpNidaClient,
+                default => throw new InvalidArgumentException('Unsupported NIDA driver.'),
+            };
+        });
     }
 
     public function boot(): void

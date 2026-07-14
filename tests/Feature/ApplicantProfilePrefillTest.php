@@ -16,6 +16,8 @@ class ApplicantProfilePrefillTest extends TestCase
     {
         parent::setUp();
         $this->seedApplication();
+        // Keep legacy prefill assertions stable; NIDA create UI is covered separately.
+        config(['services.nida.enabled' => false]);
     }
 
     public function test_registration_redirects_to_dashboard(): void

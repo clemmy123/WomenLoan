@@ -31,16 +31,29 @@ class ApplicantController extends Controller
     public function create()
     {
         $user = auth()->user();
+        $isSelfService = $user->isApplicant();
 
-        if ($user->applicant) {
+        if ($isSelfService && $user->applicant) {
             return redirect()->route('applicants.show', $user->applicant);
         }
 
         $regions = $this->geo->regions();
-        $applicant = $this->applicants->draftFromUser($user);
-        $lockRegistrationFields = $user->isApplicant() && ! $user->applicant;
+        $applicant = $isSelfService
+            ? $this->applicants->draftFromUser($user)
+            : new Applicant;
+        $lockRegistrationFields = $isSelfService && ! $user->applicant;
+        $lockNidaFields = $isSelfService
+            && (bool) config('services.nida.enabled')
+            && filled($applicant->nin);
+        $manualEntry = ! $isSelfService;
 
-        return view('applicants.create', compact('regions', 'applicant', 'lockRegistrationFields'));
+        return view('applicants.create', compact(
+            'regions',
+            'applicant',
+            'lockRegistrationFields',
+            'lockNidaFields',
+            'manualEntry',
+        ));
     }
 
     public function store(StoreApplicantRequest $request)
