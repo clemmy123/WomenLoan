@@ -25,7 +25,7 @@ class PasswordResetTest extends TestCase
             ->assertSee(__('auth.forgot_password'));
     }
 
-    public function test_forgot_password_page_can_request_reset_link(): void
+    public function test_guest_forgot_password_always_reports_user_not_existed(): void
     {
         Notification::fake();
 
@@ -35,36 +35,56 @@ class PasswordResetTest extends TestCase
 
         $this->post(route('password.email'), ['email' => $user->email])
             ->assertRedirect()
-            ->assertSessionHas('status');
+            ->assertSessionHasErrors(['email' => __('passwords.user')]);
 
-        Notification::assertSentTo($user, ResetPassword::class);
+        $this->post(route('password.email'), ['email' => 'nobody@example.com'])
+            ->assertRedirect()
+            ->assertSessionHasErrors(['email' => __('passwords.user')]);
+
+        Notification::assertNothingSent();
     }
 
-    public function test_password_can_be_reset_with_valid_token(): void
+    public function test_guest_cannot_complete_password_reset_via_token_url(): void
     {
         Notification::fake();
 
         $user = User::where('email', 'applicant2@wdf.go.tz')->firstOrFail();
 
-        $this->post(route('password.email'), ['email' => $user->email]);
-
-        $notification = Notification::sent($user, ResetPassword::class)->first();
-        $token = $notification->token;
-
-        $this->get(route('password.reset', ['token' => $token, 'email' => $user->email]))
-            ->assertOk()
-            ->assertSee(__('auth.reset_password'));
+        $this->get(route('password.reset', ['token' => 'fake-token', 'email' => $user->email]))
+            ->assertRedirect(route('login'))
+            ->assertSessionHasErrors(['email' => __('passwords.user')]);
 
         $this->post(route('password.update'), [
-            'token' => $token,
+            'token' => 'fake-token',
             'email' => $user->email,
             'password' => 'NewPassword123!',
             'password_confirmation' => 'NewPassword123!',
-        ])->assertRedirect(route('login'))
-            ->assertSessionHas('status');
+        ])->assertRedirect()
+            ->assertSessionHasErrors(['email' => __('passwords.user')]);
 
-        $this->assertTrue(
-            \Illuminate\Support\Facades\Hash::check('NewPassword123!', $user->fresh()->password)
-        );
+        Notification::assertNotSentTo($user, ResetPassword::class);
+    }
+
+    public function test_ward_cdo_cannot_reset_password_via_admin_url(): void
+    {
+        $target = User::where('email', 'council.cdo@wdf.go.tz')->firstOrFail();
+
+        $this->actingAsRole('ward.cdo@wdf.go.tz')
+            ->get(route('admin.users.edit', $target))
+            ->assertForbidden();
+
+        $this->actingAsRole('ward.cdo@wdf.go.tz')
+            ->put(route('admin.users.update', $target), [
+                'check_number' => $target->check_number ?: '1000000003',
+                'first_name' => $target->first_name ?: 'John',
+                'last_name' => $target->last_name ?: 'Massawe',
+                'email' => $target->email,
+                'phone' => $target->phone,
+                'password' => 'HackedPass1!',
+                'password_confirmation' => 'HackedPass1!',
+                'roles' => $target->roles->pluck('name')->all(),
+                'is_active' => '1',
+            ])
+            ->assertForbidden();
     }
 }
