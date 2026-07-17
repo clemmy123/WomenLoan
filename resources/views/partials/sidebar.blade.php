@@ -79,8 +79,20 @@
             $byBankActive = request()->routeIs('reports.by-bank.*');
             $byMonthlyActive = request()->routeIs('reports.by-monthly.*');
             $byAgeActive = request()->routeIs('reports.by-age.*');
+            $totalLoansMenuOpen = $byRegionActive
+                || $byTypeActive
+                || $bySectorActive
+                || $byBankActive
+                || $byMonthlyActive
+                || $byAgeActive;
         @endphp
-        <div class="mt-4 space-y-1" x-data="{ open: {{ $reportsMenuOpen ? 'true' : 'false' }} }">
+        <div
+            class="mt-4 space-y-1"
+            x-data="{
+                open: {{ $reportsMenuOpen ? 'true' : 'false' }},
+                totalLoansOpen: {{ $totalLoansMenuOpen ? 'true' : 'false' }}
+            }"
+        >
             <button
                 type="button"
                 @click="open = !open"
@@ -128,35 +140,62 @@
                         {{ __('nav.analytical_overdue') }}
                     </a>
                 @endif
-                @if($nav['viewByRegionReports'] ?? false)
-                    <a href="{{ route('reports.by-region.index') }}" class="sidebar-link sidebar-sublink block px-3 py-2 rounded-lg text-sm font-medium transition-all {{ $byRegionActive ? 'sidebar-sublink-active' : '' }}">
-                        {{ __('nav.by_region') }}
-                    </a>
-                @endif
-                @if($nav['viewByTypeReports'] ?? false)
-                    <a href="{{ route('reports.by-type.index') }}" class="sidebar-link sidebar-sublink block px-3 py-2 rounded-lg text-sm font-medium transition-all {{ $byTypeActive ? 'sidebar-sublink-active' : '' }}">
-                        {{ __('nav.by_types') }}
-                    </a>
-                @endif
-                @if($nav['viewBySectorReports'] ?? false)
-                    <a href="{{ route('reports.by-sector.index') }}" class="sidebar-link sidebar-sublink block px-3 py-2 rounded-lg text-sm font-medium transition-all {{ $bySectorActive ? 'sidebar-sublink-active' : '' }}">
-                        {{ __('nav.by_sectors') }}
-                    </a>
-                @endif
-                @if($nav['viewByBankReports'] ?? false)
-                    <a href="{{ route('reports.by-bank.index') }}" class="sidebar-link sidebar-sublink block px-3 py-2 rounded-lg text-sm font-medium transition-all {{ $byBankActive ? 'sidebar-sublink-active' : '' }}">
-                        {{ __('nav.by_banks') }}
-                    </a>
-                @endif
-                @if($nav['viewByMonthlyReports'] ?? false)
-                    <a href="{{ route('reports.by-monthly.index') }}" class="sidebar-link sidebar-sublink block px-3 py-2 rounded-lg text-sm font-medium transition-all {{ $byMonthlyActive ? 'sidebar-sublink-active' : '' }}">
-                        {{ __('nav.by_monthly') }}
-                    </a>
-                @endif
-                @if($nav['viewByAgeReports'] ?? false)
-                    <a href="{{ route('reports.by-age.index') }}" class="sidebar-link sidebar-sublink block px-3 py-2 rounded-lg text-sm font-medium transition-all {{ $byAgeActive ? 'sidebar-sublink-active' : '' }}">
-                        {{ __('nav.by_age') }}
-                    </a>
+
+                @if($nav['viewTotalLoansReports'] ?? false)
+                    <div class="space-y-0.5">
+                        <button
+                            type="button"
+                            @click="totalLoansOpen = !totalLoansOpen"
+                            class="sidebar-link sidebar-sublink sidebar-nested-toggle flex w-full items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium transition-all {{ $totalLoansMenuOpen ? 'sidebar-nested-open' : '' }}"
+                            :aria-expanded="totalLoansOpen.toString()"
+                        >
+                            <span class="flex-1 text-left">{{ __('nav.total_loans') }}</span>
+                            <svg class="h-3.5 w-3.5 opacity-60 shrink-0 transition-transform duration-200" :class="totalLoansOpen ? 'rotate-180' : ''" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+                        </button>
+
+                        <div
+                            x-show="totalLoansOpen"
+                            x-cloak
+                            x-transition:enter="transition ease-out duration-150"
+                            x-transition:enter-start="opacity-0 -translate-y-1"
+                            x-transition:enter-end="opacity-100 translate-y-0"
+                            x-transition:leave="transition ease-in duration-100"
+                            x-transition:leave-start="opacity-100 translate-y-0"
+                            x-transition:leave-end="opacity-0 -translate-y-1"
+                            class="sidebar-nested-submenu space-y-0.5 pl-3 ml-2 border-l border-slate-200 dark:border-white/10"
+                        >
+                            @if($nav['viewByRegionReports'] ?? false)
+                                <a href="{{ route('reports.by-region.index') }}" class="sidebar-link sidebar-sublink block px-3 py-2 rounded-lg text-sm font-medium transition-all {{ $byRegionActive ? 'sidebar-sublink-active' : '' }}">
+                                    {{ __('nav.by_region') }}
+                                </a>
+                            @endif
+                            @if($nav['viewByTypeReports'] ?? false)
+                                <a href="{{ route('reports.by-type.index') }}" class="sidebar-link sidebar-sublink block px-3 py-2 rounded-lg text-sm font-medium transition-all {{ $byTypeActive ? 'sidebar-sublink-active' : '' }}">
+                                    {{ __('nav.by_types') }}
+                                </a>
+                            @endif
+                            @if($nav['viewBySectorReports'] ?? false)
+                                <a href="{{ route('reports.by-sector.index') }}" class="sidebar-link sidebar-sublink block px-3 py-2 rounded-lg text-sm font-medium transition-all {{ $bySectorActive ? 'sidebar-sublink-active' : '' }}">
+                                    {{ __('nav.by_sectors') }}
+                                </a>
+                            @endif
+                            @if($nav['viewByBankReports'] ?? false)
+                                <a href="{{ route('reports.by-bank.index') }}" class="sidebar-link sidebar-sublink block px-3 py-2 rounded-lg text-sm font-medium transition-all {{ $byBankActive ? 'sidebar-sublink-active' : '' }}">
+                                    {{ __('nav.by_banks') }}
+                                </a>
+                            @endif
+                            @if($nav['viewByMonthlyReports'] ?? false)
+                                <a href="{{ route('reports.by-monthly.index') }}" class="sidebar-link sidebar-sublink block px-3 py-2 rounded-lg text-sm font-medium transition-all {{ $byMonthlyActive ? 'sidebar-sublink-active' : '' }}">
+                                    {{ __('nav.by_monthly') }}
+                                </a>
+                            @endif
+                            @if($nav['viewByAgeReports'] ?? false)
+                                <a href="{{ route('reports.by-age.index') }}" class="sidebar-link sidebar-sublink block px-3 py-2 rounded-lg text-sm font-medium transition-all {{ $byAgeActive ? 'sidebar-sublink-active' : '' }}">
+                                    {{ __('nav.by_age') }}
+                                </a>
+                            @endif
+                        </div>
+                    </div>
                 @endif
             </div>
         </div>

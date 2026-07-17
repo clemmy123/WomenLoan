@@ -64,7 +64,9 @@ class ReportPermissionTest extends TestCase
 
         $this->actingAs($user)
             ->get(route('reports.by-region.index'))
-            ->assertOk();
+            ->assertOk()
+            ->assertSee(__('nav.total_loans'), false)
+            ->assertSee(__('nav.by_region'), false);
 
         $this->actingAs($user)
             ->get(route('reports.applications.index'))

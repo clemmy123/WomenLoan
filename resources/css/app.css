@@ -1236,6 +1236,24 @@
         font-size: 0.8125rem;
     }
 
+    .sidebar-nested-toggle {
+        cursor: pointer;
+    }
+
+    .sidebar-nested-open {
+        background: rgba(99, 102, 241, 0.08);
+        color: #4338ca;
+    }
+
+    .dark .sidebar-nested-open {
+        background: rgba(99, 102, 241, 0.14);
+        color: #e0e7ff;
+    }
+
+    .sidebar-nested-submenu .sidebar-sublink {
+        font-size: 0.75rem;
+    }
+
     .app-sidebar nav a.sidebar-sublink:not(.sidebar-sublink-active) {
         color: #475569;
     }

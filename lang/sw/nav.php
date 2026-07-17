@@ -27,6 +27,7 @@ return [
     'analytical_overview' => 'Ripoti za Malipo',
     'analytical_outstanding' => 'Madeni Yanayodaiwa',
     'analytical_overdue' => 'Waliopitisha Muda wa Malipo',
+    'total_loans' => 'Chambua Orodha',
     'by_region' => 'Kwa Mkoa',
     'by_types' => 'Kwa Aina',
     'by_sectors' => 'Kwa Sekta',
