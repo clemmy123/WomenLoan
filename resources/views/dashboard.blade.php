@@ -5,6 +5,8 @@
 @section('content')
 @php
     $recentFilter = $recentFilter ?? 'all';
+    $fyStartLabel = \Carbon\Carbon::parse($fiscalYearFrom)->translatedFormat('d M Y');
+    $statFyMeta = __('dashboard.since_fy_start', ['date' => $fyStartLabel]);
     $statCardUrl = fn (string $filter) => route('dashboard', ['recent' => $filter]) . '#recent-applications';
     $statIconApplications = '<svg fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>';
     $statIconPending = '<svg fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>';
@@ -18,6 +20,7 @@
             <h1 class="page-title lg:text-3xl">{{ __('dashboard.overview') }}</h1>
             <p class="page-subtitle capitalize">
                 {{ str_replace('_', ' ', $user->displayRole()) }} · {{ now()->format('l, d M Y') }}
+                · {{ __('dashboard.fiscal_year_scope', ['year' => $fiscalYear]) }}
             </p>
         </div>
     </div>
@@ -127,8 +130,7 @@
                 'gradient' => 'indigo',
                 'label' => __('dashboard.total_applications'),
                 'value' => $stats['total'],
-                'meta' => '+' . $stats['this_month'] . ' ' . __('dashboard.this_month'),
-                'metaClass' => 'dashboard-stat-card-meta--positive',
+                'meta' => $statFyMeta,
                 'ariaLabel' => __('dashboard.total_applications') . ' — ' . __('dashboard.view_in_recent_list'),
                 'icon' => $statIconApplications,
             ])
@@ -179,7 +181,7 @@
             <div class="flex items-center justify-between mb-6">
                 <div>
                     <h2 class="font-bold text-slate-900 dark:text-white">{{ __('dashboard.applications_trend') }}</h2>
-                    <p class="text-xs text-slate-500 dark:text-zinc-400 mt-0.5">{{ __('dashboard.live') }}</p>
+                    <p class="text-xs text-slate-500 dark:text-zinc-400 mt-0.5">{{ __('dashboard.since_fy_start', ['date' => $fyStartLabel]) }}</p>
                 </div>
             </div>
             <div class="h-56"><canvas id="trendChart"></canvas></div>

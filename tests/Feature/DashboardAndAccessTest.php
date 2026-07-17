@@ -3,6 +3,7 @@
 namespace Tests\Feature;
 
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use App\Services\DashboardStatsService;
 use Tests\TestCase;
 
 class DashboardAndAccessTest extends TestCase
@@ -220,6 +221,38 @@ class DashboardAndAccessTest extends TestCase
             ->assertSee(__('dashboard.sort_by'), false)
             ->assertSee('Tambukareli Women Entrepreneurs', false)
             ->assertSee(__('dashboard.recent_search_placeholder'), false);
+    }
+
+    public function test_dashboard_excludes_loans_entered_before_current_fiscal_year(): void
+    {
+        $loan = $this->loanByTrack('WL000011');
+
+        \Illuminate\Support\Facades\DB::table('loans')
+            ->where('id', $loan->id)
+            ->update(['created_at' => '2024-08-15 10:00:00']);
+
+        $ministry = \App\Models\User::where('email', 'ministry@wdf.go.tz')->firstOrFail();
+        DashboardStatsService::flushForUser($ministry->id);
+
+        $this->actingAs($ministry);
+
+        $stats = app(DashboardStatsService::class)->forUser();
+        $this->assertSame(10, $stats['total']);
+        $this->assertSame(0, $stats['disbursed']);
+
+        $this->get(route('dashboard'))
+            ->assertOk()
+            ->assertDontSee('>WL000011<', false);
+    }
+
+    public function test_dashboard_shows_current_fiscal_year_label(): void
+    {
+        $currentFy = app(DashboardStatsService::class)->currentFiscalYearKey();
+
+        $this->actingAsRole('ministry@wdf.go.tz')
+            ->get(route('dashboard'))
+            ->assertOk()
+            ->assertSee(__('dashboard.fiscal_year_scope', ['year' => $currentFy]), false);
     }
 
     public function test_track_loan_by_track_id(): void

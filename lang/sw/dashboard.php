@@ -2,6 +2,8 @@
 
 return [
     'overview' => 'Muhtasari',
+    'fiscal_year_scope' => 'Mwaka wa fedha :year',
+    'since_fy_start' => 'Tangu :date',
     'total_applications' => 'Jumla ya Maombi',
     'pending_review' => 'Inasubiri Ukaguzi',
     'approved' => 'Imekubaliwa',

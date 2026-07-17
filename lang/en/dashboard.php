@@ -2,6 +2,8 @@
 
 return [
     'overview' => 'Overview',
+    'fiscal_year_scope' => 'Financial year :year',
+    'since_fy_start' => 'From :date',
     'total_applications' => 'Total Applications',
     'pending_review' => 'Pending Review',
     'approved' => 'Approved',

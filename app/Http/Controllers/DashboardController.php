@@ -20,6 +20,8 @@ class DashboardController extends Controller
         $recentSortOptions = $this->stats->recentSortOptions();
         $monthly = $this->stats->monthlyApplications();
         $pipeline = $this->stats->stepBreakdown();
+        $fiscalYear = $this->stats->currentFiscalYearKey();
+        $fiscalYearFrom = $this->stats->currentFiscalYearContext()['from'];
 
         return view('dashboard', compact(
             'user',
@@ -31,6 +33,8 @@ class DashboardController extends Controller
             'recentSortOptions',
             'monthly',
             'pipeline',
+            'fiscalYear',
+            'fiscalYearFrom',
         ));
     }
 }
