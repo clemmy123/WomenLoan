@@ -208,4 +208,38 @@ class ChiefAccountantScopeTest extends TestCase
                 ->assertDontSee(__('loans.supporting_documents'), false);
         }
     }
+
+    public function test_chief_and_accountant_see_km_comment_on_loan_show(): void
+    {
+        $kmCommentLabel = __('loans.km_comment', ['role' => role_label('km')]);
+        $kmComment = 'Final approval granted by Permanent Secretary.';
+
+        $this->actingAsRole('chief@wdf.go.tz')
+            ->get(route('loan-applications.show', $this->loanByTrack('WL000009')->hashid))
+            ->assertOk()
+            ->assertSee($kmCommentLabel, false)
+            ->assertSee($kmComment, false);
+
+        $this->actingAsRole('accountant1@wdf.go.tz')
+            ->get(route('loan-applications.show', $this->loanByTrack('WL000010')->hashid))
+            ->assertOk()
+            ->assertSee($kmCommentLabel, false)
+            ->assertSee($kmComment, false);
+    }
+
+    public function test_accountant_sees_chief_assignment_comment_on_loan_show(): void
+    {
+        $chiefCommentLabel = __('loans.chief_comment', ['role' => role_label('chief')]);
+
+        $this->actingAsRole('accountant1@wdf.go.tz')
+            ->get(route('loan-applications.show', $this->loanByTrack('WL000010')->hashid))
+            ->assertOk()
+            ->assertSee($chiefCommentLabel, false)
+            ->assertSee('Assigned to accountant for disbursement.', false);
+
+        $this->actingAsRole('chief@wdf.go.tz')
+            ->get(route('loan-applications.show', $this->loanByTrack('WL000009')->hashid))
+            ->assertOk()
+            ->assertDontSee($chiefCommentLabel, false);
+    }
 }

@@ -22,6 +22,17 @@
     $applicantRegion = $applicantDistrict?->region;
     $yesNo = fn (?bool $value) => $value === null ? null : ($value ? __('common.yes') : __('common.no'));
     $showAside = $hasWorkflow || $isKmViewer;
+    $kmApproval = $loan->approvalLevels
+        ->filter(fn ($level) => (int) $level->step_number === 7 && $level->action_taken === 'approved')
+        ->sortByDesc('id')
+        ->first();
+    $kmCommentLabel = __('loans.km_comment', ['role' => role_label('km')]);
+    $isAccountantViewer = $viewer?->hasRole('accountant') ?? false;
+    $chiefAssignment = $loan->approvalLevels
+        ->filter(fn ($level) => (int) $level->step_number === 8 && $level->action_taken === 'assigned_accountant')
+        ->sortByDesc('id')
+        ->first();
+    $chiefCommentLabel = __('loans.chief_comment', ['role' => role_label('chief')]);
     $simplifiedGroupMembers = collect();
     if ($isSimplifiedViewer && $loan->loan_type === 'group' && $loan->group) {
         $simplifiedGroupMembers = $loan->group->members->isNotEmpty()
@@ -81,6 +92,38 @@
                         @include('partials.detail-field', ['label' => __('loans.assigned_officer'), 'value' => $loan->officer?->name])
                     </div>
                 </div>
+
+                <div class="app-card app-card-padded">
+                    <h3 class="text-sm font-semibold tracking-wide uppercase text-indigo-600 border-b border-slate-100 dark:border-white/10 pb-2 mb-5">{{ $kmCommentLabel }}</h3>
+                    @if(filled($kmApproval?->comments))
+                        <p class="text-sm leading-relaxed text-slate-800 dark:text-zinc-100 whitespace-pre-line">{{ $kmApproval->comments }}</p>
+                        <p class="mt-3 text-xs text-slate-500 dark:text-zinc-400">
+                            {{ $kmApproval->user?->name ?? $loan->approved_by }}
+                            @if($kmApproval->created_at)
+                                — {{ $kmApproval->created_at->translatedFormat('d M Y H:i') }}
+                            @endif
+                        </p>
+                    @else
+                        <p class="text-sm text-slate-500 dark:text-zinc-400">{{ __('loans.km_comment_empty', ['role' => role_label('km')]) }}</p>
+                    @endif
+                </div>
+
+                @if($isAccountantViewer)
+                <div class="app-card app-card-padded">
+                    <h3 class="text-sm font-semibold tracking-wide uppercase text-indigo-600 border-b border-slate-100 dark:border-white/10 pb-2 mb-5">{{ $chiefCommentLabel }}</h3>
+                    @if(filled($chiefAssignment?->comments))
+                        <p class="text-sm leading-relaxed text-slate-800 dark:text-zinc-100 whitespace-pre-line">{{ $chiefAssignment->comments }}</p>
+                        <p class="mt-3 text-xs text-slate-500 dark:text-zinc-400">
+                            {{ $chiefAssignment->user?->name }}
+                            @if($chiefAssignment->created_at)
+                                — {{ $chiefAssignment->created_at->translatedFormat('d M Y H:i') }}
+                            @endif
+                        </p>
+                    @else
+                        <p class="text-sm text-slate-500 dark:text-zinc-400">{{ __('loans.chief_comment_empty', ['role' => role_label('chief')]) }}</p>
+                    @endif
+                </div>
+                @endif
 
                 @if($simplifiedGroupMembers->isNotEmpty())
                 <div class="app-card app-card-padded">

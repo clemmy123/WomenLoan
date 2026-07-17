@@ -213,11 +213,14 @@ class DummyDataSeeder extends Seeder
                 ['step' => 7, 'action' => 'approved', 'user' => 'km', 'comments' => 'Final approval granted by Permanent Secretary.'],
             ]],
             // Step 9 — ready for disbursement
-            ['track' => 'WL000010', 'step' => 9, 'status' => 'ready_for_disbursement', 'acceptance' => 'accepted', 'requested' => 4000000, 'proposed' => 3800000, 'disbursed' => 0, 'applicant' => 14, 'officer' => 'accountant', 'history' => [
+            ['track' => 'WL000010', 'step' => 9, 'status' => 'ready_for_disbursement', 'acceptance' => 'accepted', 'requested' => 4000000, 'proposed' => 3800000, 'disbursed' => 0, 'applicant' => 14, 'officer' => 'accountant', 'approved_by' => 'Prof. Neema Kapinga', 'history' => [
+                ['step' => 7, 'action' => 'approved', 'user' => 'km', 'comments' => 'Final approval granted by Permanent Secretary.'],
                 ['step' => 8, 'action' => 'assigned_accountant', 'user' => 'chief', 'comments' => 'Assigned to accountant for disbursement.'],
             ]],
             // Step 9 — disbursed with repayment (terminal history on test account)
-            ['track' => 'WL000011', 'step' => 9, 'status' => 'disbursed', 'acceptance' => 'accepted', 'requested' => 3000000, 'proposed' => 2800000, 'disbursed' => 2800000, 'applicant' => 0, 'officer' => 'accountant', 'with_payment' => true, 'history' => [
+            ['track' => 'WL000011', 'step' => 9, 'status' => 'disbursed', 'acceptance' => 'accepted', 'requested' => 3000000, 'proposed' => 2800000, 'disbursed' => 2800000, 'applicant' => 0, 'officer' => 'accountant', 'with_payment' => true, 'approved_by' => 'Prof. Neema Kapinga', 'history' => [
+                ['step' => 7, 'action' => 'approved', 'user' => 'km', 'comments' => 'Final approval granted by Permanent Secretary.'],
+                ['step' => 8, 'action' => 'assigned_accountant', 'user' => 'chief', 'comments' => 'Assigned to accountant for disbursement.'],
                 ['step' => 9, 'action' => 'disbursed', 'user' => 'accountant', 'comments' => 'Funds disbursed to applicant bank account.'],
             ]],
         ];
