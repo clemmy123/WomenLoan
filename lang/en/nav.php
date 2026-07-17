@@ -27,7 +27,7 @@ return [
     'analytical_overview' => 'Payment Reports',
     'analytical_outstanding' => 'Outstanding Debts',
     'analytical_overdue' => 'Overdue Payments',
-    'total_loans' => 'Browse List',
+    'total_loans' => 'Get list',
     'by_region' => 'By Region',
     'by_types' => 'By Types',
     'by_sectors' => 'By Sectors',
