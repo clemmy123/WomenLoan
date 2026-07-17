@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests;
 
+use App\Rules\AccountantUser;
 use App\Support\IdentityNormalizer;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
@@ -47,7 +48,8 @@ class WorkflowActionRequest extends FormRequest
             'accountant_id' => [
                 Rule::requiredIf($action === 'assign_accountant'),
                 'nullable',
-                'exists:users,id',
+                'integer',
+                new AccountantUser,
             ],
             'grace_period_months' => [
                 Rule::requiredIf($action === 'disburse'),

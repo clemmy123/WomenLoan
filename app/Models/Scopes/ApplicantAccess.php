@@ -73,6 +73,8 @@ class ApplicantAccess implements Scope
 
             return;
         }
+
+        $builder->whereRaw('0 = 1');
     }
 
     protected function filterByGeo(Builder $builder, Model $model, string $column, ?int $zoneId): void

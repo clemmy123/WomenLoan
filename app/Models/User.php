@@ -42,10 +42,6 @@ class User extends Authenticatable
         'zoneable_type',
         'zoneable_id',
         'is_active',
-        'failed_login_attempts',
-        'login_lockout_rounds',
-        'login_locked_until',
-        'login_locked_permanently',
         'must_change_password',
         'temporary_password_expires_at',
     ];

@@ -19,7 +19,20 @@ class UpdateApplicantRequest extends FormRequest
 
     public function authorize(): bool
     {
-        return true;
+        $user = $this->user();
+        $applicant = $this->route('applicant');
+
+        if (! $user || ! $applicant) {
+            return false;
+        }
+
+        if ($user->can('manage applicants')) {
+            return true;
+        }
+
+        return $user->isApplicant()
+            && $user->applicant
+            && (int) $applicant->user_id === (int) $user->id;
     }
 
     protected function prepareForValidation(): void

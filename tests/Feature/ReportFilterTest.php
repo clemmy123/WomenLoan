@@ -33,9 +33,12 @@ class ReportFilterTest extends TestCase
         $response->assertSee(__('reports.period'), false);
         $response->assertSee(__('reports.date_from'), false);
         $response->assertSee(__('reports.date_to'), false);
+        $response->assertSee(__('reports.marital_status'), false);
+        $response->assertSee(__('reports.disability'), false);
+        $response->assertSee('name="marital_status"', false);
+        $response->assertSee('name="has_disability"', false);
         $response->assertSeeText(__('reports.detail_table'));
         $response->assertSee(__('reports.financial_trend'), false);
-        $response->assertDontSee('name="marital_status"', false);
         $response->assertDontSee('name="loan_type"', false);
         $response->assertDontSee('name="is_widowed"', false);
         $response->assertSee('WL000011');
@@ -96,6 +99,32 @@ class ReportFilterTest extends TestCase
 
         $this->assertSame(1, $summary['count']);
         $this->assertSame(2800000.0, $summary['total_disbursed']);
+    }
+
+    public function test_reports_can_filter_by_disability(): void
+    {
+        $loan = Loan::withoutGlobalScope(ApprovalLevelScope::class)
+            ->where('loan_track_id', 'WL000011')
+            ->firstOrFail();
+
+        $loan->update(['has_disability' => true]);
+
+        $this->actingAsRole('ministry@wdf.go.tz');
+
+        $withDisability = app(ReportService::class)->normalizeFilters([
+            'fiscal_year' => '2025/2026',
+            'period' => 'annually',
+            'has_disability' => '1',
+        ]);
+
+        $withoutDisability = app(ReportService::class)->normalizeFilters([
+            'fiscal_year' => '2025/2026',
+            'period' => 'annually',
+            'has_disability' => '0',
+        ]);
+
+        $this->assertSame(1, app(ReportService::class)->summary($withDisability)['count']);
+        $this->assertSame(0, app(ReportService::class)->summary($withoutDisability)['count']);
     }
 
     public function test_reports_can_filter_by_actual_loan_type(): void

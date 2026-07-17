@@ -7,11 +7,13 @@ use App\Http\Requests\Loan\UpdateLoanApplicationRequest;
 use App\Models\DraftLoan;
 use App\Models\Loan;
 use App\Models\LoanGroup;
+use App\Rules\TanzanianNin;
 use App\Services\ApplicantGroupService;
 use App\Services\BusinessSectorService;
 use App\Services\GeoHierarchyService;
 use App\Services\LoanApplicationService;
 use App\Services\LoanQueryService;
+use App\Support\IdentityNormalizer;
 use App\Support\LoanWizardFieldMap;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -189,6 +191,12 @@ class LoanApplicationController extends Controller
 
     public function saveDraft(Request $request, $id = null)
     {
+        $request->validate([
+            'step' => ['nullable', 'integer', 'min:1', 'max:6'],
+            'track_id' => ['nullable', 'string', 'max:32'],
+            'loan_type' => ['nullable', 'string', 'in:individual,group'],
+        ]);
+
         $trackId = $this->applications->saveDraft($request, Auth::id(), $request->input('track_id'));
 
         return response()->json(['success' => true, 'track_id' => $trackId]);
@@ -199,16 +207,48 @@ class LoanApplicationController extends Controller
         return redirect()->route('loan-applications.show', $loan);
     }
 
-    public function getApplicantByNin($nin)
+    public function getApplicantByNin(string $nin)
     {
-        return response()->json($this->applications->findApplicantByNin($nin));
+        abort_unless(Auth::user()->can('create loan application'), 403);
+
+        validator(['nin' => $nin], [
+            'nin' => ['required', 'string', new TanzanianNin],
+        ])->validate();
+
+        $applicant = $this->applications->findApplicantByNin(IdentityNormalizer::normalizeNin($nin));
+
+        if (! $applicant) {
+            return response()->json(null, 404);
+        }
+
+        return response()->json([
+            'id' => $applicant->hashid,
+            'full_name' => $applicant->full_name,
+            'preferred_loan_type' => $applicant->preferred_loan_type,
+        ]);
     }
 
     public function getGroupMembers(string $groupId)
     {
+        abort_unless(Auth::user()->can('create loan application'), 403);
+
         $group = LoanGroup::findByHashidOrFail($groupId);
 
-        return response()->json($this->applications->groupMembers($group->id)->applicants);
+        if (! Auth::user()->can('manage loan groups')) {
+            $ownGroup = app(ApplicantGroupService::class)->groupForUser(Auth::user());
+
+            if (! $ownGroup || (int) $ownGroup->id !== (int) $group->id) {
+                abort(403);
+            }
+        }
+
+        $members = $this->applications->groupMembers($group->id)->applicants;
+
+        return response()->json($members->map(fn ($applicant) => [
+            'id' => $applicant->hashid,
+            'full_name' => $applicant->full_name,
+            'marital_status' => $applicant->marital_status,
+        ])->values());
     }
 
     private function authorizeEditableLoan(Loan $loan): void

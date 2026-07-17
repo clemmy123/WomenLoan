@@ -17,7 +17,7 @@ class UserProvisioningService
         $query = User::query()->with('roles');
 
         if (filled($search)) {
-            $term = '%'.$search.'%';
+            $term = '%'.addcslashes($search, '%_\\').'%';
             $query->where(function ($q) use ($term) {
                 $q->where('name', 'like', $term)
                     ->orWhere('first_name', 'like', $term)

@@ -52,7 +52,7 @@ class RepaymentIndexService
         $query = LoanPayment::query()->with(['loan.applicant']);
 
         if ($filters['search'] !== '') {
-            $term = '%'.$filters['search'].'%';
+            $term = '%'.addcslashes($filters['search'], '%_\\').'%';
             $query->where(function (Builder $q) use ($term) {
                 $q->whereHas('loan', function (Builder $loan) use ($term) {
                     $loan->withoutGlobalScopes()

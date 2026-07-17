@@ -58,11 +58,13 @@
                                 <div class="inline-flex items-center justify-end gap-1">
                                     @include('partials.table-icon', ['action' => 'view', 'href' => route('applicants.show', $applicant), 'label' => __('common.view')])
                                     @include('partials.table-icon', ['action' => 'edit', 'href' => route('applicants.edit', $applicant), 'label' => __('common.edit')])
+                                    @can('manage applicants')
                                     <form action="{{ route('applicants.destroy', $applicant) }}" method="POST" class="inline-flex" onsubmit="return confirm(@json(__('applicants.delete_confirm')));">
                                         @csrf
                                         @method('DELETE')
                                         @include('partials.table-icon', ['action' => 'delete', 'label' => __('common.delete')])
                                     </form>
+                                    @endcan
                                 </div>
                             </td>
                         </tr>

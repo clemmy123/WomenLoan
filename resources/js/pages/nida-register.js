@@ -138,17 +138,6 @@ function nidaVerificationMethods(config = {}) {
             this.requiredCorrect = data.required_correct;
             this.nin = data.nin || this.nin;
         },
-
-        resetNida() {
-            this.step = 'nin';
-            this.sessionId = '';
-            this.rqCode = '';
-            this.question = '';
-            this.correctCount = 0;
-            this.answer = '';
-            this.identity = null;
-            this.error = '';
-        },
     };
 }
 

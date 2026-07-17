@@ -95,6 +95,8 @@ class AuthController extends Controller
 
     public function showRegister()
     {
+        session(['nida_registration_allowed' => true]);
+
         return view('auth.register');
     }
 
@@ -130,7 +132,7 @@ class AuthController extends Controller
                 $binary = base64_decode($identity->photoBase64, true);
                 if ($binary !== false) {
                     $isSvg = str_starts_with(ltrim($binary), '<svg') || str_starts_with($identity->photoBase64, 'PHN2Zy');
-                    $path = 'applicants/photos/'.$validated['nin'].'.'.($isSvg ? 'svg' : 'jpg');
+                    $path = 'applicants/photos/'.\Illuminate\Support\Str::uuid().'.'.($isSvg ? 'svg' : 'jpg');
                     \Illuminate\Support\Facades\Storage::disk('public')->put($path, $binary);
                     $userPayload['nida_photo_path'] = $path;
                 }

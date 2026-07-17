@@ -140,24 +140,61 @@ class FakeNidaClient implements NidaClientInterface
         );
     }
 
+    /** @var list<string> */
+    private const FIRST_NAMES = [
+        'Asha', 'Rehema', 'Fatuma', 'Zainabu', 'Halima', 'Mariamu', 'Saida', 'Neema',
+        'Grace', 'Joyce', 'Amina', 'Zuhura', 'Mwanaidi', 'Lightness', 'Happy', 'Faith',
+        'Pendo', 'Furaha', 'Tunu', 'Baraka', 'Subira', 'Tatu', 'Mwajuma', 'Hadija',
+    ];
+
+    /** @var list<string> */
+    private const MIDDLE_NAMES = [
+        'Juma', 'Hassan', 'Ally', 'Omari', 'Bakari', 'Said', 'Rashid', 'Hamisi',
+        'Mohamed', 'Iddi', 'Ramadhani', 'Selemani', 'Abdallah', 'Mussa', 'Shaaban', 'Kassim',
+    ];
+
+    /** @var list<string> */
+    private const LAST_NAMES = [
+        'Mwangi', 'Kimaro', 'Msangi', 'Mwakasege', 'Ngowi', 'Mushi', 'Swai', 'Mosha',
+        'Lyimo', 'Mrema', 'Kyando', 'Mbwambo', 'Shirima', 'Mtenga', 'Komba', 'Ndunguru',
+        'Mollel', 'Laizer', 'Sulle', 'Meena', 'Chacha', 'Maganga', 'Lugoe', 'Mkude',
+    ];
+
     private function demoIdentity(string $nin): NidaIdentity
     {
         $year = (int) substr($nin, 0, 4);
         $month = max(1, min(12, (int) substr($nin, 4, 2) ?: 1));
         $day = max(1, min(28, (int) substr($nin, 6, 2) ?: 1));
         $dob = Carbon::createSafe($year, $month, $day) ?? Carbon::parse('1990-01-15');
+        $names = $this->demoNamesForNin($nin);
 
         return new NidaIdentity(
             nin: $nin,
-            firstName: 'Neema',
-            middleName: 'Juma',
-            lastName: 'Mwangi',
+            firstName: $names['first_name'],
+            middleName: $names['middle_name'],
+            lastName: $names['last_name'],
             sex: 'Female',
             dateOfBirth: $dob->startOfDay(),
             nationality: 'Tanzanian',
             photoBase64: $this->demoPortraitBase64(),
             otherName: null,
         );
+    }
+
+    /**
+     * Pick a stable female name trio from the NIN (same NIN → same names; different NIN → different mix).
+     *
+     * @return array{first_name: string, middle_name: string, last_name: string}
+     */
+    private function demoNamesForNin(string $nin): array
+    {
+        $seed = (int) sprintf('%u', crc32($nin));
+
+        return [
+            'first_name' => self::FIRST_NAMES[$seed % count(self::FIRST_NAMES)],
+            'middle_name' => self::MIDDLE_NAMES[intdiv($seed, 7) % count(self::MIDDLE_NAMES)],
+            'last_name' => self::LAST_NAMES[intdiv($seed, 13) % count(self::LAST_NAMES)],
+        ];
     }
 
     /**

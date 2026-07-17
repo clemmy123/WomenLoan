@@ -26,7 +26,9 @@ class WorkflowAuthorizationService
                 && $status === 'received'
                 && app(CdoLoanScopeService::class)->canActOnLoan($user, $loan),
             'propose_amount', 'send_to_applicant' => $user->can('propose loan amount') && $step === 2,
-            'accept_amount', 'decline_amount' => $user->hasRole('applicant') && $step === 3,
+            'accept_amount', 'decline_amount' => $user->hasRole('applicant')
+                && $step === 3
+                && (int) $loan->user_id === (int) $user->id,
             'forward_ass_dir' => $user->can('forward to assistant director') && $step === 4,
             'forward_director' => $user->can('forward to director') && $step === 5,
             'forward_km' => $user->can('forward to km') && $step === 6,

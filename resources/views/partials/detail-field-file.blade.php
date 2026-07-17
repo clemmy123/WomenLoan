@@ -1,7 +1,7 @@
 @props(['label', 'path' => null])
 
 @php
-    $docUrl = filled($path) ? asset('storage/'.$path) : null;
+    $docUrl = \App\Support\SecureFileUrl::forPath($path);
 @endphp
 
 <div {{ $attributes->merge(['class' => 'doc-attachment-field']) }}>

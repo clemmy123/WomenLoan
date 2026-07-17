@@ -30,6 +30,7 @@ return Application::configure(basePath: dirname(__DIR__))
             'permission' => PermissionMiddleware::class,
             'role_or_permission' => RoleOrPermissionMiddleware::class,
             'password.changed' => \App\Http\Middleware\EnsurePasswordIsChanged::class,
+            'nida.registration' => \App\Http\Middleware\EnsureNidaRegistrationSession::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {

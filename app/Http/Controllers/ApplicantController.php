@@ -86,6 +86,8 @@ class ApplicantController extends Controller
 
     public function destroy(Applicant $applicant)
     {
+        $this->authorize('manage applicants');
+
         $applicant->delete();
 
         return redirect()->route('applicants.index')
@@ -94,6 +96,8 @@ class ApplicantController extends Controller
 
     public function attachGroup(Applicant $applicant, Request $request)
     {
+        $this->authorize('manage applicants');
+
         $request->validate(['group_id' => 'required|string']);
 
         $group = LoanGroup::findByHashidOrFail($request->group_id);
@@ -109,6 +113,8 @@ class ApplicantController extends Controller
 
     public function detachGroup(Applicant $applicant, LoanGroup $group)
     {
+        $this->authorize('manage applicants');
+
         $this->applicants->detachFromGroup($applicant, $group);
 
         return back()->with('success', __('messages.applicant_group_detached'));

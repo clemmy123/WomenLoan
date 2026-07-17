@@ -17,6 +17,7 @@ use App\Http\Controllers\LocaleController;
 use App\Http\Controllers\ProfilePasswordController;
 use App\Http\Controllers\RegionController;
 use App\Http\Controllers\RoleController;
+use App\Http\Controllers\SecureFileController;
 use App\Http\Controllers\StreetController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\WardController;
@@ -28,20 +29,22 @@ use Illuminate\Support\Facades\Route;
 Route::get('/locale/{locale}', [LocaleController::class, 'switch'])->name('locale.switch');
 
 Route::middleware('guest')->group(function () {
-    Route::get('/login', [AuthController::class, 'showLogin'])->name('login');
-    Route::post('/login', [AuthController::class, 'login']);
-    Route::get('/register', [AuthController::class, 'showRegister'])->name('register');
-    Route::post('/register', [AuthController::class, 'register']);
+    Route::middleware('throttle:10,1')->group(function () {
+        Route::get('/login', [AuthController::class, 'showLogin'])->name('login');
+        Route::post('/login', [AuthController::class, 'login']);
+        Route::get('/register', [AuthController::class, 'showRegister'])->name('register');
+        Route::post('/register', [AuthController::class, 'register']);
 
-    Route::get('/forgot-password', [PasswordResetController::class, 'showLinkRequestForm'])->name('password.request');
-    Route::post('/forgot-password', [PasswordResetController::class, 'sendResetLinkEmail'])->name('password.email');
-    Route::get('/reset-password/{token}', [PasswordResetController::class, 'showResetForm'])->name('password.reset');
-    Route::post('/reset-password', [PasswordResetController::class, 'reset'])->name('password.update');
+        Route::get('/forgot-password', [PasswordResetController::class, 'showLinkRequestForm'])->name('password.request');
+        Route::post('/forgot-password', [PasswordResetController::class, 'sendResetLinkEmail'])->name('password.email');
+        Route::get('/reset-password/{token}', [PasswordResetController::class, 'showResetForm'])->name('password.reset');
+        Route::post('/reset-password', [PasswordResetController::class, 'reset'])->name('password.update');
+    });
 });
 
 Route::post('/logout', [AuthController::class, 'logout'])->name('logout')->middleware('auth');
 
-Route::middleware('throttle:30,1')->prefix('api/nida')->name('nida.api.')->group(function () {
+Route::middleware(['guest', 'nida.registration', 'throttle:10,1'])->prefix('api/nida')->name('nida.api.')->group(function () {
     Route::post('/start', [NidaController::class, 'start'])->name('start');
     Route::post('/answer', [NidaController::class, 'answer'])->name('answer');
 });
@@ -55,6 +58,10 @@ Route::get('/', function () {
 })->name('home');
 
 Route::middleware(['auth', 'password.changed'])->group(function () {
+    Route::get('/secure-files/{path}', [SecureFileController::class, 'show'])
+        ->where('path', '[A-Za-z0-9+/_=-]+')
+        ->name('secure-files.show');
+
     Route::get('/dashboard', [DashboardController::class, 'index'])
         ->middleware('can:view dashboard')
         ->name('dashboard');
@@ -92,7 +99,9 @@ Route::middleware(['auth', 'password.changed'])->group(function () {
         Route::get('/{loan}/edit', [LoanApplicationController::class, 'edit'])->name('edit');
         Route::put('/{loan}', [LoanApplicationController::class, 'update'])->name('update');
         Route::get('/{loan}', [LoanApplicationController::class, 'show'])->name('show');
-        Route::post('/save-draft/{id?}', [LoanApplicationController::class, 'saveDraft'])->name('save-draft');
+        Route::post('/save-draft/{id?}', [LoanApplicationController::class, 'saveDraft'])
+            ->middleware('throttle:60,1')
+            ->name('save-draft');
         Route::post('/finalize/{loan}', [LoanApplicationController::class, 'finalizeApplication'])->name('finalize');
     });
 

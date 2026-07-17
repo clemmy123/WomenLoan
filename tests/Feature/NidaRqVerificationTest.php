@@ -18,18 +18,23 @@ class NidaRqVerificationTest extends TestCase
         Config::set('services.nida.driver', 'fake');
     }
 
+    protected function nidaSession(): static
+    {
+        return $this->withSession(['nida_registration_allowed' => true]);
+    }
+
     public function test_rq_verification_flow_returns_female_identity(): void
     {
         $nin = '19920515123456789012';
 
-        $start = $this->postJson(route('nida.api.start'), ['nin' => $nin])
+        $start = $this->nidaSession()->postJson(route('nida.api.start'), ['nin' => $nin])
             ->assertOk()
             ->assertJsonPath('data.completed', false)
             ->assertJsonPath('data.rq_code', 'RQ001');
 
         $sessionId = $start->json('data.session_id');
 
-        $this->postJson(route('nida.api.answer'), [
+        $this->nidaSession()->postJson(route('nida.api.answer'), [
             'nin' => $nin,
             'session_id' => $sessionId,
             'rq_code' => 'RQ001',
@@ -39,7 +44,7 @@ class NidaRqVerificationTest extends TestCase
             ->assertJsonPath('data.rq_code', 'RQ002')
             ->assertJsonPath('data.previous_answer_code', 123);
 
-        $this->postJson(route('nida.api.answer'), [
+        $verified = $this->nidaSession()->postJson(route('nida.api.answer'), [
             'nin' => $nin,
             'session_id' => $sessionId,
             'rq_code' => 'RQ002',
@@ -47,19 +52,55 @@ class NidaRqVerificationTest extends TestCase
         ])
             ->assertOk()
             ->assertJsonPath('data.completed', true)
-            ->assertJsonPath('data.first_name', 'Neema')
             ->assertJsonPath('data.sex', 'Female')
             ->assertJsonPath('data.nationality', 'Tanzanian');
+
+        $firstName = $verified->json('data.first_name');
+        $this->assertIsString($firstName);
+        $this->assertNotSame('', $firstName);
+        $this->assertSame($firstName, $verified->json('data.first_name'));
+    }
+
+    public function test_different_nins_yield_different_demo_names(): void
+    {
+        $names = [];
+
+        foreach (['19920515123456789012', '19881101111111111111', '19991231999999999999'] as $nin) {
+            $start = $this->nidaSession()->postJson(route('nida.api.start'), ['nin' => $nin])->assertOk();
+            $sessionId = $start->json('data.session_id');
+
+            $this->nidaSession()->postJson(route('nida.api.answer'), [
+                'nin' => $nin,
+                'session_id' => $sessionId,
+                'rq_code' => 'RQ001',
+                'answer' => 'Asha',
+            ])->assertOk();
+
+            $verified = $this->nidaSession()->postJson(route('nida.api.answer'), [
+                'nin' => $nin,
+                'session_id' => $sessionId,
+                'rq_code' => 'RQ002',
+                'answer' => 'Dodoma',
+            ])->assertOk();
+
+            $names[] = implode(' ', [
+                $verified->json('data.first_name'),
+                $verified->json('data.middle_name'),
+                $verified->json('data.last_name'),
+            ]);
+        }
+
+        $this->assertSame(3, count(array_unique($names)), 'Expected varied demo identities across NINs.');
     }
 
     public function test_wrong_answer_returns_code_124(): void
     {
         $nin = '19920515123456789012';
 
-        $start = $this->postJson(route('nida.api.start'), ['nin' => $nin])->assertOk();
+        $start = $this->nidaSession()->postJson(route('nida.api.start'), ['nin' => $nin])->assertOk();
         $sessionId = $start->json('data.session_id');
 
-        $this->postJson(route('nida.api.answer'), [
+        $this->nidaSession()->postJson(route('nida.api.answer'), [
             'nin' => $nin,
             'session_id' => $sessionId,
             'rq_code' => 'RQ001',

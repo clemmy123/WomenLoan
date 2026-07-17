@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Exceptions\NidaException;
+use App\Rules\TanzanianNin;
 use App\Services\Nida\Data\NidaIdentity;
 use App\Services\Nida\NidaService;
 use Illuminate\Http\JsonResponse;
@@ -16,7 +17,7 @@ class NidaController extends Controller
     public function start(Request $request): JsonResponse
     {
         $validated = $request->validate([
-            'nin' => ['required', 'string'],
+            'nin' => ['required', 'string', new TanzanianNin],
         ]);
 
         try {
@@ -36,9 +37,9 @@ class NidaController extends Controller
     public function answer(Request $request): JsonResponse
     {
         $validated = $request->validate([
-            'nin' => ['required', 'string'],
-            'session_id' => ['required', 'string'],
-            'rq_code' => ['required', 'string'],
+            'nin' => ['required', 'string', new TanzanianNin],
+            'session_id' => ['required', 'string', 'max:128'],
+            'rq_code' => ['required', 'string', 'max:32'],
             'answer' => ['required', 'string', 'max:255'],
         ]);
 

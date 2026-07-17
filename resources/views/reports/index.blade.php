@@ -74,6 +74,26 @@
                 </div>
             </div>
 
+            <div class="wizard-form-grid wizard-form-grid-2 lg:grid-cols-4">
+                <div class="wizard-field">
+                    <label class="app-label" for="marital_status">{{ __('reports.marital_status') }}</label>
+                    <select name="marital_status" id="marital_status" class="app-select">
+                        <option value="">{{ __('reports.all') }}</option>
+                        @foreach(\App\Models\Applicant::MARITAL_STATUSES as $status)
+                            <option value="{{ $status }}" @selected(($f['marital_status'] ?? '') === $status)>{{ __('applicants.marital_statuses.'.$status) }}</option>
+                        @endforeach
+                    </select>
+                </div>
+                <div class="wizard-field">
+                    <label class="app-label" for="has_disability">{{ __('reports.disability') }}</label>
+                    <select name="has_disability" id="has_disability" class="app-select">
+                        <option value="">{{ __('reports.all') }}</option>
+                        <option value="1" @selected(($f['has_disability'] ?? '') === '1' || ($f['has_disability'] ?? null) === 1)>{{ __('reports.with_disability') }}</option>
+                        <option value="0" @selected(($f['has_disability'] ?? '') === '0' || ($f['has_disability'] ?? null) === 0)>{{ __('reports.without_disability') }}</option>
+                    </select>
+                </div>
+            </div>
+
             <div class="flex flex-wrap gap-3">
                 <button type="submit" class="app-btn app-btn-primary">{{ __('reports.apply_filters') }}</button>
                 <a href="{{ route('reports.index') }}" class="app-btn app-btn-secondary">{{ __('reports.reset_filters') }}</a>

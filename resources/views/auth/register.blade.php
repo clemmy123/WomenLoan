@@ -22,35 +22,39 @@
 >
     <div class="auth-split-form-header">
         <h2 class="auth-split-form-title">{{ __('auth.register_title') }}</h2>
-        <p class="auth-split-form-subtitle">
-            {{ $nidaEnabled ? __('nida.register_subtitle_nida') : __('auth.register_subtitle') }}
-        </p>
+        @if ($nidaEnabled)
+            <p class="auth-split-form-subtitle" x-show="['nin','question'].includes(step)" x-cloak>
+                {{ __('nida.register_subtitle_nida') }}
+            </p>
+        @else
+            <p class="auth-split-form-subtitle">{{ __('auth.register_subtitle') }}</p>
+        @endif
     </div>
 
     @include('partials.auth-flash-messages')
 
     @if ($nidaEnabled)
-        {{-- Step indicator --}}
-        <ol class="nida-steps" aria-label="Registration steps">
-            <li class="nida-step" :class="{ 'is-active': step === 'nin', 'is-done': ['question','preview','account'].includes(step) }">
+        {{-- Step indicator — only while verifying --}}
+        <ol class="nida-steps" aria-label="Registration steps" x-show="['nin','question'].includes(step)" x-cloak>
+            <li class="nida-step" :class="{ 'is-active': step === 'nin', 'is-done': step === 'question' }">
                 <span class="nida-step-num">1</span>
                 <span class="nida-step-label">{{ __('nida.step_nin') }}</span>
             </li>
-            <li class="nida-step" :class="{ 'is-active': step === 'question', 'is-done': ['preview','account'].includes(step) }">
+            <li class="nida-step" :class="{ 'is-active': step === 'question' }">
                 <span class="nida-step-num">2</span>
                 <span class="nida-step-label">{{ __('nida.step_questions') }}</span>
             </li>
-            <li class="nida-step" :class="{ 'is-active': step === 'preview', 'is-done': step === 'account' }">
+            <li class="nida-step">
                 <span class="nida-step-num">3</span>
                 <span class="nida-step-label">{{ __('nida.step_preview') }}</span>
             </li>
-            <li class="nida-step" :class="{ 'is-active': step === 'account' }">
+            <li class="nida-step">
                 <span class="nida-step-num">4</span>
                 <span class="nida-step-label">{{ __('nida.step_account') }}</span>
             </li>
         </ol>
 
-        <p class="nida-demo-badge" x-show="step !== 'account'">{{ __('nida.demo_badge') }}</p>
+        <p class="nida-demo-badge" x-show="['nin','question'].includes(step)" x-cloak>{{ __('nida.demo_badge') }}</p>
 
         <p class="nida-error" x-show="error" x-text="error" x-cloak role="alert"></p>
 
@@ -93,33 +97,58 @@
             <button type="button" class="auth-split-submit" @click="submitAnswer()" :disabled="loading || !answer.trim()">
                 <span x-text="loading ? @js(__('common.loading')) : @js(__('nida.submit_answer'))"></span>
             </button>
-            <button type="button" class="nida-link-btn" @click="resetNida()">{{ __('nida.change_nin') }}</button>
         </div>
 
         {{-- Step 3: Identity preview --}}
         <div x-show="step === 'preview'" x-cloak>
             <div class="nida-identity-card" x-show="identity">
-                <div class="nida-identity-photo-wrap">
-                    <template x-if="photoSrc()">
-                        <img :src="photoSrc()" alt="{{ __('nida.photo') }}" class="nida-identity-photo" width="96" height="120">
-                    </template>
+                <div class="nida-identity-header">
+                    <div class="nida-identity-photo-wrap">
+                        <template x-if="photoSrc()">
+                            <img :src="photoSrc()" alt="" class="nida-identity-photo" width="112" height="140">
+                        </template>
+                    </div>
                     <span class="nida-verified-pill">{{ __('nida.verified_badge') }}</span>
+                    <p class="nida-identity-fullname" x-text="identity?.full_name"></p>
                 </div>
                 <dl class="nida-identity-grid">
-                    <div><dt>{{ __('applicants.first_name') }}</dt><dd x-text="identity?.first_name"></dd></div>
-                    <div><dt>{{ __('applicants.middle_name') }}</dt><dd x-text="identity?.middle_name || '—'"></dd></div>
-                    <div><dt>{{ __('applicants.last_name') }}</dt><dd x-text="identity?.last_name"></dd></div>
-                    <div><dt>{{ __('applicants.nin') }}</dt><dd class="nida-mono" x-text="identity?.nin"></dd></div>
-                    <div><dt>{{ __('applicants.sex') }}</dt><dd x-text="identity?.sex"></dd></div>
-                    <div><dt>{{ __('applicants.dob') }}</dt><dd x-text="identity?.dob"></dd></div>
-                    <div><dt>{{ __('applicants.age') }}</dt><dd x-text="identity?.age"></dd></div>
-                    <div><dt>{{ __('applicants.nationality') }}</dt><dd x-text="identity?.nationality"></dd></div>
+                    <div class="nida-identity-field">
+                        <dt>{{ __('applicants.first_name') }}</dt>
+                        <dd x-text="identity?.first_name"></dd>
+                    </div>
+                    <div class="nida-identity-field">
+                        <dt>{{ __('applicants.middle_name') }}</dt>
+                        <dd x-text="identity?.middle_name || '—'"></dd>
+                    </div>
+                    <div class="nida-identity-field">
+                        <dt>{{ __('applicants.last_name') }}</dt>
+                        <dd x-text="identity?.last_name"></dd>
+                    </div>
+                    <div class="nida-identity-field">
+                        <dt>{{ __('applicants.sex') }}</dt>
+                        <dd x-text="identity?.sex"></dd>
+                    </div>
+                    <div class="nida-identity-field nida-identity-field--full">
+                        <dt>{{ __('applicants.nin') }}</dt>
+                        <dd class="nida-mono" x-text="identity?.nin"></dd>
+                    </div>
+                    <div class="nida-identity-field">
+                        <dt>{{ __('applicants.dob') }}</dt>
+                        <dd x-text="identity?.dob"></dd>
+                    </div>
+                    <div class="nida-identity-field">
+                        <dt>{{ __('applicants.age') }}</dt>
+                        <dd x-text="identity?.age"></dd>
+                    </div>
+                    <div class="nida-identity-field nida-identity-field--full">
+                        <dt>{{ __('applicants.nationality') }}</dt>
+                        <dd x-text="identity?.nationality"></dd>
+                    </div>
                 </dl>
             </div>
             <button type="button" class="auth-split-submit" @click="continueToAccount()">
                 <span>{{ __('nida.continue_account') }}</span>
             </button>
-            <button type="button" class="nida-link-btn" @click="resetNida()">{{ __('nida.change_nin') }}</button>
         </div>
     @endif
 

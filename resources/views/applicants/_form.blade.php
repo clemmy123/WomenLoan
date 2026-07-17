@@ -14,7 +14,7 @@
     $loanTypeValue = old('preferred_loan_type', $applicant?->preferred_loan_type ?? '');
     $disabilityValue = old('has_disability', $applicant?->has_disability === null ? '' : ($applicant->has_disability ? '1' : '0'));
     $photoUrl = filled($applicant?->photo_path ?? null) && Storage::disk('public')->exists($applicant->photo_path)
-        ? Storage::url($applicant->photo_path)
+        ? \App\Support\SecureFileUrl::forPath($applicant->photo_path)
         : null;
     $ageYears = $dobValue ? \App\Support\AgeCalculator::years(\Carbon\Carbon::parse($dobValue)) : null;
 @endphp
@@ -25,23 +25,50 @@
     @if($lockNidaFields)
         <p class="text-xs text-emerald-700 font-medium">{{ __('nida.nida_fields_locked') }}</p>
         <div class="nida-identity-card">
-            <div class="nida-identity-photo-wrap">
-                @if($photoUrl)
-                    <img src="{{ $photoUrl }}" alt="{{ __('nida.photo') }}" class="nida-identity-photo" width="96" height="120">
-                @else
-                    <div class="nida-identity-photo" aria-hidden="true"></div>
-                @endif
+            <div class="nida-identity-header">
+                <div class="nida-identity-photo-wrap">
+                    @if($photoUrl)
+                        <img src="{{ $photoUrl }}" alt="" class="nida-identity-photo" width="112" height="140">
+                    @else
+                        <div class="nida-identity-photo" aria-hidden="true"></div>
+                    @endif
+                </div>
                 <span class="nida-verified-pill">{{ __('nida.verified_badge') }}</span>
+                <p class="nida-identity-fullname">{{ trim(implode(' ', array_filter([$applicant->first_name, $applicant->middle_name, $applicant->last_name]))) }}</p>
             </div>
             <dl class="nida-identity-grid">
-                <div><dt>{{ __('applicants.first_name') }}</dt><dd>{{ $applicant->first_name }}</dd></div>
-                <div><dt>{{ __('applicants.middle_name') }}</dt><dd>{{ $applicant->middle_name ?: '—' }}</dd></div>
-                <div><dt>{{ __('applicants.last_name') }}</dt><dd>{{ $applicant->last_name }}</dd></div>
-                <div><dt>{{ __('applicants.nin') }}</dt><dd class="nida-mono">{{ IdentityNormalizer::formatNin($applicant->nin) }}</dd></div>
-                <div><dt>{{ __('applicants.sex') }}</dt><dd>{{ $applicant->sex ?: __('applicants.female') }}</dd></div>
-                <div><dt>{{ __('applicants.dob') }}</dt><dd>{{ $dobValue }}</dd></div>
-                <div><dt>{{ __('applicants.age') }}</dt><dd>{{ $ageYears ?? '—' }}</dd></div>
-                <div><dt>{{ __('applicants.nationality') }}</dt><dd>{{ $applicant->nationality ?: 'Tanzanian' }}</dd></div>
+                <div class="nida-identity-field">
+                    <dt>{{ __('applicants.first_name') }}</dt>
+                    <dd>{{ $applicant->first_name }}</dd>
+                </div>
+                <div class="nida-identity-field">
+                    <dt>{{ __('applicants.middle_name') }}</dt>
+                    <dd>{{ $applicant->middle_name ?: '—' }}</dd>
+                </div>
+                <div class="nida-identity-field">
+                    <dt>{{ __('applicants.last_name') }}</dt>
+                    <dd>{{ $applicant->last_name }}</dd>
+                </div>
+                <div class="nida-identity-field">
+                    <dt>{{ __('applicants.sex') }}</dt>
+                    <dd>{{ $applicant->sex ?: __('applicants.female') }}</dd>
+                </div>
+                <div class="nida-identity-field nida-identity-field--full">
+                    <dt>{{ __('applicants.nin') }}</dt>
+                    <dd class="nida-mono">{{ IdentityNormalizer::formatNin($applicant->nin) }}</dd>
+                </div>
+                <div class="nida-identity-field">
+                    <dt>{{ __('applicants.dob') }}</dt>
+                    <dd>{{ $dobValue }}</dd>
+                </div>
+                <div class="nida-identity-field">
+                    <dt>{{ __('applicants.age') }}</dt>
+                    <dd>{{ $ageYears ?? '—' }}</dd>
+                </div>
+                <div class="nida-identity-field nida-identity-field--full">
+                    <dt>{{ __('applicants.nationality') }}</dt>
+                    <dd>{{ $applicant->nationality ?: 'Tanzanian' }}</dd>
+                </div>
             </dl>
         </div>
         <input type="hidden" name="nin" value="{{ $applicant->nin }}">
