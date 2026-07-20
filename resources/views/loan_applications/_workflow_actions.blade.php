@@ -17,42 +17,64 @@
     $rollbackLabel = $rollbackToApplicant
         ? __('workflow.buttons.rollback_to_applicant')
         : __('workflow.buttons.rollback_step');
+
+    $primaryModal = null;
+    $actionTitle = null;
+    $submitLabel = __('workflow.buttons.submit');
+    $submitClass = 'app-btn app-btn-primary app-btn-block';
+
+    if ($canForwardMinistry) {
+        $primaryModal = 'forward_ministry';
+        $actionTitle = __('workflow.action_titles.forward_ministry');
+    } elseif ($canProposeAmount) {
+        $primaryModal = 'propose_amount';
+        $actionTitle = __('workflow.action_titles.propose_amount');
+    } elseif ($canApplicantRespond) {
+        $actionTitle = __('workflow.action_titles.respond_amount');
+    } elseif ($canForwardAssDir) {
+        $primaryModal = 'forward_ass_dir';
+        $actionTitle = __('workflow.action_titles.forward_ass_dir');
+    } elseif ($canForwardDirector) {
+        $primaryModal = 'forward_director';
+        $actionTitle = __('workflow.action_titles.forward_director');
+    } elseif ($canForwardKm) {
+        $primaryModal = 'forward_km';
+        $actionTitle = __('workflow.action_titles.forward_km');
+    } elseif ($canApproveKm) {
+        $primaryModal = 'approve_km';
+        $actionTitle = __('workflow.action_titles.approve_km');
+    } elseif ($canAssignAccountant) {
+        $primaryModal = 'assign_accountant';
+        $actionTitle = __('workflow.action_titles.assign_accountant');
+    } elseif ($canDisburse) {
+        $primaryModal = 'disburse';
+        $actionTitle = __('workflow.action_titles.disburse');
+        $submitClass = 'app-btn app-btn-success app-btn-block';
+    } elseif ($canRollback) {
+        $actionTitle = __('workflow.action_titles.rollback_only');
+    }
+    $hasPrimaryAction = $canApplicantRespond || $primaryModal !== null;
 @endphp
 
 @if(loan_has_workflow_actions($loan, $user))
 <div class="app-card app-card-padded" x-data="{ modal: null }">
-    <h3 class="font-bold text-slate-900 dark:text-white mb-4">{{ __('workflow.title') }}</h3>
+    <h3 class="font-bold text-slate-900 dark:text-white mb-4">{{ $actionTitle }}</h3>
 
     <div class="space-y-2">
-        @if($canForwardMinistry)
-            <button type="button" @click="modal = 'forward_ministry'" class="app-btn app-btn-primary app-btn-block">{{ __('workflow.buttons.forward_ministry') }}</button>
-        @endif
-        @if($canProposeAmount)
-            <button type="button" @click="modal = 'propose_amount'" class="app-btn app-btn-primary app-btn-block">{{ __('workflow.buttons.propose_amount') }}</button>
-        @endif
         @if($canApplicantRespond)
             <p class="text-sm text-slate-600 dark:text-zinc-400 mb-2">{!! __('workflow.proposed_amount', ['amount' => '<strong>'.e(format_tzs($loan->proposed_amount)).'</strong>']) !!}</p>
-            <button type="button" @click="modal = 'accept_amount'" class="app-btn app-btn-success app-btn-block">{{ __('workflow.buttons.accept_amount') }}</button>
+            <button type="button" @click="modal = 'accept_amount'" class="app-btn app-btn-success app-btn-block">{{ __('workflow.buttons.submit') }}</button>
             <button type="button" @click="modal = 'decline_amount'" class="app-btn app-btn-danger app-btn-block">{{ __('workflow.buttons.decline_amount') }}</button>
+        @elseif($primaryModal)
+            <button type="button" @click="modal = '{{ $primaryModal }}'" class="{{ $submitClass }}">{{ $submitLabel }}</button>
         @endif
-        @if($canForwardAssDir)
-            <button type="button" @click="modal = 'forward_ass_dir'" class="app-btn app-btn-primary app-btn-block">{{ __('workflow.buttons.forward_ass_dir') }}</button>
+
+        @if($hasPrimaryAction && $canRollback)
+            <div class="workflow-action-or" aria-hidden="true">
+                <span>{{ __('workflow.or') }}</span>
+            </div>
         @endif
-        @if($canForwardDirector)
-            <button type="button" @click="modal = 'forward_director'" class="app-btn app-btn-primary app-btn-block">{{ __('workflow.buttons.forward_director') }}</button>
-        @endif
-        @if($canForwardKm)
-            <button type="button" @click="modal = 'forward_km'" class="app-btn app-btn-primary app-btn-block">{{ __('workflow.buttons.forward_km') }}</button>
-        @endif
-        @if($canApproveKm)
-            <button type="button" @click="modal = 'approve_km'" class="app-btn app-btn-success app-btn-block">{{ __('workflow.buttons.approve_km') }}</button>
-        @endif
-        @if($canAssignAccountant)
-            <button type="button" @click="modal = 'assign_accountant'" class="app-btn app-btn-primary app-btn-block">{{ __('workflow.buttons.assign_accountant') }}</button>
-        @endif
-        @if($canDisburse)
-            <button type="button" @click="modal = 'disburse'" class="app-btn app-btn-success app-btn-block">{{ __('workflow.buttons.disburse', ['amount' => format_tzs($loan->proposed_amount)]) }}</button>
-        @endif
+
         @if($canRollback)
             <button type="button" @click="modal = 'rollback_step'" class="app-btn app-btn-danger app-btn-block">{{ $rollbackLabel }}</button>
         @endif
@@ -61,7 +83,7 @@
     @if($canForwardMinistry)
         @include('partials.modal', [
             'name' => 'forward_ministry',
-            'title' => __('workflow.buttons.forward_ministry'),
+            'title' => __('workflow.action_titles.forward_ministry'),
             'wide' => true,
             'body' => view('loan_applications._workflow_forms.forward_ministry', compact('loan'))->render(),
         ])
@@ -70,7 +92,7 @@
     @if($canProposeAmount)
         @include('partials.modal', [
             'name' => 'propose_amount',
-            'title' => __('workflow.buttons.propose_amount'),
+            'title' => __('workflow.action_titles.propose_amount'),
             'wide' => true,
             'body' => view('loan_applications._workflow_forms.propose_amount', compact('loan'))->render(),
         ])
@@ -79,6 +101,7 @@
     @if($canApplicantRespond)
         @include('partials.modal', [
             'name' => 'accept_amount',
+            'title' => __('workflow.action_titles.respond_amount'),
             'wide' => true,
             'body' => view('loan_applications._workflow_forms.accept_amount', compact('loan'))->render(),
         ])
@@ -93,7 +116,7 @@
     @if($canForwardAssDir)
         @include('partials.modal', [
             'name' => 'forward_ass_dir',
-            'title' => __('workflow.buttons.forward_ass_dir'),
+            'title' => __('workflow.action_titles.forward_ass_dir'),
             'wide' => true,
             'body' => view('loan_applications._workflow_forms.forward_ass_dir', compact('loan'))->render(),
         ])
@@ -102,7 +125,7 @@
     @if($canForwardDirector)
         @include('partials.modal', [
             'name' => 'forward_director',
-            'title' => __('workflow.buttons.forward_director'),
+            'title' => __('workflow.action_titles.forward_director'),
             'wide' => true,
             'body' => view('loan_applications._workflow_forms.forward_director', compact('loan'))->render(),
         ])
@@ -111,7 +134,7 @@
     @if($canForwardKm)
         @include('partials.modal', [
             'name' => 'forward_km',
-            'title' => __('workflow.buttons.forward_km'),
+            'title' => __('workflow.action_titles.forward_km'),
             'wide' => true,
             'body' => view('loan_applications._workflow_forms.forward_km', compact('loan'))->render(),
         ])
@@ -120,7 +143,7 @@
     @if($canApproveKm)
         @include('partials.modal', [
             'name' => 'approve_km',
-            'title' => __('workflow.approve_confirm_title'),
+            'title' => __('workflow.action_titles.approve_km'),
             'wide' => true,
             'body' => view('loan_applications._workflow_forms.approve_km', compact('loan'))->render(),
         ])
@@ -129,7 +152,7 @@
     @if($canAssignAccountant)
         @include('partials.modal', [
             'name' => 'assign_accountant',
-            'title' => __('workflow.buttons.assign_accountant'),
+            'title' => __('workflow.action_titles.assign_accountant'),
             'wide' => true,
             'body' => view('loan_applications._workflow_forms.assign_accountant', compact('loan', 'accountants'))->render(),
         ])
@@ -138,6 +161,7 @@
     @if($canDisburse)
         @include('partials.modal', [
             'name' => 'disburse',
+            'title' => __('workflow.action_titles.disburse'),
             'wide' => true,
             'body' => view('loan_applications._workflow_forms.disburse', compact('loan'))->render(),
         ])

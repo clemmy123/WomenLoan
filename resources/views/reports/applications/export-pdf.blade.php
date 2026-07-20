@@ -5,12 +5,11 @@
     <title>{{ __('application_reports.title') }}</title>
     <style>
         body { font-family: DejaVu Sans, sans-serif; font-size: 11px; color: #1e293b; }
-        .meta { color: #64748b; margin-bottom: 16px; font-size: 10px; }
         .summary { width: 100%; margin-bottom: 20px; border-collapse: collapse; }
         .summary td { padding: 6px 8px; border: 1px solid #e2e8f0; }
         .summary td:first-child { font-weight: bold; background: #f8fafc; width: 35%; }
         table.data { width: 100%; border-collapse: collapse; }
-        table.data th { background: #4f46e5; color: #fff; padding: 8px 6px; text-align: left; font-size: 10px; }
+        @include('partials.report-pdf-data-table-styles')
         table.data td { padding: 7px 6px; border-bottom: 1px solid #e2e8f0; vertical-align: top; }
         table.data tr:nth-child(even) td { background: #f8fafc; }
         .amount { text-align: right; white-space: nowrap; }
@@ -23,7 +22,7 @@
         'reportTitle' => __('application_reports.title'),
     ])
 
-    <p class="meta">
+    <x-report-pdf-meta-bar>
         {{ __('reports.fiscal_year') }}: {{ ($filters['fiscal_year'] ?? null) === \App\Support\FiscalYear::ALL_KEY ? __('reports.all_years') : ($filters['fiscal_year'] ?? '—') }}
         &nbsp;|&nbsp;
         {{ __('application_reports.status') }}: {{ $filters['status'] ? loan_status_label($filters['status']) : __('application_reports.all_statuses') }}
@@ -33,7 +32,7 @@
         {{ __('application_reports.date_to') }}: {{ $filters['date_to'] ?? '—' }}
         &nbsp;|&nbsp;
         {{ __('reports.generated_at') }}: {{ now()->translatedFormat('d M Y H:i') }}
-    </p>
+    </x-report-pdf-meta-bar>
 
     <table class="summary">
         <tr>

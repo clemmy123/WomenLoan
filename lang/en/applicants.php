@@ -12,6 +12,7 @@ return [
     'manual_entry_subtitle' => 'Enter applicant details manually for backlog or paper applications. NIDA verification is not required on this form.',
     'save_profile' => 'Save Profile',
     'search_placeholder' => 'Search by name, NIN, phone or email…',
+    'search_please' => 'Search please…',
     'section_identification' => 'Identification',
     'registration_fields_locked' => 'Name, email and phone were taken from your registration account and cannot be changed here.',
     'section_demographics' => 'Demographics',

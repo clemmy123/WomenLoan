@@ -21,7 +21,11 @@
     @include('partials.page-header', [
         'title' => __('admin.view_user'),
         'subtitle' => $user->name,
-        'actions' => '<a href="'.e(route('admin.users.index')).'" class="app-btn app-btn-secondary">'.e(__('common.back')).'</a>',
+        'actions' => '
+            <a href="'.e(route('admin.users.index')).'" class="app-btn app-btn-secondary">'.e(__('common.back')).'</a>
+            <a href="'.e(route('admin.users.edit', $user)).'" class="app-btn app-btn-primary">'.e(__('common.edit')).'</a>
+            <a href="'.e(route('admin.users.assign-roles', $user)).'" class="app-btn app-btn-secondary">'.e(__('admin.assign_roles')).'</a>
+        ',
     ])
 
     <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -87,9 +91,6 @@
         </div>
     </div>
 
-    <div class="mt-6 flex flex-wrap gap-3">
-        <a href="{{ route('admin.users.edit', $user) }}" class="app-btn app-btn-primary">{{ __('common.edit') }}</a>
-        <a href="{{ route('admin.users.assign-roles', $user) }}" class="app-btn app-btn-secondary">{{ __('admin.assign_roles') }}</a>
-    </div>
+    {{-- Actions zimewekwa kwenye page-header ili kuendana na standard ya UI --}}
 </div>
 @endsection

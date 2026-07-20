@@ -46,6 +46,7 @@ return [
     'required' => 'lazima',
     'errors_below' => 'Tafadhali rekebisha makosa yafuatayo:',
     'success' => 'Imefanikiwa',
+    'error' => 'Hitilafu',
     'check_errors' => 'Angalia makosa hapa chini:',
     'no_records' => 'Hakuna rekodi.',
     'members' => 'Wanachama',

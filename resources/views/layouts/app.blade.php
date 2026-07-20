@@ -32,7 +32,6 @@
                     </div>
                     <div>
                         <h1 class="app-header-title">{{ __('nav.welcome') }}</h1>
-                        <p class="app-header-subtitle">{{ __('nav.platform') }}</p>
                     </div>
                 </div>
             </div>

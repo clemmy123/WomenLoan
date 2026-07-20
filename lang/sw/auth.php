@@ -1,6 +1,7 @@
 <?php
 
 return [
+    'login_failed_title' => 'Kuingia Kumeshindikana',
     'failed' => 'Taarifa hizi hazilingani na rekodi zetu.',
     'failed_with_remaining' => '{1} Taarifa si sahihi. Unabaki na nafasi :remaining moja. Ukirudia kukosea, akaunti itafungwa kwa dakika :minutes.|[2,*] Taarifa si sahihi. Unabaki na nafasi :remaining. Baada ya hapo akaunti itafungwa kwa dakika :minutes.',
     'locked_for_minutes' => 'Umejaribu nenosiri lisilo sahihi mara nyingi. Akaunti hii imefungwa kwa dakika :minutes. Tafadhali subiri, kisha ujaribu tena. Baada ya kusubiri utapata nafasi nyingine. Ukirudia kukosea nenosiri mara 3 tena, akaunti itafungwa kabisa na utahitajika kuwasiliana na msimamizi.',

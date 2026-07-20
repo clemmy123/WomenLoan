@@ -12,6 +12,7 @@ return [
     'manual_entry_subtitle' => 'Weka taarifa za mwombaji kwa mkono kwa maombi ya zamani au karatasi. Uthibitishaji wa NIDA hauhitajiki kwenye fomu hii.',
     'save_profile' => 'Hifadhi Wasifu',
     'search_placeholder' => 'Tafuta kwa jina, NIN, simu au barua pepe…',
+    'search_please' => 'Tafuta tafadhali…',
     'section_identification' => 'Utambulisho',
     'registration_fields_locked' => 'Jina, barua pepe na simu zimechukuliwa kutoka akaunti yako ya usajili na haziwezi kubadilishwa hapa.',
     'section_demographics' => 'Demografia',

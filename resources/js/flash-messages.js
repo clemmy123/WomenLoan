@@ -60,6 +60,16 @@ function scheduleFlashDismiss(el) {
     el.addEventListener('mouseleave', resume);
     el.addEventListener('focusin', pause);
     el.addEventListener('focusout', resume);
+
+    el.querySelectorAll('[data-flash-dismiss]').forEach((btn) => {
+        btn.addEventListener('click', () => dismissFlashElement(el));
+    });
+
+    el.addEventListener('click', (event) => {
+        if (event.target === el) {
+            dismissFlashElement(el);
+        }
+    });
 }
 
 function initAutoDismissFlash() {

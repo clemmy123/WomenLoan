@@ -5,10 +5,10 @@
     <title>{{ __('nav.audit_logs') }}</title>
     <style>
         body { font-family: DejaVu Sans, sans-serif; font-size: 10px; color: #1e293b; }
-        h1 { font-size: 16px; margin: 0 0 4px; color: #312e81; }
+        h1 { font-size: 16px; margin: 0 0 4px; color: #0f766e; }
         .meta { color: #64748b; margin-bottom: 14px; font-size: 9px; }
         table.data { width: 100%; border-collapse: collapse; }
-        table.data th { background: #4f46e5; color: #fff; padding: 6px 5px; text-align: left; font-size: 9px; }
+        @include('partials.report-pdf-data-table-styles', ['pdfThPadding' => '6px 5px', 'pdfThFontSize' => '9px'])
         table.data td { padding: 5px; border-bottom: 1px solid #e2e8f0; vertical-align: top; }
         table.data tr:nth-child(even) td { background: #f8fafc; }
         .footer { margin-top: 14px; font-size: 8px; color: #94a3b8; }

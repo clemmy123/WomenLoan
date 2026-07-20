@@ -45,12 +45,12 @@ document.addEventListener('DOMContentLoaded', async () => {
                 datasets: [{
                     label: payload.monthly.label,
                     data: payload.monthly.data,
-                    borderColor: '#6366f1',
-                    backgroundColor: 'rgba(99,102,241,0.1)',
+                    borderColor: '#0ea5e9',
+                    backgroundColor: 'rgba(14,165,233,0.1)',
                     fill: true,
                     tension: 0.4,
                     pointRadius: 4,
-                    pointBackgroundColor: '#6366f1',
+                    pointBackgroundColor: '#0ea5e9',
                 }],
             },
             options: baseOptions('line'),
@@ -66,8 +66,8 @@ document.addEventListener('DOMContentLoaded', async () => {
                 datasets: [{
                     data: payload.pipeline.data,
                     backgroundColor: [
-                        '#6366f1', '#8b5cf6', '#a78bfa', '#c4b5fd',
-                        '#818cf8', '#60a5fa', '#34d399', '#fbbf24', '#f472b6',
+                        '#0ea5e9', '#0284c7', '#22d3ee', '#67e8f9',
+                        '#38bdf8', '#60a5fa', '#34d399', '#fbbf24', '#f472b6',
                     ],
                     borderRadius: 8,
                 }],

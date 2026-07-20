@@ -13,31 +13,38 @@ class WorkflowAuthorizationService
             return $this->canRollback($user, $loan);
         }
 
-        if ($user->hasRole(['admin', 'super_admin'])) {
-            return true;
-        }
-
+        $isAdmin = $user->hasRole(['admin', 'super_admin']);
         $step = $loan->current_step;
         $status = $loan->status;
 
         return match ($action) {
-            'forward_ministry' => $user->can('forward to ministry')
-                && $step === 1
+            'forward_ministry' => $step === 1
                 && $status === 'received'
-                && app(CdoLoanScopeService::class)->canActOnLoan($user, $loan),
-            'propose_amount', 'send_to_applicant' => $user->can('propose loan amount') && $step === 2,
+                && ($isAdmin || (
+                    $user->can('forward to ministry')
+                    && app(CdoLoanScopeService::class)->canActOnLoan($user, $loan)
+                )),
+            'propose_amount', 'send_to_applicant' => $step === 2
+                && ($isAdmin || $user->can('propose loan amount')),
             'accept_amount', 'decline_amount' => $user->hasRole('applicant')
                 && $step === 3
                 && (int) $loan->user_id === (int) $user->id,
-            'forward_ass_dir' => $user->can('forward to assistant director') && $step === 4,
-            'forward_director' => $user->can('forward to director') && $step === 5,
-            'forward_km' => $user->can('forward to km') && $step === 6,
-            'approve_km' => $user->can('approve as km') && $step === 7,
-            'assign_accountant' => $user->can('assign accountant') && $step === 8,
-            'disburse' => $user->can('disburse loan')
-                && $step === 9
+            'forward_ass_dir' => $step === 4
+                && ($isAdmin || $user->can('forward to assistant director')),
+            'forward_director' => $step === 5
+                && ($isAdmin || $user->can('forward to director')),
+            'forward_km' => $step === 6
+                && ($isAdmin || $user->can('forward to km')),
+            'approve_km' => $step === 7
+                && ($isAdmin || $user->can('approve as km')),
+            'assign_accountant' => $step === 8
+                && ($isAdmin || $user->can('assign accountant')),
+            'disburse' => $step === 9
                 && $status === 'ready_for_disbursement'
-                && $loan->officer_id === $user->id,
+                && ($isAdmin || (
+                    $user->can('disburse loan')
+                    && $loan->officer_id === $user->id
+                )),
             default => false,
         };
     }

@@ -41,7 +41,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                     {
                         label: payload.financial_trend.legend_disbursed ?? 'Disbursed',
                         data: payload.by_type_amounts.disbursed,
-                        backgroundColor: '#6366f1',
+                        backgroundColor: '#0ea5e9',
                         borderRadius: 8,
                     },
                     {
@@ -76,7 +76,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                     {
                         label: payload.financial_trend.legend_disbursed ?? 'Disbursed',
                         data: payload.financial_trend.disbursed,
-                        backgroundColor: '#6366f1',
+                        backgroundColor: '#0ea5e9',
                         borderRadius: 6,
                     },
                     {
@@ -96,7 +96,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                 labels: payload.outstanding_by_region.labels,
                 datasets: [{
                     data: payload.outstanding_by_region.data,
-                    backgroundColor: '#8b5cf6',
+                    backgroundColor: '#0284c7',
                     borderRadius: 6,
                 }],
             },

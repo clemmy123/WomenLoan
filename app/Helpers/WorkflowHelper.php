@@ -16,18 +16,25 @@ if (! function_exists('loan_needs_user_action')) {
             return false;
         }
 
-        $step = $loan->current_step;
-        $cdoScope = app(\App\Services\CdoLoanScopeService::class);
+        $auth = app(\App\Services\WorkflowAuthorizationService::class);
 
-        return ($user->can('forward to ministry') && $step === 1 && $loan->status === 'received' && $cdoScope->canActOnLoan($user, $loan))
-            || ($user->can('propose loan amount') && $step === 2)
-            || ($user->hasRole('applicant') && $step === 3)
-            || ($user->can('forward to assistant director') && $step === 4)
-            || ($user->can('forward to director') && $step === 5)
-            || ($user->can('forward to km') && $step === 6)
-            || ($user->can('approve as km') && $step === 7)
-            || ($user->can('assign accountant') && $step === 8)
-            || ($user->can('disburse loan') && $step === 9 && $loan->status === 'ready_for_disbursement' && $loan->officer_id === $user->id);
+        foreach ([
+            'forward_ministry',
+            'propose_amount',
+            'accept_amount',
+            'forward_ass_dir',
+            'forward_director',
+            'forward_km',
+            'approve_km',
+            'assign_accountant',
+            'disburse',
+        ] as $action) {
+            if ($auth->canPerform($user, $loan, $action)) {
+                return true;
+            }
+        }
+
+        return false;
     }
 }
 

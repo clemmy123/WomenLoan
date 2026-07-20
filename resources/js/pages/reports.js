@@ -47,7 +47,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                     {
                         label: payload.financial_trend.legend_paid ?? 'Paid',
                         data: payload.financial_trend.paid,
-                        backgroundColor: '#6366f1',
+                        backgroundColor: '#0284c7',
                         borderRadius: 6,
                     },
                 ],
@@ -59,7 +59,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             type: 'bar',
             data: {
                 labels: payload.by_region.labels,
-                datasets: [{ data: payload.by_region.data, backgroundColor: '#8b5cf6', borderRadius: 6 }],
+                datasets: [{ data: payload.by_region.data, backgroundColor: '#0ea5e9', borderRadius: 6 }],
             },
             options: { ...barOpts, indexAxis: 'y', plugins: { legend: { display: false } } },
         },
@@ -68,7 +68,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             type: 'doughnut',
             data: {
                 labels: payload.loan_type.labels,
-                datasets: [{ data: payload.loan_type.data, backgroundColor: ['#6366f1', '#f59e0b'], borderWidth: 0 }],
+                datasets: [{ data: payload.loan_type.data, backgroundColor: ['#0ea5e9', '#f59e0b'], borderWidth: 0 }],
             },
             options: doughnutOpts,
         },
@@ -88,7 +88,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                 labels: payload.marital_status.labels,
                 datasets: [{
                     data: payload.marital_status.data,
-                    backgroundColor: ['#6366f1', '#10b981', '#f59e0b', '#f472b6'],
+                    backgroundColor: ['#0ea5e9', '#10b981', '#f59e0b', '#f472b6'],
                     borderWidth: 0,
                 }],
             },

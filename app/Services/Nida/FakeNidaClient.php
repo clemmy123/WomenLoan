@@ -205,8 +205,8 @@ class FakeNidaClient implements NidaClientInterface
         $svg = <<<'SVG'
 <svg xmlns="http://www.w3.org/2000/svg" width="160" height="200" viewBox="0 0 160 200">
   <rect width="160" height="200" fill="#eef2ff"/>
-  <circle cx="80" cy="72" r="36" fill="#4f46e5"/>
-  <ellipse cx="80" cy="168" rx="58" ry="48" fill="#4f46e5"/>
+  <circle cx="80" cy="72" r="36" fill="#1e3a8a"/>
+  <ellipse cx="80" cy="168" rx="58" ry="48" fill="#1e3a8a"/>
 </svg>
 SVG;
 

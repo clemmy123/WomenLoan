@@ -77,7 +77,8 @@ class AuthController extends Controller
                     ]));
             }
 
-            return $this->redirectAfterLogin($request, $user);
+            return $this->redirectAfterLogin($request, $user)
+                ->with('success', __('audit.events.login'));
         }
 
         if ($user) {
