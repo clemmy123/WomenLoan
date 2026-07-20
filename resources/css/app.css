@@ -6880,7 +6880,9 @@
     }
 
     .landing-carousel-slide--indigo {
-        background: linear-gradient(145deg, #0f766e 0%, #1e3a8a 40%, #0ea5e9 100%);
+        border-color: rgba(255, 255, 255, 0.1);
+        background: linear-gradient(135deg, rgba(255, 255, 255, 0.06) 0%, rgba(255, 255, 255, 0.02) 100%);
+        backdrop-filter: blur(14px);
     }
 
     .landing-carousel-slide.is-active {
