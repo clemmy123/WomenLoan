@@ -28,6 +28,7 @@ return [
     'select_accountant' => 'Chagua Mhasibu',
     'or' => 'AU',
     'action_titles' => [
+        'forward_council' => 'Wasilisha Ombi',
         'forward_ministry' => 'Wasilisha Ombi',
         'propose_amount' => 'Pendekeza Kiasi',
         'respond_amount' => 'Jibu Kiasi Kilichopendekezwa',
@@ -42,6 +43,7 @@ return [
     'buttons' => [
         'submit' => 'Wasilisha',
         'receive' => 'Wasilisha',
+        'forward_council' => 'Wasilisha',
         'forward_ministry' => 'Wasilisha',
         'propose_amount' => 'Wasilisha',
         'accept_amount' => 'Wasilisha',
@@ -60,6 +62,7 @@ return [
     'rollback_reason' => 'Sababu ya rollback (lazima)',
     'actions' => [
         'received' => 'Imepokelewa',
+        'forwarded_to_council' => 'Imetumwa Halmashauri',
         'forwarded_to_ministry' => 'Imetumwa Wizara',
         'proposed_amount' => 'Kiasi Kilipendekezwa',
         'sent_to_applicant' => 'Imetumwa Mwombaji',

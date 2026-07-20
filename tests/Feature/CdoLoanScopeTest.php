@@ -85,13 +85,13 @@ class CdoLoanScopeTest extends TestCase
             'loan_id' => $loan->id,
             'user_id' => User::where('email', 'ward.cdo@wdf.go.tz')->value('id'),
             'step_number' => 1,
-            'action_taken' => 'forwarded_to_ministry',
+            'action_taken' => 'forwarded_to_council',
             'comments' => 'Handled by first CDO.',
         ]);
 
         $this->actingAs($secondCdo)
             ->post(route('loans.workflow', $loan->hashid), [
-                'action' => 'forward_ministry',
+                'action' => 'forward_council',
                 'comments' => 'Should be blocked.',
                 'attachment' => UploadedFile::fake()->create('supervision.pdf', 100, 'application/pdf'),
             ])
@@ -118,7 +118,7 @@ class CdoLoanScopeTest extends TestCase
             'loan_id' => $loan->id,
             'user_id' => User::where('email', 'ward.cdo@wdf.go.tz')->value('id'),
             'step_number' => 1,
-            'action_taken' => 'forwarded_to_ministry',
+            'action_taken' => 'forwarded_to_council',
             'comments' => 'Handled by first CDO.',
         ]);
 

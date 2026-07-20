@@ -54,7 +54,7 @@ class DashboardAndAccessTest extends TestCase
             'loan_id' => $loan->id,
             'user_id' => $staff->id,
             'step_number' => 1,
-            'action_taken' => 'forwarded_to_ministry',
+            'action_taken' => 'forwarded_to_council',
             'proposed_amount' => 0,
             'attachment_path' => 'workflow/supervision-secret.pdf',
             'comments' => 'Secret supervision conversation',
@@ -84,7 +84,7 @@ class DashboardAndAccessTest extends TestCase
     public function test_katibu_mkuu_sees_application_progress_tracker(): void
     {
         $loan = $this->loanByTrack('WL000001');
-        $loan->update(['current_step' => 7]);
+        $loan->update(['current_step' => 8]);
 
         $response = $this->actingAsRole('km@wdf.go.tz')
             ->get(route('loan-applications.show', $loan->hashid));
@@ -160,7 +160,7 @@ class DashboardAndAccessTest extends TestCase
         }
 
         $loan->update([
-            'current_step' => 7,
+            'current_step' => 8,
             'loan_type' => 'group',
             'loan_group_id' => $group->id,
         ]);
@@ -198,7 +198,7 @@ class DashboardAndAccessTest extends TestCase
             ->assertOk()
             ->assertSee(__('dashboard.recent_filter_pending'), false)
             ->assertSee('WL000001', false)
-            ->assertDontSee('WL000011', false);
+            ->assertDontSee('WL000012', false);
     }
 
     public function test_dashboard_stat_filter_shows_disbursed_loans_in_recent_list(): void
@@ -207,7 +207,7 @@ class DashboardAndAccessTest extends TestCase
             ->get(route('dashboard', ['recent' => 'disbursed']))
             ->assertOk()
             ->assertSee(__('dashboard.recent_filter_disbursed'), false)
-            ->assertSee('WL000011', false);
+            ->assertSee('WL000012', false);
     }
 
     public function test_dashboard_recent_list_supports_search_and_sort(): void
@@ -225,7 +225,7 @@ class DashboardAndAccessTest extends TestCase
 
     public function test_dashboard_excludes_loans_entered_before_current_fiscal_year(): void
     {
-        $loan = $this->loanByTrack('WL000011');
+        $loan = $this->loanByTrack('WL000012');
 
         \Illuminate\Support\Facades\DB::table('loans')
             ->where('id', $loan->id)
@@ -237,12 +237,12 @@ class DashboardAndAccessTest extends TestCase
         $this->actingAs($ministry);
 
         $stats = app(DashboardStatsService::class)->forUser();
-        $this->assertSame(10, $stats['total']);
+        $this->assertSame(11, $stats['total']);
         $this->assertSame(0, $stats['disbursed']);
 
         $this->get(route('dashboard'))
             ->assertOk()
-            ->assertDontSee('>WL000011<', false);
+            ->assertDontSee('>WL000012<', false);
     }
 
     public function test_dashboard_shows_current_fiscal_year_label(): void
@@ -258,8 +258,8 @@ class DashboardAndAccessTest extends TestCase
     public function test_track_loan_by_track_id(): void
     {
         $this->actingAsRole('applicant9@wdf.go.tz')
-            ->get(route('loans.track', ['track_id' => 'WL000004']))
+            ->get(route('loans.track', ['track_id' => 'WL000005']))
             ->assertOk()
-            ->assertSee('WL000004');
+            ->assertSee('WL000005');
     }
 }

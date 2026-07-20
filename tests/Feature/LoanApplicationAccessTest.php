@@ -54,7 +54,7 @@ class LoanApplicationAccessTest extends TestCase
     public function test_applicant_with_disbursed_loan_cannot_apply_again(): void
     {
         $user = User::where('email', 'test@example.com')->firstOrFail();
-        $loan = $this->loanByTrack('WL000011');
+        $loan = $this->loanByTrack('WL000012');
 
         $loan->update([
             'user_id' => $user->id,

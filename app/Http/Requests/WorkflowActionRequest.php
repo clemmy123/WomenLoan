@@ -59,7 +59,7 @@ class WorkflowActionRequest extends FormRequest
                 'max:12',
             ],
             'attachment' => [
-                Rule::requiredIf(in_array($action, ['forward_ministry', 'forward_ass_dir'], true)),
+                Rule::requiredIf(in_array($action, ['forward_council', 'forward_ass_dir'], true)),
                 'nullable',
                 'file',
                 'mimes:pdf',

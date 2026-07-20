@@ -3,6 +3,7 @@
     $auth = app(\App\Services\WorkflowAuthorizationService::class);
     $step = $loan->current_step;
 
+    $canForwardCouncil = $auth->canPerform($user, $loan, 'forward_council');
     $canForwardMinistry = $auth->canPerform($user, $loan, 'forward_ministry');
     $canProposeAmount = $auth->canPerform($user, $loan, 'propose_amount');
     $canApplicantRespond = $auth->canPerform($user, $loan, 'accept_amount');
@@ -23,7 +24,10 @@
     $submitLabel = __('workflow.buttons.submit');
     $submitClass = 'app-btn app-btn-primary app-btn-block';
 
-    if ($canForwardMinistry) {
+    if ($canForwardCouncil) {
+        $primaryModal = 'forward_council';
+        $actionTitle = __('workflow.action_titles.forward_council');
+    } elseif ($canForwardMinistry) {
         $primaryModal = 'forward_ministry';
         $actionTitle = __('workflow.action_titles.forward_ministry');
     } elseif ($canProposeAmount) {
@@ -79,6 +83,15 @@
             <button type="button" @click="modal = 'rollback_step'" class="app-btn app-btn-danger app-btn-block">{{ $rollbackLabel }}</button>
         @endif
     </div>
+
+    @if($canForwardCouncil)
+        @include('partials.modal', [
+            'name' => 'forward_council',
+            'title' => __('workflow.action_titles.forward_council'),
+            'wide' => true,
+            'body' => view('loan_applications._workflow_forms.forward_council', compact('loan'))->render(),
+        ])
+    @endif
 
     @if($canForwardMinistry)
         @include('partials.modal', [

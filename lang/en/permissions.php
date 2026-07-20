@@ -27,6 +27,8 @@ return [
     'view all loans' => 'View all loans',
     'receive application' => 'Receive application (ward)',
     'review ward application' => 'Review ward application',
+    'forward to council' => 'Forward to council',
+    'review council application' => 'Review council application',
     'forward to ministry' => 'Forward to ministry',
     'review ministry application' => 'Review ministry application',
     'propose loan amount' => 'Propose loan amount',

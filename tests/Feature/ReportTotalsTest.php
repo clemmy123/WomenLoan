@@ -44,7 +44,7 @@ class ReportTotalsTest extends TestCase
     public function test_report_uses_loan_disbursed_amount_not_stale_payment_ledger(): void
     {
         $loan = Loan::withoutGlobalScope(ApprovalLevelScope::class)
-            ->where('loan_track_id', 'WL000011')
+            ->where('loan_track_id', 'WL000012')
             ->firstOrFail();
 
         LoanPayment::where('loan_id', $loan->id)->update([
@@ -60,7 +60,7 @@ class ReportTotalsTest extends TestCase
 
         $summary = app(ReportService::class)->summary($filters);
         $rows = app(ReportService::class)->allRows($filters);
-        $row = $rows->firstWhere('track_id', 'WL000011');
+        $row = $rows->firstWhere('track_id', 'WL000012');
 
         $this->assertSame(2800000.0, $summary['total_disbursed']);
         $this->assertSame(2800000.0, $row['disbursed']);

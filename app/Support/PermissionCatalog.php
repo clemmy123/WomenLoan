@@ -40,6 +40,8 @@ class PermissionCatalog
                 'permissions' => [
                     'receive application',
                     'review ward application',
+                    'forward to council',
+                    'review council application',
                     'forward to ministry',
                     'review ministry application',
                     'propose loan amount',

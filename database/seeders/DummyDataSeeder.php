@@ -48,7 +48,7 @@ class DummyDataSeeder extends Seeder
             $this->seedDraftLoans();
         });
 
-        $this->command?->info('Dummy data seeded: applicants, groups, loans (steps 1-9), repayments.');
+        $this->command?->info('Dummy data seeded: applicants, groups, loans (steps 1-10), repayments.');
     }
 
     protected function loadGeography(): void
@@ -64,6 +64,7 @@ class DummyDataSeeder extends Seeder
     {
         $this->staff = [
             'ward' => User::where('email', 'ward.cdo@wdf.go.tz')->first(),
+            'council' => User::where('email', 'council.cdo@wdf.go.tz')->first(),
             'ministry' => User::where('email', 'ministry@wdf.go.tz')->first(),
             'ass_dir' => User::where('email', 'assdir@wdf.go.tz')->first(),
             'director' => User::where('email', 'director@wdf.go.tz')->first(),
@@ -174,54 +175,58 @@ class DummyDataSeeder extends Seeder
             ['track' => 'WL000002', 'step' => 1, 'status' => 'received', 'acceptance' => 'pending', 'requested' => 3500000, 'proposed' => 0, 'disbursed' => 0, 'applicant' => 6, 'history' => [
                 ['step' => 1, 'action' => 'received', 'user' => 'ward', 'comments' => 'Application received at ward office.'],
             ]],
-            // Step 2 — ministry review
+            // Step 2 — council review
             ['track' => 'WL000003', 'step' => 2, 'status' => 'in_review', 'acceptance' => 'pending', 'requested' => 8000000, 'proposed' => 0, 'disbursed' => 0, 'applicant' => 7, 'history' => [
                 ['step' => 1, 'action' => 'received', 'user' => 'ward', 'comments' => 'Received.'],
-                ['step' => 1, 'action' => 'forwarded_to_ministry', 'user' => 'ward', 'comments' => 'Forwarded to ministry for review.'],
+                ['step' => 1, 'action' => 'forwarded_to_council', 'user' => 'ward', 'comments' => 'Forwarded to council for review.'],
             ]],
-            // Step 3 — awaiting applicant confirmation
-            ['track' => 'WL000004', 'step' => 3, 'status' => 'awaiting_applicant', 'acceptance' => 'pending', 'requested' => 6000000, 'proposed' => 5500000, 'disbursed' => 0, 'applicant' => 8, 'history' => [
+            // Step 3 — ministry review
+            ['track' => 'WL000004', 'step' => 3, 'status' => 'in_review', 'acceptance' => 'pending', 'requested' => 6000000, 'proposed' => 0, 'disbursed' => 0, 'applicant' => 7, 'history' => [
                 ['step' => 1, 'action' => 'received', 'user' => 'ward'],
-                ['step' => 1, 'action' => 'forwarded_to_ministry', 'user' => 'ward'],
-                ['step' => 2, 'action' => 'proposed_amount', 'user' => 'ministry', 'comments' => 'Proposed TZS 5,500,000', 'amount' => 5500000],
+                ['step' => 1, 'action' => 'forwarded_to_council', 'user' => 'ward'],
+                ['step' => 2, 'action' => 'forwarded_to_ministry', 'user' => 'council', 'comments' => 'Council endorsed. Forward to ministry.'],
             ]],
-            // Step 4 — ministry after applicant accepted
-            ['track' => 'WL000005', 'step' => 4, 'status' => 'in_review', 'acceptance' => 'accepted', 'requested' => 4500000, 'proposed' => 4000000, 'disbursed' => 0, 'applicant' => 9, 'history' => [
+            // Step 4 — awaiting applicant confirmation
+            ['track' => 'WL000005', 'step' => 4, 'status' => 'awaiting_applicant', 'acceptance' => 'pending', 'requested' => 4500000, 'proposed' => 4000000, 'disbursed' => 0, 'applicant' => 8, 'history' => [
                 ['step' => 1, 'action' => 'received', 'user' => 'ward'],
-                ['step' => 1, 'action' => 'forwarded_to_ministry', 'user' => 'ward'],
-                ['step' => 2, 'action' => 'proposed_amount', 'user' => 'ministry', 'amount' => 4000000],
-                ['step' => 3, 'action' => 'accepted', 'user' => 'applicant', 'comments' => 'Applicant accepted proposed amount.'],
+                ['step' => 1, 'action' => 'forwarded_to_council', 'user' => 'ward'],
+                ['step' => 2, 'action' => 'forwarded_to_ministry', 'user' => 'council'],
+                ['step' => 3, 'action' => 'proposed_amount', 'user' => 'ministry', 'comments' => 'Proposed TZS 4,000,000', 'amount' => 4000000],
             ]],
-            // Step 5 — assistant director
-            ['track' => 'WL000006', 'step' => 5, 'status' => 'in_review', 'acceptance' => 'accepted', 'requested' => 7000000, 'proposed' => 6500000, 'disbursed' => 0, 'applicant' => 10, 'history' => [
+            // Step 5 — ministry after applicant accepted
+            ['track' => 'WL000006', 'step' => 5, 'status' => 'in_review', 'acceptance' => 'accepted', 'requested' => 7000000, 'proposed' => 6500000, 'disbursed' => 0, 'applicant' => 9, 'history' => [
                 ['step' => 1, 'action' => 'received', 'user' => 'ward'],
-                ['step' => 1, 'action' => 'forwarded_to_ministry', 'user' => 'ward'],
-                ['step' => 2, 'action' => 'proposed_amount', 'user' => 'ministry', 'amount' => 6500000],
-                ['step' => 3, 'action' => 'accepted', 'user' => 'applicant'],
-                ['step' => 4, 'action' => 'forwarded_to_ass_dir', 'user' => 'ministry', 'comments' => 'Sent to Assistant Director.'],
+                ['step' => 1, 'action' => 'forwarded_to_council', 'user' => 'ward'],
+                ['step' => 2, 'action' => 'forwarded_to_ministry', 'user' => 'council'],
+                ['step' => 3, 'action' => 'proposed_amount', 'user' => 'ministry', 'amount' => 6500000],
+                ['step' => 4, 'action' => 'accepted', 'user' => 'applicant', 'comments' => 'Applicant accepted proposed amount.'],
             ]],
-            // Step 6 — director
-            ['track' => 'WL000007', 'step' => 6, 'status' => 'in_review', 'acceptance' => 'accepted', 'requested' => 9000000, 'proposed' => 8500000, 'disbursed' => 0, 'applicant' => 11, 'history' => [
-                ['step' => 5, 'action' => 'forwarded_to_director', 'user' => 'ass_dir', 'comments' => 'Recommended for director review.'],
+            // Step 6 — assistant director
+            ['track' => 'WL000007', 'step' => 6, 'status' => 'in_review', 'acceptance' => 'accepted', 'requested' => 9000000, 'proposed' => 8500000, 'disbursed' => 0, 'applicant' => 10, 'history' => [
+                ['step' => 5, 'action' => 'forwarded_to_ass_dir', 'user' => 'ministry', 'comments' => 'Sent to Assistant Director.'],
             ]],
-            // Step 7 — Permanent Secretary
-            ['track' => 'WL000008', 'step' => 7, 'status' => 'in_review', 'acceptance' => 'accepted', 'requested' => 10000000, 'proposed' => 9500000, 'disbursed' => 0, 'applicant' => 12, 'history' => [
-                ['step' => 6, 'action' => 'forwarded_to_km', 'user' => 'director', 'comments' => 'Director endorsed. Forward to Permanent Secretary.'],
+            // Step 7 — director
+            ['track' => 'WL000008', 'step' => 7, 'status' => 'in_review', 'acceptance' => 'accepted', 'requested' => 10000000, 'proposed' => 9500000, 'disbursed' => 0, 'applicant' => 11, 'history' => [
+                ['step' => 6, 'action' => 'forwarded_to_director', 'user' => 'ass_dir', 'comments' => 'Recommended for director review.'],
             ]],
-            // Step 8 — chief assigns accountant
-            ['track' => 'WL000009', 'step' => 8, 'status' => 'approved', 'acceptance' => 'accepted', 'requested' => 5500000, 'proposed' => 5000000, 'disbursed' => 0, 'applicant' => 13, 'approved_by' => 'Prof. Neema Kapinga', 'history' => [
-                ['step' => 7, 'action' => 'approved', 'user' => 'km', 'comments' => 'Final approval granted by Permanent Secretary.'],
+            // Step 8 — Permanent Secretary
+            ['track' => 'WL000009', 'step' => 8, 'status' => 'in_review', 'acceptance' => 'accepted', 'requested' => 5500000, 'proposed' => 5000000, 'disbursed' => 0, 'applicant' => 12, 'history' => [
+                ['step' => 7, 'action' => 'forwarded_to_km', 'user' => 'director', 'comments' => 'Director endorsed. Forward to Permanent Secretary.'],
             ]],
-            // Step 9 — ready for disbursement
-            ['track' => 'WL000010', 'step' => 9, 'status' => 'ready_for_disbursement', 'acceptance' => 'accepted', 'requested' => 4000000, 'proposed' => 3800000, 'disbursed' => 0, 'applicant' => 14, 'officer' => 'accountant', 'approved_by' => 'Prof. Neema Kapinga', 'history' => [
-                ['step' => 7, 'action' => 'approved', 'user' => 'km', 'comments' => 'Final approval granted by Permanent Secretary.'],
-                ['step' => 8, 'action' => 'assigned_accountant', 'user' => 'chief', 'comments' => 'Assigned to accountant for disbursement.'],
+            // Step 9 — chief assigns accountant
+            ['track' => 'WL000010', 'step' => 9, 'status' => 'approved', 'acceptance' => 'accepted', 'requested' => 4000000, 'proposed' => 3800000, 'disbursed' => 0, 'applicant' => 13, 'approved_by' => 'Prof. Neema Kapinga', 'history' => [
+                ['step' => 8, 'action' => 'approved', 'user' => 'km', 'comments' => 'Final approval granted by Permanent Secretary.'],
             ]],
-            // Step 9 — disbursed with repayment (terminal history on test account)
-            ['track' => 'WL000011', 'step' => 9, 'status' => 'disbursed', 'acceptance' => 'accepted', 'requested' => 3000000, 'proposed' => 2800000, 'disbursed' => 2800000, 'applicant' => 0, 'officer' => 'accountant', 'with_payment' => true, 'approved_by' => 'Prof. Neema Kapinga', 'history' => [
-                ['step' => 7, 'action' => 'approved', 'user' => 'km', 'comments' => 'Final approval granted by Permanent Secretary.'],
-                ['step' => 8, 'action' => 'assigned_accountant', 'user' => 'chief', 'comments' => 'Assigned to accountant for disbursement.'],
-                ['step' => 9, 'action' => 'disbursed', 'user' => 'accountant', 'comments' => 'Funds disbursed to applicant bank account.'],
+            // Step 10 — ready for disbursement
+            ['track' => 'WL000011', 'step' => 10, 'status' => 'ready_for_disbursement', 'acceptance' => 'accepted', 'requested' => 4000000, 'proposed' => 3800000, 'disbursed' => 0, 'applicant' => 14, 'officer' => 'accountant', 'approved_by' => 'Prof. Neema Kapinga', 'history' => [
+                ['step' => 8, 'action' => 'approved', 'user' => 'km', 'comments' => 'Final approval granted by Permanent Secretary.'],
+                ['step' => 9, 'action' => 'assigned_accountant', 'user' => 'chief', 'comments' => 'Assigned to accountant for disbursement.'],
+            ]],
+            // Step 10 — disbursed with repayment (terminal history on test account)
+            ['track' => 'WL000012', 'step' => 10, 'status' => 'disbursed', 'acceptance' => 'accepted', 'requested' => 3000000, 'proposed' => 2800000, 'disbursed' => 2800000, 'applicant' => 0, 'officer' => 'accountant', 'with_payment' => true, 'approved_by' => 'Prof. Neema Kapinga', 'history' => [
+                ['step' => 8, 'action' => 'approved', 'user' => 'km', 'comments' => 'Final approval granted by Permanent Secretary.'],
+                ['step' => 9, 'action' => 'assigned_accountant', 'user' => 'chief', 'comments' => 'Assigned to accountant for disbursement.'],
+                ['step' => 10, 'action' => 'disbursed', 'user' => 'accountant', 'comments' => 'Funds disbursed to applicant bank account.'],
             ]],
         ];
 
@@ -363,8 +368,8 @@ class DummyDataSeeder extends Seeder
                         'payment_history' => [
                             'installments' => $installments,
                             'transactions' => [
-                                ['date' => now()->subDays(15)->toDateTimeString(), 'amount' => $disbursed * 0.15, 'method' => 'Bank Transfer', 'reference' => 'WDF-WL000011-001', 'receipt_number' => 'RCP-WL000011-001'],
-                                ['date' => now()->subDays(5)->toDateTimeString(), 'amount' => $disbursed * 0.10, 'method' => 'Bank Transfer', 'reference' => 'WDF-WL000011-002', 'receipt_number' => 'RCP-WL000011-002'],
+                                ['date' => now()->subDays(15)->toDateTimeString(), 'amount' => $disbursed * 0.15, 'method' => 'Bank Transfer', 'reference' => 'WDF-'.$s['track'].'-001', 'receipt_number' => 'RCP-'.$s['track'].'-001'],
+                                ['date' => now()->subDays(5)->toDateTimeString(), 'amount' => $disbursed * 0.10, 'method' => 'Bank Transfer', 'reference' => 'WDF-'.$s['track'].'-002', 'receipt_number' => 'RCP-'.$s['track'].'-002'],
                             ],
                         ],
                     ]

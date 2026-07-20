@@ -18,28 +18,34 @@ class WorkflowAuthorizationService
         $status = $loan->status;
 
         return match ($action) {
-            'forward_ministry' => $step === 1
+            'forward_council' => $step === 1
                 && $status === 'received'
+                && ($isAdmin || (
+                    $user->can('forward to council')
+                    && app(CdoLoanScopeService::class)->canActOnLoan($user, $loan)
+                )),
+            'forward_ministry' => $step === 2
+                && $status === 'in_review'
                 && ($isAdmin || (
                     $user->can('forward to ministry')
                     && app(CdoLoanScopeService::class)->canActOnLoan($user, $loan)
                 )),
-            'propose_amount', 'send_to_applicant' => $step === 2
+            'propose_amount', 'send_to_applicant' => $step === 3
                 && ($isAdmin || $user->can('propose loan amount')),
             'accept_amount', 'decline_amount' => $user->hasRole('applicant')
-                && $step === 3
+                && $step === 4
                 && (int) $loan->user_id === (int) $user->id,
-            'forward_ass_dir' => $step === 4
+            'forward_ass_dir' => $step === 5
                 && ($isAdmin || $user->can('forward to assistant director')),
-            'forward_director' => $step === 5
+            'forward_director' => $step === 6
                 && ($isAdmin || $user->can('forward to director')),
-            'forward_km' => $step === 6
+            'forward_km' => $step === 7
                 && ($isAdmin || $user->can('forward to km')),
-            'approve_km' => $step === 7
+            'approve_km' => $step === 8
                 && ($isAdmin || $user->can('approve as km')),
-            'assign_accountant' => $step === 8
+            'assign_accountant' => $step === 9
                 && ($isAdmin || $user->can('assign accountant')),
-            'disburse' => $step === 9
+            'disburse' => $step === 10
                 && $status === 'ready_for_disbursement'
                 && ($isAdmin || (
                     $user->can('disburse loan')
@@ -58,7 +64,7 @@ class WorkflowAuthorizationService
 
     /**
      * Rollback is available only to the current-step actor (forward or return for improvements).
-     * Once the loan is approved (step 8+), rollback ends — chief/accountant never roll back.
+     * Once the loan is approved (step 9+), rollback ends — chief/accountant never roll back.
      */
     protected function canRollback(User $user, Loan $loan): bool
     {
@@ -66,7 +72,7 @@ class WorkflowAuthorizationService
             return false;
         }
 
-        if ($loan->current_step >= 8) {
+        if ($loan->current_step >= 9) {
             return false;
         }
 
@@ -83,17 +89,19 @@ class WorkflowAuthorizationService
         }
 
         if ($loan->current_step === 1 && $loan->status === 'received') {
-            return $user->can('forward to ministry')
+            return $user->can('forward to council')
                 && app(CdoLoanScopeService::class)->canActOnLoan($user, $loan);
         }
 
         // Current actor only — after they forward, the next step owner gets the buttons.
         return match ($loan->current_step) {
-            2 => $user->can('propose loan amount'),
-            4 => $user->can('forward to assistant director'),
-            5 => $user->can('forward to director') || $user->can('comment as assistant director'),
-            6 => $user->can('forward to km') || $user->can('comment as director'),
-            7 => $user->can('approve as km'),
+            2 => $user->can('forward to ministry')
+                && app(CdoLoanScopeService::class)->canActOnLoan($user, $loan),
+            3 => $user->can('propose loan amount'),
+            5 => $user->can('forward to assistant director'),
+            6 => $user->can('forward to director') || $user->can('comment as assistant director'),
+            7 => $user->can('forward to km') || $user->can('comment as director'),
+            8 => $user->can('approve as km'),
             default => false,
         };
     }

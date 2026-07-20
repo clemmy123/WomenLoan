@@ -28,7 +28,8 @@ return [
     'select_accountant' => 'Select Accountant',
     'or' => 'OR',
     'action_titles' => [
-        'forward_ministry' => 'Submit Application',
+        'forward_council' => 'Submit Application',
+        'forward_ministry' => 'Submit Request',
         'propose_amount' => 'Propose Amount',
         'respond_amount' => 'Respond to Proposed Amount',
         'forward_ass_dir' => 'Forward to Assistant Director',
@@ -42,6 +43,7 @@ return [
     'buttons' => [
         'submit' => 'Submit',
         'receive' => 'Submit',
+        'forward_council' => 'Submit',
         'forward_ministry' => 'Submit',
         'propose_amount' => 'Submit',
         'accept_amount' => 'Submit',
@@ -60,6 +62,7 @@ return [
     'rollback_reason' => 'Reason for rollback (required)',
     'actions' => [
         'received' => 'Received',
+        'forwarded_to_council' => 'Forwarded to Council',
         'forwarded_to_ministry' => 'Forwarded to Ministry',
         'proposed_amount' => 'Proposed Amount',
         'sent_to_applicant' => 'Sent to Applicant',

@@ -41,7 +41,7 @@ class ReportFilterTest extends TestCase
         $response->assertSee(__('reports.financial_trend'), false);
         $response->assertDontSee('name="loan_type"', false);
         $response->assertDontSee('name="is_widowed"', false);
-        $response->assertSee('WL000011');
+        $response->assertSee('WL000012');
     }
 
     public function test_reports_overview_hides_data_until_filters_applied(): void
@@ -53,7 +53,7 @@ class ReportFilterTest extends TestCase
         $response->assertSee(__('reports.apply_filters_prompt'), false);
         $response->assertDontSeeText(__('reports.detail_table'));
         $response->assertDontSee(__('reports.financial_trend'), false);
-        $response->assertDontSee('WL000011');
+        $response->assertDontSee('WL000012');
     }
 
     public function test_ministry_can_view_analytical_reports_menu_page(): void
@@ -80,7 +80,7 @@ class ReportFilterTest extends TestCase
     public function test_reports_can_filter_by_marital_status(): void
     {
         $loan = Loan::withoutGlobalScope(ApprovalLevelScope::class)
-            ->where('loan_track_id', 'WL000011')
+            ->where('loan_track_id', 'WL000012')
             ->firstOrFail();
 
         Applicant::withoutGlobalScopes()
@@ -104,7 +104,7 @@ class ReportFilterTest extends TestCase
     public function test_reports_can_filter_by_disability(): void
     {
         $loan = Loan::withoutGlobalScope(ApprovalLevelScope::class)
-            ->where('loan_track_id', 'WL000011')
+            ->where('loan_track_id', 'WL000012')
             ->firstOrFail();
 
         $loan->update(['has_disability' => true]);
@@ -130,7 +130,7 @@ class ReportFilterTest extends TestCase
     public function test_reports_can_filter_by_actual_loan_type(): void
     {
         $loan = Loan::withoutGlobalScope(ApprovalLevelScope::class)
-            ->where('loan_track_id', 'WL000011')
+            ->where('loan_track_id', 'WL000012')
             ->firstOrFail();
 
         $loan->update(['loan_type' => 'individual']);
@@ -161,7 +161,7 @@ class ReportFilterTest extends TestCase
     public function test_reports_age_filter_uses_birthday_aware_age(): void
     {
         $loan = Loan::withoutGlobalScope(ApprovalLevelScope::class)
-            ->where('loan_track_id', 'WL000011')
+            ->where('loan_track_id', 'WL000012')
             ->firstOrFail();
 
         // Today is 2026-07-09 in this project context; birthday tomorrow => still previous age.
@@ -224,7 +224,7 @@ class ReportFilterTest extends TestCase
     public function test_fiscal_year_all_returns_records_across_all_years(): void
     {
         $loan = Loan::withoutGlobalScope(ApprovalLevelScope::class)
-            ->where('loan_track_id', 'WL000011')
+            ->where('loan_track_id', 'WL000012')
             ->firstOrFail();
 
         $loan->update(['date_issued' => '2023-08-15']);

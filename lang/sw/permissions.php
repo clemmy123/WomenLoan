@@ -27,6 +27,8 @@ return [
     'view all loans' => 'Tazama mikopo yote',
     'receive application' => 'Pokea ombi (kata)',
     'review ward application' => 'Kagua ombi la kata',
+    'forward to council' => 'Sambaza kwa halmashauri',
+    'review council application' => 'Kagua ombi la halmashauri',
     'forward to ministry' => 'Sambaza kwa wizara',
     'review ministry application' => 'Kagua ombi la wizara',
     'propose loan amount' => 'Pendekeza kiasi cha mkopo',

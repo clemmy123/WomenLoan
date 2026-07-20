@@ -1,7 +1,7 @@
 @php
     $currentStep = (int) ($loan->current_step ?? 1);
     $isDisbursed = $loan->status === 'disbursed';
-    $totalSteps = 9;
+    $totalSteps = 10;
 @endphp
 <div class="app-card app-card-padded">
     <h3 class="text-sm font-semibold tracking-wide uppercase text-indigo-600 border-b border-slate-100 dark:border-white/10 pb-2 mb-2">{{ __('loans.progress_steps') }}</h3>
@@ -12,7 +12,7 @@
             @php
                 $isComplete = $isDisbursed || $step < $currentStep;
                 $isCurrent = ! $isDisbursed && $step === $currentStep;
-                $awaitingApplicant = $isCurrent && $step === 3;
+                $awaitingApplicant = $isCurrent && $step === 4;
             @endphp
             <li class="loan-progress-stage">
                 @if($step > 1)

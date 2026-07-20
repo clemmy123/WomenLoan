@@ -49,11 +49,12 @@ class RolePermissionSeeder extends Seeder
             ],
             'cdo_ward' => [
                 'view dashboard', 'view ward loans', 'receive application', 'review ward application',
-                'forward to ministry', 'rollback workflow step', 'view loan by track id', 'view repayments',
+                'forward to council', 'rollback workflow step', 'view loan by track id', 'view repayments',
                 ...$allReportPermissions,
             ],
             'cdo_council' => [
-                'view dashboard', 'view council loans', 'view loan by track id', 'view repayments',
+                'view dashboard', 'view council loans', 'review council application', 'forward to ministry',
+                'rollback workflow step', 'view loan by track id', 'view repayments',
                 ...$allReportPermissions,
             ],
             'cdo_region' => [

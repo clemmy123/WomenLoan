@@ -18,7 +18,7 @@ class RepaymentTest extends TestCase
 
     public function test_disbursement_creates_repayment_schedule_with_interest(): void
     {
-        $loan = $this->loanByTrack('WL000010');
+        $loan = $this->loanByTrack('WL000011');
 
         $this->actingAsRole('accountant1@wdf.go.tz')
             ->post(route('loans.workflow', $loan->hashid), [
@@ -45,7 +45,7 @@ class RepaymentTest extends TestCase
 
     public function test_applicant_can_record_payment(): void
     {
-        $loan = $this->loanByTrack('WL000011');
+        $loan = $this->loanByTrack('WL000012');
         $payment = LoanPayment::withoutGlobalScopes()->where('loan_id', $loan->id)->firstOrFail();
         $user = \App\Models\User::where('email', 'test@example.com')->firstOrFail();
 
@@ -73,7 +73,7 @@ class RepaymentTest extends TestCase
 
     public function test_accountant_cannot_record_payment(): void
     {
-        $loan = $this->loanByTrack('WL000011');
+        $loan = $this->loanByTrack('WL000012');
         $payment = LoanPayment::withoutGlobalScopes()->where('loan_id', $loan->id)->firstOrFail();
 
         $this->actingAsRole('accountant1@wdf.go.tz')
@@ -86,7 +86,7 @@ class RepaymentTest extends TestCase
 
     public function test_applicant_cannot_record_payment_during_grace_period(): void
     {
-        $loan = $this->loanByTrack('WL000010');
+        $loan = $this->loanByTrack('WL000011');
 
         $this->actingAsRole('accountant1@wdf.go.tz')
             ->post(route('loans.workflow', $loan->hashid), [
@@ -121,15 +121,15 @@ class RepaymentTest extends TestCase
             ->assertSee(__('repayments.list_title'), false)
             ->assertSee(__('repayments.search_placeholder'), false)
             ->assertSee(__('repayments.export_excel'), false)
-            ->assertSee('WL000011', false);
+            ->assertSee('WL000012', false);
     }
 
     public function test_repayments_index_can_search_by_track_id(): void
     {
         $this->actingAsRole('ministry@wdf.go.tz')
-            ->get(route('repayments.index', ['search' => 'WL000011']))
+            ->get(route('repayments.index', ['search' => 'WL000012']))
             ->assertOk()
-            ->assertSee('WL000011', false);
+            ->assertSee('WL000012', false);
     }
 
     public function test_ministry_can_export_repayments_excel_and_pdf(): void
@@ -145,7 +145,7 @@ class RepaymentTest extends TestCase
 
     public function test_applicant_sees_start_payment_alert_after_grace(): void
     {
-        $loan = $this->loanByTrack('WL000011');
+        $loan = $this->loanByTrack('WL000012');
         $payment = LoanPayment::withoutGlobalScopes()->where('loan_id', $loan->id)->firstOrFail();
         $user = \App\Models\User::where('email', 'test@example.com')->firstOrFail();
 
@@ -161,16 +161,16 @@ class RepaymentTest extends TestCase
 
     public function test_receipt_qr_payload_includes_full_payment_details(): void
     {
-        $loan = $this->loanByTrack('WL000011');
+        $loan = $this->loanByTrack('WL000012');
         $payment = LoanPayment::withoutGlobalScopes()->where('loan_id', $loan->id)->firstOrFail();
         $tx = app(\App\Services\RepaymentScheduleService::class)->transactions($payment)[0];
-        $receiptNumber = $tx['receipt_number'] ?? 'RCP-WL000011-001';
+        $receiptNumber = $tx['receipt_number'] ?? 'RCP-WL000012-001';
 
         $payload = app(\App\Services\ReceiptQrCodeService::class)->payload($payment, $tx, $receiptNumber);
 
         $this->assertStringContainsString('WDF LOAN PAYMENT RECEIPT', $payload);
         $this->assertStringContainsString('Payment DateTime =', $payload);
-        $this->assertStringContainsString('Loan Track = WL000011', $payload);
+        $this->assertStringContainsString('Loan Track = WL000012', $payload);
         $this->assertStringContainsString('Payer Name =', $payload);
         $this->assertStringContainsString('Amount TZS =', $payload);
         $this->assertStringContainsString('Payment Ref =', $payload);
@@ -180,7 +180,7 @@ class RepaymentTest extends TestCase
 
     public function test_applicant_can_view_payment_receipt(): void
     {
-        $loan = $this->loanByTrack('WL000011');
+        $loan = $this->loanByTrack('WL000012');
         $payment = LoanPayment::withoutGlobalScopes()->where('loan_id', $loan->id)->firstOrFail();
         $user = \App\Models\User::where('email', 'test@example.com')->firstOrFail();
 
@@ -189,7 +189,7 @@ class RepaymentTest extends TestCase
             ->assertOk()
             ->assertSee(__('repayments.receipt_title'), false)
             ->assertSee($payment->loan->loan_track_id, false)
-            ->assertSee('WDF-WL000011-001', false)
+            ->assertSee('WDF-WL000012-001', false)
             ->assertSee(__('repayments.payment_date'), false)
             ->assertSee(__('repayments.qr_caption'), false)
             ->assertSee('data:image/png;base64,', false);
@@ -197,7 +197,7 @@ class RepaymentTest extends TestCase
 
     public function test_staff_cannot_see_applicant_payment_actions(): void
     {
-        $loan = $this->loanByTrack('WL000011');
+        $loan = $this->loanByTrack('WL000012');
         $payment = LoanPayment::withoutGlobalScopes()->where('loan_id', $loan->id)->firstOrFail();
 
         $this->actingAsRole('ministry@wdf.go.tz')

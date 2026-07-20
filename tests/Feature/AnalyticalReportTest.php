@@ -89,7 +89,7 @@ class AnalyticalReportTest extends TestCase
     public function test_analytical_summary_uses_loan_disbursed_amount_in_its_fiscal_year(): void
     {
         $loan = Loan::withoutGlobalScope(ApprovalLevelScope::class)
-            ->where('loan_track_id', 'WL000011')
+            ->where('loan_track_id', 'WL000012')
             ->firstOrFail();
 
         LoanPayment::where('loan_id', $loan->id)->update([

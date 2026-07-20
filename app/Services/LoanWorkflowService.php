@@ -21,14 +21,15 @@ class LoanWorkflowService
             $user = Auth::user();
 
             match ($action) {
-                'forward_ministry' => $this->forward($loan, $user, 2, 'forwarded_to_ministry', $data),
+                'forward_council' => $this->forward($loan, $user, 2, 'forwarded_to_council', $data),
+                'forward_ministry' => $this->forward($loan, $user, 3, 'forwarded_to_ministry', $data),
                 'propose_amount' => $this->proposeAmount($loan, $user, $data),
-                'send_to_applicant' => $this->forward($loan, $user, 3, 'sent_to_applicant', $data),
+                'send_to_applicant' => $this->forward($loan, $user, 4, 'sent_to_applicant', $data),
                 'accept_amount' => $this->applicantAccept($loan, $user, true, $data),
                 'decline_amount' => $this->applicantAccept($loan, $user, false, $data),
-                'forward_ass_dir' => $this->forward($loan, $user, 5, 'forwarded_to_ass_dir', $data),
-                'forward_director' => $this->forward($loan, $user, 6, 'forwarded_to_director', $data),
-                'forward_km' => $this->forward($loan, $user, 7, 'forwarded_to_km', $data),
+                'forward_ass_dir' => $this->forward($loan, $user, 6, 'forwarded_to_ass_dir', $data),
+                'forward_director' => $this->forward($loan, $user, 7, 'forwarded_to_director', $data),
+                'forward_km' => $this->forward($loan, $user, 8, 'forwarded_to_km', $data),
                 'approve_km' => $this->approveKm($loan, $user, $data),
                 'assign_accountant' => $this->assignAccountant($loan, $user, $data),
                 'disburse' => $this->disburse($loan, $user, $data),
@@ -76,10 +77,10 @@ class LoanWorkflowService
 
     protected function proposeAmount(Loan $loan, User $user, array $data): void
     {
-        $this->logAction($loan, $user, 2, 'proposed_amount', $data);
+        $this->logAction($loan, $user, 3, 'proposed_amount', $data);
         $loan->update([
             'proposed_amount' => $data['proposed_amount'],
-            'current_step' => 3,
+            'current_step' => 4,
             'status' => 'awaiting_applicant',
             'applicant_acceptance' => 'pending',
         ]);
@@ -87,19 +88,19 @@ class LoanWorkflowService
 
     protected function applicantAccept(Loan $loan, User $user, bool $accepted, array $data): void
     {
-        $this->logAction($loan, $user, 3, $accepted ? 'accepted' : 'declined', $data);
+        $this->logAction($loan, $user, 4, $accepted ? 'accepted' : 'declined', $data);
         $loan->update([
             'applicant_acceptance' => $accepted ? 'accepted' : 'declined',
-            'current_step' => $accepted ? 4 : 2,
+            'current_step' => $accepted ? 5 : 3,
             'status' => $accepted ? 'in_review' : 'declined_by_applicant',
         ]);
     }
 
     protected function approveKm(Loan $loan, User $user, array $data): void
     {
-        $this->logAction($loan, $user, 7, 'approved', $data);
+        $this->logAction($loan, $user, 8, 'approved', $data);
         $loan->update([
-            'current_step' => 8,
+            'current_step' => 9,
             'status' => 'approved',
             'approved_by' => $user->name,
         ]);
@@ -107,10 +108,10 @@ class LoanWorkflowService
 
     protected function assignAccountant(Loan $loan, User $user, array $data): void
     {
-        $this->logAction($loan, $user, 8, 'assigned_accountant', $data);
+        $this->logAction($loan, $user, 9, 'assigned_accountant', $data);
         $loan->update([
             'officer_id' => $data['accountant_id'],
-            'current_step' => 9,
+            'current_step' => 10,
             'status' => 'ready_for_disbursement',
         ]);
     }
@@ -125,12 +126,12 @@ class LoanWorkflowService
 
         $gracePeriodMonths = (int) ($data['grace_period_months'] ?? config('wdf.grace_period_months', 3));
 
-        $this->logAction($loan, $user, 9, 'disbursed', $data);
+        $this->logAction($loan, $user, 10, 'disbursed', $data);
         $loan->update([
             'disbursed_amount' => $disbursedAmount,
             'date_issued' => now()->toDateString(),
             'status' => 'disbursed',
-            'current_step' => 9,
+            'current_step' => 10,
         ]);
 
         $fresh = $loan->fresh();
@@ -149,7 +150,7 @@ class LoanWorkflowService
     protected function rollbackStep(Loan $loan, User $user, array $data): void
     {
         if (in_array($loan->status, ['approved', 'ready_for_disbursement', 'disbursed'], true)
-            || $loan->current_step >= 8) {
+            || $loan->current_step >= 9) {
             throw new \InvalidArgumentException('Cannot rollback an approved or later loan.');
         }
 
@@ -166,7 +167,7 @@ class LoanWorkflowService
             'status' => $status,
         ];
 
-        if ($previousStep === 3) {
+        if ($previousStep === 4) {
             $updates['applicant_acceptance'] = 'pending';
         }
 
@@ -181,10 +182,11 @@ class LoanWorkflowService
 
         return match ($loan->current_step) {
             2 => [1, 'received'],
-            4 => [3, 'awaiting_applicant'],
-            5 => [4, 'in_review'],
+            3 => [2, 'in_review'],
+            5 => [4, 'awaiting_applicant'],
             6 => [5, 'in_review'],
             7 => [6, 'in_review'],
+            8 => [7, 'in_review'],
             default => throw new \InvalidArgumentException('This loan cannot be rolled back.'),
         };
     }

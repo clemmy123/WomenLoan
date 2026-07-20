@@ -78,7 +78,7 @@ class SecurityHardeningTest extends TestCase
         Storage::disk('public')->put('bank-statements/secret.pdf', 'private');
 
         $loan = Loan::withoutGlobalScope(ApprovalLevelScope::class)
-            ->where('loan_track_id', 'WL000011')
+            ->where('loan_track_id', 'WL000012')
             ->firstOrFail();
 
         $loan->businessDetails()->update(['bank_statement' => 'bank-statements/secret.pdf']);
@@ -96,7 +96,7 @@ class SecurityHardeningTest extends TestCase
         Storage::disk('public')->put('bank-statements/secret.pdf', 'private');
 
         $loan = Loan::withoutGlobalScope(ApprovalLevelScope::class)
-            ->where('loan_track_id', 'WL000011')
+            ->where('loan_track_id', 'WL000012')
             ->firstOrFail();
 
         $loan->businessDetails()->update(['bank_statement' => 'bank-statements/secret.pdf']);

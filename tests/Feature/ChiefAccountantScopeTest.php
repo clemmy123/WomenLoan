@@ -20,30 +20,30 @@ class ChiefAccountantScopeTest extends TestCase
 
     public function test_chief_sees_approved_assigned_and_disbursed_loans(): void
     {
-        $approved = $this->loanByTrack('WL000009');
-        $ready = $this->loanByTrack('WL000010');
-        $disbursed = $this->loanByTrack('WL000011');
+        $approved = $this->loanByTrack('WL000010');
+        $ready = $this->loanByTrack('WL000011');
+        $disbursed = $this->loanByTrack('WL000012');
         $pending = $this->loanByTrack('WL000001');
 
         $this->assertSame('approved', $approved->status);
-        $this->assertSame(8, $approved->current_step);
+        $this->assertSame(9, $approved->current_step);
 
         $response = $this->actingAsRole('chief@wdf.go.tz')
             ->get(route('loan-applications.index'));
 
         $response->assertOk();
         $response->assertSee(__('nav.assign_accountant_queue'), false);
-        $response->assertSee('WL000009', false);
         $response->assertSee('WL000010', false);
         $response->assertSee('WL000011', false);
+        $response->assertSee('WL000012', false);
         $response->assertDontSee('WL000001', false);
 
         $this->actingAsRole('chief@wdf.go.tz')
             ->get(route('dashboard'))
             ->assertOk()
             ->assertSee(__('dashboard.chief_queue_title'), false)
-            ->assertSee('WL000009', false)
             ->assertSee('WL000010', false)
+            ->assertSee('WL000011', false)
             ->assertDontSee('WL000001', false);
 
         $this->assertTrue(Loan::query()->whereKey($approved->id)->exists());
@@ -54,7 +54,7 @@ class ChiefAccountantScopeTest extends TestCase
 
     public function test_chief_still_sees_loan_after_assigning_accountant(): void
     {
-        $loan = $this->loanByTrack('WL000009');
+        $loan = $this->loanByTrack('WL000010');
         $accountant = User::where('email', 'accountant1@wdf.go.tz')->firstOrFail();
 
         $this->actingAsRole('chief@wdf.go.tz')
@@ -71,7 +71,7 @@ class ChiefAccountantScopeTest extends TestCase
         $this->actingAsRole('chief@wdf.go.tz')
             ->get(route('loan-applications.index'))
             ->assertOk()
-            ->assertSee('WL000009', false)
+            ->assertSee('WL000010', false)
             ->assertSee(loan_status_label('ready_for_disbursement'), false);
 
         $this->actingAsRole('chief@wdf.go.tz')
@@ -81,9 +81,9 @@ class ChiefAccountantScopeTest extends TestCase
 
     public function test_accountant_sees_only_assigned_ready_or_disbursed_loans(): void
     {
-        $ready = $this->loanByTrack('WL000010');
-        $disbursed = $this->loanByTrack('WL000011');
-        $approved = $this->loanByTrack('WL000009');
+        $ready = $this->loanByTrack('WL000011');
+        $disbursed = $this->loanByTrack('WL000012');
+        $approved = $this->loanByTrack('WL000010');
         $pending = $this->loanByTrack('WL000001');
 
         $accountant = User::where('email', 'accountant1@wdf.go.tz')->firstOrFail();
@@ -97,23 +97,23 @@ class ChiefAccountantScopeTest extends TestCase
 
         $response->assertOk();
         $response->assertSee(__('nav.my_disbursements'), false);
-        $response->assertSee('WL000010', false);
         $response->assertSee('WL000011', false);
-        $response->assertDontSee('WL000009', false);
+        $response->assertSee('WL000012', false);
+        $response->assertDontSee('WL000010', false);
         $response->assertDontSee('WL000001', false);
 
         $this->actingAs($accountant)
             ->get(route('dashboard'))
             ->assertOk()
             ->assertSee(__('dashboard.accountant_queue_title'), false)
-            ->assertSee('WL000010', false)
+            ->assertSee('WL000011', false)
             ->assertDontSee('WL000001', false);
 
         $this->actingAs($otherAccountant)
             ->get(route('loan-applications.index'))
             ->assertOk()
-            ->assertDontSee('WL000010', false)
-            ->assertDontSee('WL000011', false);
+            ->assertDontSee('WL000011', false)
+            ->assertDontSee('WL000012', false);
 
         $this->actingAs($accountant);
         $this->assertTrue(Loan::query()->whereKey($ready->id)->exists());
@@ -133,7 +133,7 @@ class ChiefAccountantScopeTest extends TestCase
 
     public function test_accountant_cannot_open_unassigned_loan(): void
     {
-        $approved = $this->loanByTrack('WL000009');
+        $approved = $this->loanByTrack('WL000010');
 
         $this->actingAsRole('accountant1@wdf.go.tz')
             ->get(route('loan-applications.show', $approved->hashid))
@@ -142,7 +142,7 @@ class ChiefAccountantScopeTest extends TestCase
 
     public function test_accountant_still_sees_loan_after_disbursing_money(): void
     {
-        $loan = $this->loanByTrack('WL000010');
+        $loan = $this->loanByTrack('WL000011');
         $accountant = User::where('email', 'accountant1@wdf.go.tz')->firstOrFail();
 
         $this->actingAs($accountant)
@@ -160,13 +160,13 @@ class ChiefAccountantScopeTest extends TestCase
         $this->actingAs($accountant)
             ->get(route('loan-applications.index'))
             ->assertOk()
-            ->assertSee('WL000010', false)
+            ->assertSee('WL000011', false)
             ->assertSee(loan_status_label('disbursed'), false);
 
         $this->actingAs($accountant)
             ->get(route('dashboard'))
             ->assertOk()
-            ->assertSee('WL000010', false);
+            ->assertSee('WL000011', false);
 
         $this->actingAs($accountant)
             ->get(route('loan-applications.show', $loan->hashid))
@@ -195,7 +195,7 @@ class ChiefAccountantScopeTest extends TestCase
 
     public function test_chief_and_accountant_see_simplified_loan_summary_only(): void
     {
-        $loan = $this->loanByTrack('WL000010');
+        $loan = $this->loanByTrack('WL000011');
 
         foreach (['chief@wdf.go.tz', 'accountant1@wdf.go.tz'] as $email) {
             $this->actingAsRole($email)
@@ -215,13 +215,13 @@ class ChiefAccountantScopeTest extends TestCase
         $kmComment = 'Final approval granted by Permanent Secretary.';
 
         $this->actingAsRole('chief@wdf.go.tz')
-            ->get(route('loan-applications.show', $this->loanByTrack('WL000009')->hashid))
+            ->get(route('loan-applications.show', $this->loanByTrack('WL000010')->hashid))
             ->assertOk()
             ->assertSee($kmCommentLabel, false)
             ->assertSee($kmComment, false);
 
         $this->actingAsRole('accountant1@wdf.go.tz')
-            ->get(route('loan-applications.show', $this->loanByTrack('WL000010')->hashid))
+            ->get(route('loan-applications.show', $this->loanByTrack('WL000011')->hashid))
             ->assertOk()
             ->assertSee($kmCommentLabel, false)
             ->assertSee($kmComment, false);
@@ -232,13 +232,13 @@ class ChiefAccountantScopeTest extends TestCase
         $chiefCommentLabel = __('loans.chief_comment', ['role' => role_label('chief')]);
 
         $this->actingAsRole('accountant1@wdf.go.tz')
-            ->get(route('loan-applications.show', $this->loanByTrack('WL000010')->hashid))
+            ->get(route('loan-applications.show', $this->loanByTrack('WL000011')->hashid))
             ->assertOk()
             ->assertSee($chiefCommentLabel, false)
             ->assertSee('Assigned to accountant for disbursement.', false);
 
         $this->actingAsRole('chief@wdf.go.tz')
-            ->get(route('loan-applications.show', $this->loanByTrack('WL000009')->hashid))
+            ->get(route('loan-applications.show', $this->loanByTrack('WL000010')->hashid))
             ->assertOk()
             ->assertDontSee($chiefCommentLabel, false);
     }

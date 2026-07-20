@@ -35,7 +35,7 @@ class ApprovalLevelScope implements Scope
         if ($user->hasRole('chief')) {
             $builder->where(function (Builder $inner) {
                 $inner->where(function (Builder $awaiting) {
-                    $awaiting->where('current_step', 8)
+                    $awaiting->where('current_step', 9)
                         ->where('status', 'approved');
                 })->orWhereIn('status', ['ready_for_disbursement', 'disbursed']);
             });
@@ -48,7 +48,7 @@ class ApprovalLevelScope implements Scope
             $builder->where('officer_id', $user->id)
                 ->where(function (Builder $inner) {
                     $inner->where(function (Builder $ready) {
-                        $ready->where('current_step', 9)
+                        $ready->where('current_step', 10)
                             ->where('status', 'ready_for_disbursement');
                     })->orWhere('status', 'disbursed');
                 });

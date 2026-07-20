@@ -58,7 +58,7 @@ class ApplicationReportTest extends TestCase
             ]));
 
         $response->assertOk();
-        $response->assertSee('WL000011');
+        $response->assertSee('WL000012');
     }
 
     public function test_group_application_lists_member_names(): void

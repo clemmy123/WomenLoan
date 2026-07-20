@@ -23,13 +23,13 @@
     $yesNo = fn (?bool $value) => $value === null ? null : ($value ? __('common.yes') : __('common.no'));
     $showAside = $hasWorkflow || $isKmViewer;
     $kmApproval = $loan->approvalLevels
-        ->filter(fn ($level) => (int) $level->step_number === 7 && $level->action_taken === 'approved')
+        ->filter(fn ($level) => (int) $level->step_number === 8 && $level->action_taken === 'approved')
         ->sortByDesc('id')
         ->first();
     $kmCommentLabel = __('loans.km_comment', ['role' => role_label('km')]);
     $isAccountantViewer = $viewer?->hasRole('accountant') ?? false;
     $chiefAssignment = $loan->approvalLevels
-        ->filter(fn ($level) => (int) $level->step_number === 8 && $level->action_taken === 'assigned_accountant')
+        ->filter(fn ($level) => (int) $level->step_number === 9 && $level->action_taken === 'assigned_accountant')
         ->sortByDesc('id')
         ->first();
     $chiefCommentLabel = __('loans.chief_comment', ['role' => role_label('chief')]);

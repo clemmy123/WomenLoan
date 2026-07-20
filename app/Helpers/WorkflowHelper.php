@@ -19,6 +19,7 @@ if (! function_exists('loan_needs_user_action')) {
         $auth = app(\App\Services\WorkflowAuthorizationService::class);
 
         foreach ([
+            'forward_council',
             'forward_ministry',
             'propose_amount',
             'accept_amount',
@@ -56,7 +57,7 @@ if (! function_exists('workflow_attachment_label')) {
     function workflow_attachment_label(?string $action): string
     {
         return match ($action) {
-            'forwarded_to_ministry' => __('workflow.supervision_document'),
+            'forwarded_to_council' => __('workflow.supervision_document'),
             'forwarded_to_ass_dir' => __('workflow.committee_minutes'),
             default => __('common.attachment'),
         };
