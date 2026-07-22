@@ -56,26 +56,52 @@
         </section>
 
         @php
-            $slides = __('home.slides');
-            $slideThemes = ['violet', 'cyan', 'indigo', 'cyan', 'violet'];
+            $landingStats = $landingStats ?? [];
         @endphp
 
-        <section class="landing-carousel-wrap" x-data="landingCarousel()" @mouseenter="stopAutoplay()" @mouseleave="startAutoplay()">
+        <section
+            class="landing-carousel-wrap"
+            x-data="landingCarousel({{ count($landingStats) ?: 5 }})"
+            @mouseenter="stopAutoplay()"
+            @mouseleave="startAutoplay()"
+        >
             <div class="landing-carousel">
-                @foreach($slides as $index => $slide)
+                @forelse($landingStats as $index => $stat)
                     <article
-                        class="landing-carousel-slide landing-carousel-slide--{{ $slideThemes[$index] ?? 'indigo' }}"
+                        class="landing-carousel-slide landing-carousel-slide--{{ $stat['theme'] }}"
                         :class="slideClass({{ $index }})"
                         :aria-hidden="active !== {{ $index }}"
+                        aria-label="{{ $stat['label'] }}: {{ number_format($stat['value']) }}"
                     >
                         <div class="landing-slide-glow"></div>
-                        <div class="landing-slide-content">
-                            <span class="landing-slide-badge">{{ $index + 1 }}</span>
-                            <h3 class="landing-slide-title">{{ $slide['title'] }}</h3>
-                            <p class="landing-slide-caption">{{ $slide['caption'] }}</p>
+                        <div class="landing-slide-content landing-slide-content--stat">
+                            <h3 class="landing-slide-title landing-stat-title">
+                                {{ $stat['label'] }}:
+                                <span class="landing-stat-value">{{ number_format($stat['value']) }}</span>
+                            </h3>
+                            <p class="landing-slide-caption">{{ $stat['caption'] }}</p>
                         </div>
                     </article>
-                @endforeach
+                @empty
+                    @php
+                        $slides = __('home.slides');
+                        $slideThemes = ['violet', 'cyan', 'indigo', 'cyan', 'violet'];
+                    @endphp
+                    @foreach($slides as $index => $slide)
+                        <article
+                            class="landing-carousel-slide landing-carousel-slide--{{ $slideThemes[$index] ?? 'indigo' }}"
+                            :class="slideClass({{ $index }})"
+                            :aria-hidden="active !== {{ $index }}"
+                        >
+                            <div class="landing-slide-glow"></div>
+                            <div class="landing-slide-content">
+                                <span class="landing-slide-badge">{{ $index + 1 }}</span>
+                                <h3 class="landing-slide-title">{{ $slide['title'] }}</h3>
+                                <p class="landing-slide-caption">{{ $slide['caption'] }}</p>
+                            </div>
+                        </article>
+                    @endforeach
+                @endforelse
             </div>
 
             <div class="landing-carousel-controls">

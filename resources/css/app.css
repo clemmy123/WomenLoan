@@ -6948,6 +6948,37 @@
         padding: 1.25rem;
     }
 
+    .landing-slide-content--stat {
+        justify-content: center;
+        align-items: center;
+        text-align: center;
+        padding: 1.5rem 1.25rem;
+    }
+
+    .landing-stat-title {
+        margin: 0;
+        font-size: clamp(1rem, 2.6vw, 1.2rem);
+        font-weight: 700;
+        line-height: 1.35;
+        letter-spacing: 0.01em;
+    }
+
+    .landing-stat-value {
+        display: inline;
+        font: inherit;
+        color: inherit;
+    }
+
+    .landing-slide-content--stat .landing-slide-caption {
+        margin-top: 0.55rem;
+        font-size: 0.75rem;
+        color: rgba(255, 255, 255, 0.78);
+    }
+
+    .landing-carousel-slide--indigo .landing-slide-content--stat .landing-slide-caption {
+        color: rgba(255, 255, 255, 0.72);
+    }
+
     .landing-slide-badge {
         display: inline-flex;
         align-items: center;

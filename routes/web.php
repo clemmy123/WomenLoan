@@ -23,6 +23,7 @@ use App\Http\Controllers\UserController;
 use App\Http\Controllers\WardController;
 use App\Http\Controllers\NidaController;
 use App\Http\Controllers\WorkflowController;
+use App\Services\LandingStatsService;
 use App\Support\AccessibleHome;
 use Illuminate\Support\Facades\Route;
 
@@ -49,9 +50,11 @@ Route::middleware(['guest', 'nida.registration', 'throttle:10,1'])->prefix('api/
     Route::post('/answer', [NidaController::class, 'answer'])->name('answer');
 });
 
-Route::get('/', function () {
+Route::get('/', function (LandingStatsService $landingStats) {
     if (! auth()->check()) {
-        return view('home');
+        return view('home', [
+            'landingStats' => $landingStats->totals(),
+        ]);
     }
 
     return redirect()->to(AccessibleHome::url(auth()->user()));

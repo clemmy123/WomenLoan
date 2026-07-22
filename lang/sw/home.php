@@ -9,6 +9,18 @@ return [
     'headline' => 'Wezesha na Inua wanawake kiuchumi',
     'subheadline' => 'Pata mikopo nafuu, jenga biashara yako, na kukua kwa ujasiri kupitia Mfuko wa Maendeleo ya Wanawake — ulioundwa kuwasaidia wanawake wajasiriamali nchini Tanzania.',
     'prompt_text' => 'Jiunge na maelfu ya wanawake wanaobadilisha maisha yao. Fungua akaunti yako leo, kamilisha taarifa zako, na omba mkopo wa mtu mmoja au wa kikundi kwa mchakato rahisi unaongozwa.',
+    'stats' => [
+        'beneficiaries_label' => 'Waliopata Mkopo',
+        'beneficiaries_caption' => 'Watu halisi kwenye mikopo iliyotolewa',
+        'groups_label' => 'Jumla ya Vikundi',
+        'groups_caption' => 'Vikundi vilivyopo',
+        'applications_label' => 'Jumla ya Maombi',
+        'applications_caption' => 'Maombi ya mikopo yaliyowasilishwa',
+        'sectors_label' => 'Jumla ya Sekta',
+        'sectors_caption' => 'Sekta zenye mikopo iliyotolewa',
+        'banks_label' => 'Benki Washirika',
+        'banks_caption' => 'Benki zilizotumika kutoa mikopo',
+    ],
     'slides' => [
         [
             'title' => 'Ukuaji wa Biashara',

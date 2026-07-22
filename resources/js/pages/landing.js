@@ -30,12 +30,20 @@ document.addEventListener('alpine:init', () => {
         },
     }));
 
-    Alpine.data('landingCarousel', () => ({
-        active: 2,
-        total: 5,
+    Alpine.data('landingCarousel', (total = 5) => ({
+        active: Math.min(2, Math.max(0, total - 1)),
+        total,
         timer: null,
 
         init() {
+            if (this.total < 1) {
+                this.total = 1;
+            }
+
+            if (this.active >= this.total) {
+                this.active = 0;
+            }
+
             this.startAutoplay();
         },
 

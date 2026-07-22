@@ -145,6 +145,8 @@ class LoanWorkflowService
         } else {
             $this->repayments->createForLoan($fresh, $disbursedAmount, $gracePeriodMonths);
         }
+
+        LandingStatsService::flush();
     }
 
     protected function rollbackStep(Loan $loan, User $user, array $data): void

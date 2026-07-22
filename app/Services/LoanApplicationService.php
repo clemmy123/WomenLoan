@@ -102,6 +102,7 @@ class LoanApplicationService
             $this->markSubmittedToWard($loan);
 
             DashboardStatsService::flushForUser($user->id);
+            LandingStatsService::flush();
 
             return $loan->fresh();
         });

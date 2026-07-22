@@ -9,6 +9,18 @@ return [
     'headline' => 'Empower and Elevate Women Economically',
     'subheadline' => 'Access affordable loans, build your business, and grow with confidence through the Women Development Fund — designed to support women entrepreneurs across Tanzania.',
     'prompt_text' => 'Join thousands of women who are transforming their livelihoods. Create your account today, complete your information, and apply for individual or group loans with a simple guided process.',
+    'stats' => [
+        'beneficiaries_label' => 'Beneficiaries',
+        'beneficiaries_caption' => 'Unique people on disbursed loans',
+        'groups_label' => 'Total Groups',
+        'groups_caption' => 'Existing women groups',
+        'applications_label' => 'Total Applications',
+        'applications_caption' => 'Submitted loan applications',
+        'sectors_label' => 'Total Sectors',
+        'sectors_caption' => 'Business sectors with disbursed loans',
+        'banks_label' => 'Partner Banks',
+        'banks_caption' => 'Banks used for disbursement',
+    ],
     'slides' => [
         [
             'title' => 'Business Growth',

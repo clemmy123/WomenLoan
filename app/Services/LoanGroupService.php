@@ -49,6 +49,8 @@ class LoanGroupService
             $group->applicants()->sync($memberIds);
         }
 
+        LandingStatsService::flush();
+
         return $group;
     }
 
