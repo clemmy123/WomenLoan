@@ -234,6 +234,8 @@ Route::middleware(['auth', 'password.changed'])->group(function () {
     });
 
     Route::prefix('admin')->name('admin.')->middleware('can:manage users')->group(function () {
+        Route::get('users/export/excel', [UserController::class, 'exportExcel'])->name('users.export.excel');
+        Route::get('users/export/pdf', [UserController::class, 'exportPdf'])->name('users.export.pdf');
         Route::get('users/{user}/assign-roles', [UserController::class, 'assignRoles'])->name('users.assign-roles');
         Route::put('users/{user}/assign-roles', [UserController::class, 'updateRoles'])->name('users.assign-roles.update');
         Route::resource('users', UserController::class);

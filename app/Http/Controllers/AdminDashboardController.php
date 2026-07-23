@@ -3,27 +3,38 @@
 namespace App\Http\Controllers;
 
 use App\Services\AdminDashboardService;
-use App\Services\AuditLogService;
 use Illuminate\View\View;
 
 class AdminDashboardController extends Controller
 {
     public function __construct(
         private AdminDashboardService $dashboard,
-        private AuditLogService $audits,
     ) {}
 
     public function index(): View
     {
         $summary = $this->dashboard->summary();
         $usersByRole = $this->dashboard->usersByRole();
-        $recentAudit = $this->dashboard->recentAudit();
+        $auditSeries = $this->dashboard->auditActivitySeries(7);
+
+        $adminChartData = [
+            'roles' => [
+                'labels' => $usersByRole->pluck('label')->values()->all(),
+                'data' => $usersByRole->pluck('count')->values()->all(),
+                'label' => __('admin.dashboard_user_count'),
+            ],
+            'audit' => [
+                'labels' => $auditSeries['labels'],
+                'data' => $auditSeries['data'],
+                'label' => __('admin.dashboard_audit_activity'),
+            ],
+            'canViewAudit' => auth()->user()?->can('view audit logs') ?? false,
+        ];
 
         return view('admin.dashboard', [
             'summary' => $summary,
             'usersByRole' => $usersByRole,
-            'recentAudit' => $recentAudit,
-            'audits' => $this->audits,
+            'adminChartData' => $adminChartData,
         ]);
     }
 }

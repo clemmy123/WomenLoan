@@ -104,69 +104,40 @@
             <div class="app-card-header">
                 <h2 class="font-bold text-slate-900 dark:text-white">{{ __('admin.dashboard_users_by_role') }}</h2>
             </div>
-            <table class="app-table">
-                <thead>
-                    <tr>
-                        <th>{{ __('common.roles') }}</th>
-                        <th class="text-right">{{ __('admin.dashboard_user_count') }}</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @forelse($usersByRole as $row)
-                        <tr>
-                            <td class="font-medium">{{ $row['label'] }}</td>
-                            <td class="text-right tabular-nums">{{ number_format($row['count']) }}</td>
-                        </tr>
-                    @empty
-                        <tr><td colspan="2" class="app-table-empty">{{ __('admin.no_users') }}</td></tr>
-                    @endforelse
-                </tbody>
-            </table>
+            <div class="app-card-padded">
+                @if($usersByRole->isEmpty())
+                    <p class="text-sm text-slate-500 dark:text-zinc-400">{{ __('admin.no_users') }}</p>
+                @else
+                    <div class="h-64">
+                        <canvas id="adminRolesChart" aria-label="{{ __('admin.dashboard_users_by_role') }}"></canvas>
+                    </div>
+                @endif
+            </div>
         </div>
 
         <div class="app-card overflow-hidden">
             <div class="app-card-header flex items-center justify-between gap-3">
-                <h2 class="font-bold text-slate-900 dark:text-white">{{ __('admin.dashboard_recent_audit') }}</h2>
+                <div>
+                    <h2 class="font-bold text-slate-900 dark:text-white">{{ __('admin.dashboard_recent_audit') }}</h2>
+                    <p class="text-xs text-slate-500 dark:text-zinc-400 mt-0.5">{{ __('admin.dashboard_audit_last_7_days') }}</p>
+                </div>
                 @can('view audit logs')
                     <a href="{{ route('admin.audit.index') }}" class="text-sm font-semibold text-indigo-600 dark:text-indigo-400 hover:underline">{{ __('common.view') }}</a>
                 @endcan
             </div>
             @can('view audit logs')
-                <table class="app-table">
-                    <thead>
-                        <tr>
-                            <th>{{ __('audit.when') }}</th>
-                            <th>{{ __('audit.who') }}</th>
-                            <th>{{ __('audit.event') }}</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @forelse($recentAudit as $activity)
-                            <tr>
-                                <td class="whitespace-nowrap text-xs text-slate-500">
-                                    {{ $activity->created_at?->timezone(config('app.timezone'))->format('d M Y, h:i A') }}
-                                </td>
-                                <td class="text-sm">{{ $audits->causerLabel($activity) }}</td>
-                                <td>
-                                    @include('partials.badge', [
-                                        'variant' => match ($activity->event) {
-                                            'created', 'login' => 'success',
-                                            'deleted', 'logout' => 'danger',
-                                            default => 'primary',
-                                        },
-                                        'text' => $audits->eventLabel($activity->event),
-                                    ])
-                                </td>
-                            </tr>
-                        @empty
-                            <tr><td colspan="3" class="app-table-empty">{{ __('audit.no_records') }}</td></tr>
-                        @endforelse
-                    </tbody>
-                </table>
+                <div class="app-card-padded">
+                    <div class="h-64">
+                        <canvas id="adminAuditChart" aria-label="{{ __('admin.dashboard_recent_audit') }}"></canvas>
+                    </div>
+                </div>
             @else
                 <p class="app-card-padded text-sm text-slate-500">{{ __('admin.dashboard_audit_locked') }}</p>
             @endcan
         </div>
     </div>
 </div>
+
+<script type="application/json" id="admin-dashboard-chart-data">@json($adminChartData)</script>
+@vite(['resources/js/pages/admin-dashboard.js'])
 @endsection

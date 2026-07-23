@@ -2,19 +2,70 @@
 
 namespace App\Http\Controllers;
 
+use App\Exports\UsersExport;
 use App\Http\Requests\Admin\StoreUserRequest;
 use App\Http\Requests\Admin\UpdateUserRequest;
 use App\Http\Requests\Admin\UpdateUserRolesRequest;
 use App\Models\Role;
 use App\Models\User;
 use App\Services\UserProvisioningService;
+use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\Request;
+use Maatwebsite\Excel\Facades\Excel;
+use Symfony\Component\HttpFoundation\BinaryFileResponse;
 
 class UserController extends Controller
 {
     public function __construct(private UserProvisioningService $users) {}
 
     public function index(Request $request)
+    {
+        [$search, $role, $status, $roleOptions] = $this->listFilters($request);
+
+        $users = $this->users->paginated($search, $role, $status);
+
+        return view('admin.users.index', [
+            'users' => $users,
+            'search' => $search ?? '',
+            'role' => $role ?? '',
+            'status' => $status ?? '',
+            'roleOptions' => $roleOptions,
+        ]);
+    }
+
+    public function exportExcel(Request $request): BinaryFileResponse
+    {
+        [$search, $role, $status] = $this->listFilters($request);
+        $rows = $this->users->exportRows($search, $role, $status);
+
+        return Excel::download(
+            new UsersExport($rows, [
+                'search' => $search ?? '',
+                'role' => $role ?? '',
+                'status' => $status ?? '',
+            ]),
+            $this->users->exportFilename('xlsx')
+        );
+    }
+
+    public function exportPdf(Request $request)
+    {
+        [$search, $role, $status] = $this->listFilters($request);
+        $rows = $this->users->exportRows($search, $role, $status);
+        $filters = [
+            'search' => $search ?? '',
+            'role' => $role ?? '',
+            'status' => $status ?? '',
+        ];
+
+        return Pdf::loadView('admin.users.export-pdf', compact('filters', 'rows'))
+            ->download($this->users->exportFilename('pdf'));
+    }
+
+    /**
+     * @return array{0: ?string, 1: ?string, 2: ?string, 3: array<string, string>}
+     */
+    protected function listFilters(Request $request): array
     {
         $search = $request->string('search')->trim()->toString() ?: null;
         $role = $request->string('role')->trim()->toString() ?: null;
@@ -27,27 +78,26 @@ class UserController extends Controller
             $role = null;
         }
 
+        if ($role === 'applicant') {
+            $role = null;
+        }
+
         if (! in_array($status, ['active', 'inactive'], true)) {
             $status = null;
         }
 
-        $users = $this->users->paginated($search, $role, $status);
-
         $roleOptions = ['' => __('admin.role_all')];
         foreach ($roles as $item) {
+            if ($item->name === 'applicant') {
+                continue;
+            }
             if ($item->name === 'super_admin' && ! $request->user()?->hasRole('super_admin')) {
                 continue;
             }
             $roleOptions[$item->name] = role_label($item->name);
         }
 
-        return view('admin.users.index', [
-            'users' => $users,
-            'search' => $search ?? '',
-            'role' => $role ?? '',
-            'status' => $status ?? '',
-            'roleOptions' => $roleOptions,
-        ]);
+        return [$search, $role, $status, $roleOptions];
     }
 
     public function create()

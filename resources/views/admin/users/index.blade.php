@@ -7,7 +7,13 @@
     @include('partials.page-header', [
         'title' => __('nav.users'),
         'subtitle' => __('admin.users_subtitle'),
-        'actions' => '<a href="'.e(route('admin.users.create')).'" class="app-btn app-btn-primary">+ '.e(__('admin.new_user')).'</a>',
+        'actions' => '<a href="'.e(route('admin.users.create')).'" class="app-btn app-btn-primary">+ '.e(__('admin.new_user')).'</a>'
+            .view('partials.report-export-buttons', [
+                'excelRoute' => route('admin.users.export.excel', request()->query()),
+                'pdfRoute' => route('admin.users.export.pdf', request()->query()),
+                'excelLabel' => __('admin.export_excel'),
+                'pdfLabel' => __('admin.export_pdf'),
+            ])->render(),
     ])
 
     <div class="app-card app-card-padded mb-4">

@@ -136,6 +136,35 @@ class AdminUserManagementTest extends TestCase
         $response->assertSee(__('admin.sort_by_role'), false);
         $response->assertSee(e(role_label('accountant')), false);
         $response->assertSee(e(role_label('cdo_ward')), false);
+        $response->assertSee(__('admin.export_excel'), false);
+        $response->assertSee(__('admin.export_pdf'), false);
+    }
+
+    public function test_admin_can_export_users_excel_and_pdf(): void
+    {
+        $this->actingAsRole('admin@wdf.go.tz')
+            ->get(route('admin.users.export.excel', [
+                'role' => 'accountant',
+                'status' => 'active',
+            ]))
+            ->assertOk()
+            ->assertDownload();
+
+        $this->actingAsRole('admin@wdf.go.tz')
+            ->get(route('admin.users.export.pdf', [
+                'role' => 'accountant',
+                'status' => 'active',
+            ]))
+            ->assertOk()
+            ->assertDownload();
+    }
+
+    public function test_users_export_excludes_applicants(): void
+    {
+        $rows = app(\App\Services\UserProvisioningService::class)->exportRows();
+
+        $this->assertTrue($rows->contains(fn (array $row) => $row['email'] === 'ward.cdo@wdf.go.tz'));
+        $this->assertFalse($rows->contains(fn (array $row) => $row['email'] === 'applicant2@wdf.go.tz'));
     }
 
     public function test_admin_can_view_user_read_only(): void

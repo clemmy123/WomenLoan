@@ -5,6 +5,8 @@ namespace App\Services;
 use App\Models\Concerns\HasDisplayName;
 use App\Models\User;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
+use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Support\Collection;
 
 class UserProvisioningService
 {
@@ -14,7 +16,48 @@ class UserProvisioningService
         ?string $status = null,
         int $perPage = 15
     ): LengthAwarePaginator {
+        return $this->staffUsersQuery($search, $role, $status)
+            ->paginate($perPage)
+            ->withQueryString();
+    }
+
+    /**
+     * @return Collection<int, array{check_number: string, name: string, email: string, phone: string, roles: string, status: string}>
+     */
+    public function exportRows(
+        ?string $search = null,
+        ?string $role = null,
+        ?string $status = null,
+    ): Collection {
+        return $this->staffUsersQuery($search, $role, $status)
+            ->get()
+            ->map(fn (User $user) => [
+                'check_number' => $user->check_number ?: '—',
+                'name' => $user->name,
+                'email' => $user->email,
+                'phone' => $user->phone ?: '—',
+                'roles' => $user->roles->map(fn ($role) => role_label($role->name))->implode(', '),
+                'status' => $user->is_active ? __('common.active') : __('common.inactive'),
+            ]);
+    }
+
+    public function exportFilename(string $extension): string
+    {
+        return 'wdf-users-'.now()->format('Y-m-d-His').'.'.$extension;
+    }
+
+    protected function staffUsersQuery(
+        ?string $search = null,
+        ?string $role = null,
+        ?string $status = null,
+    ): Builder {
         $query = User::query()->with('roles');
+
+        // Admin Users list is staff-only (cdo_ward and above). Applicants live under Applicants.
+        $query->whereHas(
+            'roles',
+            fn ($roles) => $roles->where('name', '!=', AdminDashboardService::APPLICANT_ROLE)
+        );
 
         if (filled($search)) {
             $term = '%'.addcslashes($search, '%_\\').'%';
@@ -40,11 +83,7 @@ class UserProvisioningService
             $query->where('is_active', false);
         }
 
-        return $query
-            ->orderBy('name')
-            ->orderBy('id')
-            ->paginate($perPage)
-            ->withQueryString();
+        return $query->orderBy('name')->orderBy('id');
     }
 
     public function create(array $validated, bool $isActive = true): User
