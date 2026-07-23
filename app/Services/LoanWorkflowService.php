@@ -39,6 +39,14 @@ class LoanWorkflowService
 
             DashboardStatsService::flushForUser($user->id);
 
+            if ($action === 'assign_accountant' && ! empty($data['accountant_id'])) {
+                DashboardStatsService::flushForUser((int) $data['accountant_id']);
+            }
+
+            if ($action === 'disburse' && $loan->officer_id) {
+                DashboardStatsService::flushForUser((int) $loan->officer_id);
+            }
+
             return $loan->fresh(['applicant', 'businessDetails', 'approvalLevels.user', 'loanPayments']);
         });
     }

@@ -91,10 +91,10 @@
             ])
         @elseif($user->hasRole('accountant'))
             @include('partials.dashboard-stat-card', [
-                'url' => $statCardUrl('approved'),
+                'url' => $statCardUrl('ready_for_disbursement'),
                 'gradient' => 'cyan',
                 'label' => __('dashboard.ready_to_disburse'),
-                'value' => $stats['approved'],
+                'value' => $stats['ready_for_disbursement'],
                 'ariaLabel' => __('dashboard.ready_to_disburse') . ' — ' . __('dashboard.view_in_recent_list'),
                 'icon' => $statIconPending,
             ])

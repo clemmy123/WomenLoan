@@ -193,6 +193,84 @@ class ChiefAccountantScopeTest extends TestCase
             ->assertSee(__('dashboard.total_disbursed'), false);
     }
 
+    public function test_chief_stats_keep_awaiting_assignment_and_disbursed_separate(): void
+    {
+        $chief = User::where('email', 'chief@wdf.go.tz')->firstOrFail();
+        $this->actingAs($chief);
+
+        $stats = app(\App\Services\DashboardStatsService::class)->forUser();
+
+        $this->assertSame(1, $stats['approved']);
+        $this->assertSame(1, $stats['ready_for_disbursement']);
+        $this->assertSame(1, $stats['disbursed']);
+        $this->assertSame(3, $stats['total']);
+
+        $this->get(route('dashboard', ['recent' => 'approved']))
+            ->assertOk()
+            ->assertSee('WL000010', false)
+            ->assertDontSee('WL000011', false)
+            ->assertDontSee('WL000012', false);
+
+        $this->get(route('dashboard', ['recent' => 'disbursed']))
+            ->assertOk()
+            ->assertSee('WL000012', false)
+            ->assertDontSee('WL000010', false);
+    }
+
+    public function test_accountant_stats_keep_ready_and_disbursed_separate(): void
+    {
+        $accountant = User::where('email', 'accountant1@wdf.go.tz')->firstOrFail();
+        $this->actingAs($accountant);
+
+        $stats = app(\App\Services\DashboardStatsService::class)->forUser();
+
+        $this->assertSame(0, $stats['approved']);
+        $this->assertSame(1, $stats['ready_for_disbursement']);
+        $this->assertSame(1, $stats['disbursed']);
+        $this->assertSame(2, $stats['total']);
+
+        $this->get(route('dashboard', ['recent' => 'ready_for_disbursement']))
+            ->assertOk()
+            ->assertSee('WL000011', false)
+            ->assertDontSee('WL000012', false);
+    }
+
+    public function test_chief_assign_button_disappears_after_assignment(): void
+    {
+        $loan = $this->loanByTrack('WL000010');
+        $accountant = User::where('email', 'accountant1@wdf.go.tz')->firstOrFail();
+        $auth = app(\App\Services\WorkflowAuthorizationService::class);
+
+        $chief = User::where('email', 'chief@wdf.go.tz')->firstOrFail();
+        $this->assertTrue($auth->canPerform($chief, $loan, 'assign_accountant'));
+
+        $this->actingAs($chief)
+            ->get(route('loan-applications.show', $loan->hashid))
+            ->assertOk()
+            ->assertSee('name="accountant_id"', false)
+            ->assertSee(__('workflow.select_accountant'), false);
+
+        $this->actingAs($chief)
+            ->post(route('loans.workflow', $loan->hashid), [
+                'action' => 'assign_accountant',
+                'accountant_id' => $accountant->id,
+                'comments' => 'Assigning disbursement officer.',
+            ])
+            ->assertRedirect(route('loan-applications.show', $loan->hashid));
+
+        $loan->refresh();
+        $this->assertSame(10, $loan->current_step);
+        $this->assertSame('ready_for_disbursement', $loan->status);
+        $this->assertSame($accountant->id, $loan->officer_id);
+        $this->assertFalse($auth->canPerform($chief, $loan, 'assign_accountant'));
+
+        $this->actingAs($chief)
+            ->get(route('loan-applications.show', $loan->hashid))
+            ->assertOk()
+            ->assertDontSee('name="accountant_id"', false)
+            ->assertDontSee('value="assign_accountant"', false);
+    }
+
     public function test_chief_and_accountant_see_simplified_loan_summary_only(): void
     {
         $loan = $this->loanByTrack('WL000011');

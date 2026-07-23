@@ -44,12 +44,15 @@ class WorkflowAuthorizationService
             'approve_km' => $step === 8
                 && ($isAdmin || $user->can('approve as km')),
             'assign_accountant' => $step === 9
+                && $status === 'approved'
+                && blank($loan->officer_id)
                 && ($isAdmin || $user->can('assign accountant')),
             'disburse' => $step === 10
                 && $status === 'ready_for_disbursement'
+                && filled($loan->officer_id)
                 && ($isAdmin || (
                     $user->can('disburse loan')
-                    && $loan->officer_id === $user->id
+                    && (int) $loan->officer_id === (int) $user->id
                 )),
             default => false,
         };
