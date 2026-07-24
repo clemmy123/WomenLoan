@@ -5,6 +5,19 @@
 @section('content')
 @php
     $f = $filters;
+    $reportFiltersBoot = [
+        'selectedPrimary' => (string) ($f['business_sector'] ?? ''),
+        'selectedFiscalYear' => (string) ($f['fiscal_year'] ?? ''),
+        'defaultFiscalYear' => (string) ($f['fiscal_year'] ?? 'all'),
+        'selectedPeriod' => (string) ($f['period'] ?? 'annually'),
+        'selectedDateFrom' => (string) (($f['use_custom_dates'] ?? null) === '1' ? ($f['date_from'] ?? '') : ''),
+        'selectedDateTo' => (string) (($f['use_custom_dates'] ?? null) === '1' ? ($f['date_to'] ?? '') : ''),
+        'selectedSort' => (string) ($f['sort'] ?? 'newest'),
+        'useCustomDates' => (($f['use_custom_dates'] ?? null) === '1') ? '1' : '',
+        'filtersOpen' => false,
+        'revealTimeFilters' => (bool) $filtersApplied,
+        'primarySelectId' => 'business_sector',
+    ];
 @endphp
 <div class="page">
     <div class="page-header">
@@ -29,7 +42,7 @@
         method="GET"
         action="{{ route('reports.by-sector.index') }}"
         class="app-card app-card-padded space-y-5"
-        x-data="{ filtersOpen: false }"
+        x-data="reportFilters(@js($reportFiltersBoot))"
     >
         @include('partials.filters-toggle-button', [
             'title' => __('by_sector_reports.filters'),
@@ -48,33 +61,44 @@
             x-transition:leave-end="opacity-0 -translate-y-1"
             class="space-y-5"
         >
-            <div class="wizard-form-grid wizard-form-grid-2 lg:grid-cols-4">
+            <div class="wizard-form-grid wizard-form-grid-2 lg:grid-cols-3">
                 <div class="wizard-field">
                     <label class="app-label" for="business_sector">{{ __('by_sector_reports.sector') }}</label>
-                    <select name="business_sector" id="business_sector" class="app-select">
-                        <option value="" @selected(empty($f['business_sector']))>{{ __('by_sector_reports.all_sectors') }}</option>
-                        @foreach($sectors as $sector)
-                            <option value="{{ $sector->name }}" @selected(($f['business_sector'] ?? '') === $sector->name)>{{ $sector->name }}</option>
-                        @endforeach
-                    </select>
+                    <div class="app-filter-control" :class="{ 'has-clear': selectedPrimary }">
+                        <select
+                            name="business_sector"
+                            id="business_sector"
+                            class="app-select"
+                            x-model="selectedPrimary"
+                            @change="onPrimaryChange()"
+                        >
+                            <option value="">{{ __('by_sector_reports.all_sectors') }}</option>
+                            @foreach($sectors as $sector)
+                                <option value="{{ $sector->name }}">{{ $sector->name }}</option>
+                            @endforeach
+                        </select>
+                        <button
+                            type="button"
+                            class="app-filter-clear-inside"
+                            x-show="selectedPrimary"
+                            x-cloak
+                            @click.prevent="clearPrimaryValue()"
+                            title="{{ __('common.clear') }}"
+                            aria-label="{{ __('common.clear') }}"
+                        >
+                            <svg viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                                <path d="M6.28 5.22a.75.75 0 00-1.06 1.06L8.94 10l-3.72 3.72a.75.75 0 101.06 1.06L10 11.06l3.72 3.72a.75.75 0 101.06-1.06L11.06 10l3.72-3.72a.75.75 0 00-1.06-1.06L10 8.94 6.28 5.22z"/>
+                            </svg>
+                        </button>
+                    </div>
                 </div>
-                <div class="wizard-field">
-                    <label class="app-label" for="period">{{ __('by_sector_reports.period') }}</label>
-                    <select name="period" id="period" class="app-select" onchange="document.getElementById('use_custom_dates').value=''">
-                        @foreach(\App\Services\BySectorReportService::PERIODS as $period)
-                            <option value="{{ $period }}" @selected(($f['period'] ?? '') === $period)>{{ __('reports.period_'.$period) }}</option>
-                        @endforeach
-                    </select>
-                </div>
-                <div class="wizard-field">
-                    <label class="app-label" for="date_from">{{ __('by_sector_reports.date_from') }}</label>
-                    <input type="date" name="date_from" id="date_from" value="{{ ($f['use_custom_dates'] ?? null) === '1' ? ($f['date_from'] ?? '') : '' }}" class="app-input" onchange="document.getElementById('use_custom_dates').value='1'">
-                </div>
-                <div class="wizard-field">
-                    <label class="app-label" for="date_to">{{ __('by_sector_reports.date_to') }}</label>
-                    <input type="date" name="date_to" id="date_to" value="{{ ($f['use_custom_dates'] ?? null) === '1' ? ($f['date_to'] ?? '') : '' }}" class="app-input" onchange="document.getElementById('use_custom_dates').value='1'">
-                    <input type="hidden" name="use_custom_dates" id="use_custom_dates" value="{{ ($f['use_custom_dates'] ?? null) === '1' ? '1' : '' }}">
-                </div>
+
+                @include('partials.report-time-filters', [
+                    'langPrefix' => 'by_sector_reports',
+                    'fiscalYearOptions' => $fiscalYearOptions,
+                    'sortOptions' => $sortOptions,
+                    'periods' => \App\Services\BySectorReportService::PERIODS,
+                ])
             </div>
 
             <div class="flex flex-wrap gap-3">

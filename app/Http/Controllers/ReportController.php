@@ -75,19 +75,46 @@ class ReportController extends Controller
     {
         $this->authorize('view application reports');
 
+        $filtersApplied = $request->hasAny([
+            'fiscal_year',
+            'period',
+            'date_from',
+            'date_to',
+            'status',
+            'use_custom_dates',
+        ]);
         $filters = $this->applicationReports->normalizeFilters($request->all());
-        $rows = $this->applicationReports->paginatedRows($filters);
         $statuses = ApplicationReportService::STATUSES;
         $fiscalYearOptions = $this->applicationReports->fiscalYearOptions();
+        $rows = $filtersApplied
+            ? $this->applicationReports->paginatedRows($filters)
+            : null;
 
-        return view('reports.applications.index', compact('filters', 'rows', 'statuses', 'fiscalYearOptions'));
+        return view('reports.applications.index', compact(
+            'filters',
+            'filtersApplied',
+            'rows',
+            'statuses',
+            'fiscalYearOptions',
+        ));
     }
 
     public function byRegion(Request $request)
     {
         $this->authorize('view by region reports');
 
-        $filtersApplied = $request->hasAny(['fiscal_year', 'period', 'date_from', 'date_to', 'region_id', 'sort']);
+        $filtersApplied = $request->hasAny([
+            'fiscal_year',
+            'period',
+            'date_from',
+            'date_to',
+            'region_id',
+            'district_id',
+            'council_id',
+            'ward_id',
+            'street_id',
+            'sort',
+        ]);
         $filters = $this->byRegionReports->normalizeFilters($request->all());
         $fiscalYearOptions = $this->byRegionReports->fiscalYearOptions();
         $regions = $this->byRegionReports->regions();
@@ -201,9 +228,11 @@ class ReportController extends Controller
     {
         $this->authorize('view by sector reports');
 
-        $filtersApplied = $request->hasAny(['period', 'date_from', 'date_to', 'business_sector']);
+        $filtersApplied = $request->hasAny(['fiscal_year', 'period', 'date_from', 'date_to', 'business_sector', 'sort']);
         $filters = $this->bySectorReports->normalizeFilters($request->all());
         $sectors = $this->bySectorReports->sectors();
+        $fiscalYearOptions = $this->bySectorReports->fiscalYearOptions();
+        $sortOptions = $this->bySectorReports->sortOptions();
 
         $summary = null;
         $rows = null;
@@ -219,6 +248,8 @@ class ReportController extends Controller
             'summary',
             'rows',
             'sectors',
+            'fiscalYearOptions',
+            'sortOptions',
         ));
     }
 
@@ -254,9 +285,10 @@ class ReportController extends Controller
     {
         $this->authorize('view by bank reports');
 
-        $filtersApplied = $request->hasAny(['fiscal_year', 'date_from', 'date_to', 'bank_name']);
+        $filtersApplied = $request->hasAny(['fiscal_year', 'period', 'date_from', 'date_to', 'bank_name', 'sort']);
         $filters = $this->byBankReports->normalizeFilters($request->all());
         $fiscalYearOptions = $this->byBankReports->fiscalYearOptions();
+        $sortOptions = $this->byBankReports->sortOptions();
         $banks = $this->byBankReports->banks();
 
         $summary = null;
@@ -273,6 +305,7 @@ class ReportController extends Controller
             'summary',
             'rows',
             'fiscalYearOptions',
+            'sortOptions',
             'banks',
         ));
     }
@@ -309,9 +342,10 @@ class ReportController extends Controller
     {
         $this->authorize('view by monthly reports');
 
-        $filtersApplied = $request->hasAny(['month', 'date_from', 'date_to']);
+        $filtersApplied = $request->hasAny(['month']);
         $filters = $this->byMonthlyReports->normalizeFilters($request->all());
         $monthOptions = $this->byMonthlyReports->monthOptions();
+        $reportYear = $filters['year'];
 
         $summary = null;
         $rows = null;
@@ -327,6 +361,7 @@ class ReportController extends Controller
             'summary',
             'rows',
             'monthOptions',
+            'reportYear',
         ));
     }
 
@@ -362,9 +397,13 @@ class ReportController extends Controller
     {
         $this->authorize('view by age reports');
 
-        $filtersApplied = $request->hasAny(['region_id', 'age_min', 'age_max']);
+        $filtersApplied = $request->hasAny([
+            'region_id', 'district_id', 'council_id', 'ward_id', 'street_id',
+            'age_min', 'age_max', 'sort',
+        ]);
         $filters = $this->byAgeReports->normalizeFilters($request->all());
         $regions = $this->byAgeReports->regions();
+        $sortOptions = $this->byAgeReports->sortOptions();
         $geoBounds = app(GeoHierarchyService::class)->zoneBounds();
 
         $summary = null;
@@ -381,6 +420,7 @@ class ReportController extends Controller
             'summary',
             'rows',
             'regions',
+            'sortOptions',
             'geoBounds',
         ));
     }
@@ -615,9 +655,13 @@ class ReportController extends Controller
             ->download($this->reports->exportFilename('pdf'));
     }
 
-    public function exportApplicationsExcel(Request $request): BinaryFileResponse
+    public function exportApplicationsExcel(Request $request): BinaryFileResponse|\Illuminate\Http\RedirectResponse
     {
         $this->authorize('view application reports');
+
+        if (! $this->applicationFiltersApplied($request)) {
+            return redirect()->route('reports.applications.index');
+        }
 
         $data = $this->applicationExportData($request);
 
@@ -630,6 +674,10 @@ class ReportController extends Controller
     public function exportApplicationsPdf(Request $request)
     {
         $this->authorize('view application reports');
+
+        if (! $this->applicationFiltersApplied($request)) {
+            return redirect()->route('reports.applications.index');
+        }
 
         $data = $this->applicationExportData($request);
 
@@ -656,6 +704,18 @@ class ReportController extends Controller
             'filters' => $filters,
             'rows' => $this->applicationReports->allRows($filters),
         ];
+    }
+
+    protected function applicationFiltersApplied(Request $request): bool
+    {
+        return $request->hasAny([
+            'fiscal_year',
+            'period',
+            'date_from',
+            'date_to',
+            'status',
+            'use_custom_dates',
+        ]);
     }
 
     protected function analyticalExportData(Request $request): array
@@ -744,6 +804,7 @@ class ReportController extends Controller
             'summary' => $this->byMonthlyReports->summary($filters),
             'rows' => $this->byMonthlyReports->allRows($filters),
             'monthLabel' => $monthLabel,
+            'reportYear' => $filters['year'],
         ];
     }
 

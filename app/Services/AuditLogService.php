@@ -49,7 +49,7 @@ class AuditLogService
             ->get()
             ->map(fn (Activity $activity) => [
                 'when' => $activity->created_at
-                    ? $activity->created_at->timezone(config('app.timezone'))->format('d M Y, h:i:s A')
+                    ? format_app_datetime($activity->created_at, withSeconds: true)
                     : '—',
                 'who' => $this->causerLabel($activity),
                 'event' => $this->eventLabel($activity->event),

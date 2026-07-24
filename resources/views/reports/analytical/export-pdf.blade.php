@@ -35,7 +35,7 @@
             {{ __('analytical_reports.period') }}: {{ __('analytical_reports.period_'.$filters['period']) }}
         @endif
         &nbsp;|&nbsp;
-        {{ __('reports.generated_at') }}: {{ now()->translatedFormat('d M Y H:i') }}
+        {{ __('reports.generated_at') }}: {{ format_app_datetime() }}
     </x-report-pdf-meta-bar>
 
     <table class="summary">

@@ -15,11 +15,9 @@ class AdminDashboardService
 
     public function summary(): array
     {
-        $users = $this->staffUsersQuery();
-
-        $totalUsers = (clone $users)->count();
-        $activeUsers = (clone $users)->where('is_active', true)->count();
-        $inactiveUsers = max(0, $totalUsers - $activeUsers);
+        $staff = $this->staffUsersQuery();
+        $activeUsers = (clone $staff)->where('is_active', true)->count();
+        $inactiveUsers = (clone $staff)->where('is_active', false)->count();
         $rolesCount = $this->staffRolesQuery()->count();
 
         $auditToday = Activity::query()
@@ -31,7 +29,8 @@ class AdminDashboardService
             ->count();
 
         return [
-            'total_users' => $totalUsers,
+            // Main totals = active staff only. Deactivated users are tracked separately.
+            'total_users' => $activeUsers,
             'active_users' => $activeUsers,
             'inactive_users' => $inactiveUsers,
             'roles_count' => $rolesCount,
@@ -46,7 +45,9 @@ class AdminDashboardService
     public function usersByRole(): Collection
     {
         return $this->staffRolesQuery()
-            ->withCount('users')
+            ->withCount([
+                'users as users_count' => fn (Builder $query) => $query->where('is_active', true),
+            ])
             ->orderBy('name')
             ->get()
             ->map(fn (Role $role) => [

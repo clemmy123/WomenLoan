@@ -45,6 +45,8 @@ class ByAgeReportTest extends TestCase
         $response->assertSee(__('by_age_reports.age_max'), false);
         $response->assertSee(__('by_age_reports.detail_table'), false);
         $response->assertDontSee('name="fiscal_year"', false);
+        $response->assertSee('name="sort"', false);
+        $response->assertSee('name="district_id"', false);
     }
 
     public function test_age_filters_are_normalized_and_swapped(): void

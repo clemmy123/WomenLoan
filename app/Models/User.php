@@ -12,6 +12,7 @@ use App\Models\Concerns\HasHashid;
 use App\Models\Concerns\Searchable;
 use Database\Factories\UserFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\Relations\MorphTo;
 use Illuminate\Foundation\Auth\User as Authenticatable;
@@ -42,6 +43,9 @@ class User extends Authenticatable
         'zoneable_type',
         'zoneable_id',
         'is_active',
+        'deactivation_reason',
+        'deactivated_at',
+        'deactivated_by',
         'must_change_password',
         'temporary_password_expires_at',
     ];
@@ -57,6 +61,7 @@ class User extends Authenticatable
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
             'is_active' => 'boolean',
+            'deactivated_at' => 'datetime',
             'login_locked_until' => 'datetime',
             'login_locked_permanently' => 'boolean',
             'must_change_password' => 'boolean',
@@ -105,6 +110,11 @@ class User extends Authenticatable
             'must_change_password' => false,
             'temporary_password_expires_at' => null,
         ])->save();
+    }
+
+    public function deactivatedBy(): BelongsTo
+    {
+        return $this->belongsTo(self::class, 'deactivated_by');
     }
 
     public function applicant(): HasOne

@@ -94,25 +94,52 @@
         @endphp
 
         @if ($canToggleStatus)
-            <input type="hidden" name="is_active" value="0">
-            <label class="flex items-center gap-2 text-sm text-slate-700">
-                <input
-                    type="checkbox"
-                    name="is_active"
-                    value="1"
-                    {{ $isActiveChecked || (! $user && $canActivate && ! $canDeactivate) ? 'checked' : '' }}
-                    class="rounded border-slate-300 text-indigo-600"
-                >
-                <span>
-                    {{ __('admin.active_account') }}
-                    <span class="block text-xs text-slate-500">{{ __('admin.active_account_hint') }}</span>
-                </span>
-            </label>
-            @error('is_active') <p class="mt-1.5 text-xs font-medium text-red-600">{{ $message }}</p> @enderror
+            <div
+                class="space-y-3"
+                x-data="{ active: {{ $isActiveChecked || (! $user && $canActivate && ! $canDeactivate) ? 'true' : 'false' }} }"
+            >
+                <input type="hidden" name="is_active" value="0">
+                <label class="flex items-center gap-2 text-sm text-slate-700">
+                    <input
+                        type="checkbox"
+                        name="is_active"
+                        value="1"
+                        x-model="active"
+                        class="rounded border-slate-300 text-indigo-600"
+                    >
+                    <span>
+                        {{ __('admin.active_account') }}
+                        <span class="block text-xs text-slate-500">{{ __('admin.active_account_hint') }}</span>
+                    </span>
+                </label>
+                @error('is_active') <p class="mt-1.5 text-xs font-medium text-red-600">{{ $message }}</p> @enderror
+
+                <div x-show="!active" x-cloak class="space-y-2">
+                    <label class="app-label" for="deactivation_reason">{{ __('admin.deactivation_reason') }} @include('partials.required-mark')</label>
+                    <textarea
+                        name="deactivation_reason"
+                        id="deactivation_reason"
+                        rows="3"
+                        minlength="5"
+                        maxlength="1000"
+                        class="app-input"
+                        placeholder="{{ __('admin.deactivation_reason_placeholder') }}"
+                        :required="!active"
+                    >{{ old('deactivation_reason', $user?->deactivation_reason) }}</textarea>
+                    <p class="text-xs text-slate-500">{{ __('admin.deactivation_reason_hint') }}</p>
+                    @error('deactivation_reason') <p class="mt-1.5 text-xs font-medium text-red-600">{{ $message }}</p> @enderror
+                </div>
+            </div>
         @elseif ($user)
             <p class="text-sm text-slate-500">
                 {{ $user->is_active ? __('admin.account_status_active_readonly') : __('admin.account_status_inactive_readonly') }}
             </p>
+            @if (! $user->is_active && can_view_deactivation_reason() && filled($user->deactivation_reason))
+                <div class="rounded-xl border border-amber-200 bg-amber-50 p-3 space-y-1">
+                    <p class="text-xs font-semibold text-amber-900">{{ __('admin.deactivation_reason') }}</p>
+                    <p class="text-sm text-amber-900 whitespace-pre-wrap">{{ $user->deactivation_reason }}</p>
+                </div>
+            @endif
         @elseif ($canActivate || $canDeactivate)
             {{-- Create: only deactivate permission — start inactive --}}
             <input type="hidden" name="is_active" value="0">
@@ -154,13 +181,23 @@
     </div>
 </div>
 
-<div class="app-card app-card-padded mt-6" x-data="{ zoneType: '{{ old('zone_type', $user?->zoneable_type ? class_basename($user?->zoneable_type) : '') }}' }">
+@php
+    $zoneFormBoot = [
+        'zoneType' => old('zone_type', $user?->zoneable_type ? strtolower(class_basename($user->zoneable_type)) : ''),
+        'labels' => \App\Support\StaffZone::formLabels(),
+        'selectedRoles' => array_values(old('roles', $userRoles)),
+    ];
+@endphp
+<div
+    class="app-card app-card-padded mt-6"
+    x-data="userGeoZoneForm(@js($zoneFormBoot))"
+>
     <h3 class="font-bold text-slate-900 mb-4">{{ __('admin.geo_zone') }}</h3>
     <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
         <div>
             <label class="app-label">{{ __('admin.zone_type') }}</label>
             <select name="zone_type" x-model="zoneType" class="app-select">
-                <option value="">{{ __('admin.zone_none') }}</option>
+                <option value="" x-text="emptyZoneLabel"></option>
                 <option value="region">{{ __('admin.zone_region') }}</option>
                 <option value="council">{{ __('admin.zone_council') }}</option>
                 <option value="ward">{{ __('admin.zone_ward') }}</option>

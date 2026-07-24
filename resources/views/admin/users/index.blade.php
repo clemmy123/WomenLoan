@@ -1,16 +1,39 @@
 @extends('layouts.app')
 
-@section('title', __('nav.users'))
+@section('title', $listStatus === 'inactive' ? __('admin.deactivated_users') : __('nav.users'))
 
 @section('content')
-<div class="page">
+@php
+    $isInactiveList = $listStatus === 'inactive';
+    $listRoute = $isInactiveList ? route('admin.users.inactive') : route('admin.users.index');
+    $exportQuery = array_filter([
+        'search' => $search ?: null,
+        'role' => $role ?: null,
+        'list' => $listStatus,
+    ]);
+@endphp
+<div
+    class="page"
+    x-data="{
+        modal: {{ ($errors->has('deactivation_reason') && session('deactivate_user')) ? "'deactivate'" : 'null' }},
+        deactivateUser: {{ \Illuminate\Support\Js::from(session('deactivate_user')) }},
+        openDeactivate(detail) {
+            this.deactivateUser = detail;
+            this.modal = 'deactivate';
+        },
+    }"
+    @user-deactivate.window="openDeactivate($event.detail)"
+>
     @include('partials.page-header', [
-        'title' => __('nav.users'),
-        'subtitle' => __('admin.users_subtitle'),
-        'actions' => '<a href="'.e(route('admin.users.create')).'" class="app-btn app-btn-primary">+ '.e(__('admin.new_user')).'</a>'
+        'title' => $isInactiveList ? __('admin.deactivated_users') : __('nav.users'),
+        'subtitle' => $isInactiveList ? __('admin.deactivated_users_subtitle') : __('admin.users_subtitle'),
+        'actions' => ($isInactiveList
+                ? ''
+                : '<a href="'.e(route('admin.users.create')).'" class="app-btn app-btn-primary">+ '.e(__('admin.new_user')).'</a>'
+            )
             .view('partials.report-export-buttons', [
-                'excelRoute' => route('admin.users.export.excel', request()->query()),
-                'pdfRoute' => route('admin.users.export.pdf', request()->query()),
+                'excelRoute' => route('admin.users.export.excel', $exportQuery),
+                'pdfRoute' => route('admin.users.export.pdf', $exportQuery),
                 'excelLabel' => __('admin.export_excel'),
                 'pdfLabel' => __('admin.export_pdf'),
             ])->render(),
@@ -18,25 +41,20 @@
 
     <div class="app-card app-card-padded mb-4">
         @include('partials.loan-list-toolbar', [
-            'action' => route('admin.users.index'),
+            'action' => $listRoute,
             'search' => $search,
             'sort' => $role,
             'sortName' => 'role',
             'sortLabel' => __('admin.sort_by_role'),
-            'status' => $status,
             'searchPlaceholder' => __('admin.users_search_placeholder'),
             'sortOptions' => $roleOptions,
-            'statusOptions' => [
-                '' => __('admin.status_all'),
-                'active' => __('common.active'),
-                'inactive' => __('common.inactive'),
-            ],
-            'showClear' => filled($search) || filled($status) || filled($role),
-            'clearUrl' => route('admin.users.index'),
+            'showClear' => filled($search) || filled($role),
+            'clearUrl' => $listRoute,
         ])
     </div>
 
-<div class="app-card overflow-hidden">
+<div class="app-card">
+    <div class="overflow-x-auto">
     <table class="app-table">
         <thead>
             <tr>
@@ -55,8 +73,8 @@
                 <td class="font-medium">{{ $user->name }}</td>
                 <td class="text-slate-600">{{ $user->email }}</td>
                 <td>
-                    @foreach($user->roles as $role)
-                        @include('partials.badge', ['variant' => 'primary', 'text' => role_label($role->name), 'class' => 'mr-1 mb-1'])
+                    @foreach($user->roles as $roleItem)
+                        @include('partials.badge', ['variant' => 'primary', 'text' => role_label($roleItem->name), 'class' => 'mr-1 mb-1'])
                     @endforeach
                 </td>
                 <td>
@@ -72,11 +90,23 @@
                 </td>
             </tr>
             @empty
-            <tr><td colspan="6" class="app-table-empty">{{ __('admin.no_users') }}</td></tr>
+            <tr>
+                <td colspan="6" class="app-table-empty">
+                    {{ $isInactiveList ? __('admin.no_deactivated_users') : __('admin.no_users') }}
+                </td>
+            </tr>
             @endforelse
         </tbody>
     </table>
+    </div>
     <div class="app-card-footer">{{ $users->links() }}</div>
 </div>
+
+    @include('partials.modal', [
+        'name' => 'deactivate',
+        'title' => __('admin.deactivate_user_title'),
+        'message' => __('admin.deactivate_user_message'),
+        'body' => view('admin.users._deactivate_modal_body')->render(),
+    ])
 </div>
 @endsection

@@ -23,16 +23,18 @@
         'reportTitle' => __('by_monthly_reports.title'),
     ])
     <x-report-pdf-meta-bar>
+        {{ __('by_monthly_reports.year') }}: {{ $reportYear ?? ($filters['year'] ?? '—') }}
+        &nbsp;|&nbsp;
         {{ __('by_monthly_reports.month') }}: {{ $monthLabel ?: __('by_monthly_reports.all_months') }}
         &nbsp;|&nbsp;
-        {{ __('by_monthly_reports.date_from') }}: {{ $filters['date_from'] ?? '—' }}
-        &nbsp;|&nbsp;
-        {{ __('by_monthly_reports.date_to') }}: {{ $filters['date_to'] ?? '—' }}
-        &nbsp;|&nbsp;
-        {{ __('by_monthly_reports.generated_at') }}: {{ now()->translatedFormat('d M Y H:i') }}
+        {{ __('by_monthly_reports.generated_at') }}: {{ format_app_datetime() }}
     </x-report-pdf-meta-bar>
 
     <table class="summary">
+        <tr>
+            <td>{{ __('by_monthly_reports.loan_count') }}</td>
+            <td>{{ number_format($summary['count'] ?? 0) }}</td>
+        </tr>
         <tr>
             <td>{{ __('by_monthly_reports.total_disbursed') }}</td>
             <td>{{ format_tzs($summary['total_disbursed']) }}</td>
@@ -85,6 +87,6 @@
         </tbody>
     </table>
 
-    <p class="footer">{{ __('reports.pdf_fund') }} — {{ __('by_monthly_reports.title') }}</p>
+    <p class="footer">{{ __('by_monthly_reports.generated_at') }}: {{ format_app_datetime() }}</p>
 </body>
 </html>

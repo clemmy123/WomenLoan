@@ -5,7 +5,29 @@
 @section('content')
 @php
     $f = $filters;
-    $regionLocked = ! empty(($geoBounds ?? [])['lock']['region_id'] ?? null);
+    $reportFiltersBoot = [
+        'selectedRegion' => (string) ($f['region_id'] ?? ''),
+        'selectedDistrict' => (string) ($f['district_id'] ?? ''),
+        'selectedCouncil' => (string) ($f['council_id'] ?? ''),
+        'selectedWard' => (string) ($f['ward_id'] ?? ''),
+        'selectedStreet' => (string) ($f['street_id'] ?? ''),
+        'selectedFiscalYear' => (string) ($f['fiscal_year'] ?? ''),
+        'defaultFiscalYear' => (string) ($f['fiscal_year'] ?? app(\App\Services\ByRegionReportService::class)->currentFiscalYearKey()),
+        'selectedPeriod' => (string) ($f['period'] ?? 'annually'),
+        'selectedDateFrom' => (string) ($f['date_from'] ?? ''),
+        'selectedDateTo' => (string) ($f['date_to'] ?? ''),
+        'selectedSort' => (string) ($f['sort'] ?? 'newest'),
+        'useCustomDates' => (($f['use_custom_dates'] ?? null) === '1') ? '1' : '',
+        'filtersOpen' => false,
+        'revealTimeFilters' => (bool) $filtersApplied,
+        'geoApi' => [
+            'districts' => url('/api/loans/districts'),
+            'councils' => url('/api/loans/councils'),
+            'wards' => url('/api/loans/wards'),
+            'streets' => url('/api/loans/streets'),
+        ],
+        'locks' => ($geoBounds ?? [])['lock'] ?? [],
+    ];
 @endphp
 <div class="page">
     <div class="page-header">
@@ -30,7 +52,7 @@
         method="GET"
         action="{{ route('reports.by-region.index') }}"
         class="app-card app-card-padded space-y-5"
-        x-data="{ filtersOpen: false }"
+        x-data="reportFilters(@js($reportFiltersBoot))"
     >
         @include('partials.filters-toggle-button', [
             'title' => __('by_region_reports.filters'),
@@ -50,58 +72,18 @@
             class="space-y-5"
         >
             <div class="wizard-form-grid wizard-form-grid-2 lg:grid-cols-3">
-                <div class="wizard-field">
-                    <label class="app-label" for="region_id">{{ __('by_region_reports.region') }}</label>
-                    @if($regionLocked)
-                        <input type="hidden" name="region_id" value="{{ ($geoBounds['lock']['region_id'] ?? $f['region_id']) }}">
-                    @endif
-                    <select
-                        name="region_id"
-                        id="region_id"
-                        class="app-select"
-                        @disabled($regionLocked)
-                    >
-                        @unless($regionLocked)
-                            <option value="" @selected(empty($f['region_id']))>{{ __('by_region_reports.all_regions') }}</option>
-                        @endunless
-                        @foreach($regions as $region)
-                            <option value="{{ $region->id }}" @selected((string) ($f['region_id'] ?? '') === (string) $region->id)>{{ $region->name }}</option>
-                        @endforeach
-                    </select>
-                </div>
-                <div class="wizard-field">
-                    <label class="app-label" for="fiscal_year">{{ __('by_region_reports.fiscal_year') }}</label>
-                    <select name="fiscal_year" id="fiscal_year" class="app-select" onchange="document.getElementById('use_custom_dates').value=''">
-                        @foreach($fiscalYearOptions as $fyKey => $fyLabel)
-                            <option value="{{ $fyKey }}" @selected(($f['fiscal_year'] ?? '') === $fyKey)>{{ $fyLabel }}</option>
-                        @endforeach
-                    </select>
-                </div>
-                <div class="wizard-field">
-                    <label class="app-label" for="period">{{ __('by_region_reports.period') }}</label>
-                    <select name="period" id="period" class="app-select" onchange="document.getElementById('use_custom_dates').value=''">
-                        @foreach(\App\Services\ByRegionReportService::PERIODS as $period)
-                            <option value="{{ $period }}" @selected(($f['period'] ?? '') === $period)>{{ __('reports.period_'.$period) }}</option>
-                        @endforeach
-                    </select>
-                </div>
-                <div class="wizard-field">
-                    <label class="app-label" for="date_from">{{ __('by_region_reports.date_from') }}</label>
-                    <input type="date" name="date_from" id="date_from" value="{{ $f['date_from'] ?? '' }}" class="app-input" onchange="document.getElementById('use_custom_dates').value='1'">
-                </div>
-                <div class="wizard-field">
-                    <label class="app-label" for="date_to">{{ __('by_region_reports.date_to') }}</label>
-                    <input type="date" name="date_to" id="date_to" value="{{ $f['date_to'] ?? '' }}" class="app-input" onchange="document.getElementById('use_custom_dates').value='1'">
-                    <input type="hidden" name="use_custom_dates" id="use_custom_dates" value="{{ ($f['use_custom_dates'] ?? null) === '1' ? '1' : '' }}">
-                </div>
-                <div class="wizard-field">
-                    <label class="app-label" for="sort">{{ __('by_region_reports.sort_by') }}</label>
-                    <select name="sort" id="sort" class="app-select">
-                        @foreach($sortOptions as $value => $label)
-                            <option value="{{ $value }}" @selected(($f['sort'] ?? '') === $value)>{{ $label }}</option>
-                        @endforeach
-                    </select>
-                </div>
+                @include('partials.report-geo-filters', [
+                    'regions' => $regions,
+                    'geoBounds' => $geoBounds ?? [],
+                    'allowAllRegions' => true,
+                ])
+
+                @include('partials.report-time-filters', [
+                    'langPrefix' => 'by_region_reports',
+                    'fiscalYearOptions' => $fiscalYearOptions,
+                    'sortOptions' => $sortOptions,
+                    'periods' => \App\Services\ByRegionReportService::PERIODS,
+                ])
             </div>
 
             <div class="flex flex-wrap gap-3">

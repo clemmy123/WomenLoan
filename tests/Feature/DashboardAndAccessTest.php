@@ -245,6 +245,26 @@ class DashboardAndAccessTest extends TestCase
             ->assertDontSee('>WL000012<', false);
     }
 
+    public function test_approved_stat_includes_disbursed_loans(): void
+    {
+        $ministry = \App\Models\User::where('email', 'ministry@wdf.go.tz')->firstOrFail();
+        DashboardStatsService::flushForUser($ministry->id);
+
+        $this->actingAs($ministry);
+
+        $stats = app(DashboardStatsService::class)->forUser();
+
+        $this->assertGreaterThanOrEqual($stats['disbursed'], $stats['approved_total']);
+        $this->assertSame(
+            $stats['approved'] + $stats['ready_for_disbursement'] + $stats['disbursed'],
+            $stats['approved_total']
+        );
+
+        $this->get(route('dashboard', ['recent' => 'approved']))
+            ->assertOk()
+            ->assertSee('WL000012', false);
+    }
+
     public function test_dashboard_shows_current_fiscal_year_label(): void
     {
         $currentFy = app(DashboardStatsService::class)->currentFiscalYearKey();

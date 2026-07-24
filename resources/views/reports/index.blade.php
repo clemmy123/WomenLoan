@@ -5,6 +5,17 @@
 @section('content')
 @php
     $f = $filters;
+    $reportFiltersBoot = [
+        'selectedFiscalYear' => (string) ($f['fiscal_year'] ?? ''),
+        'defaultFiscalYear' => (string) ($f['fiscal_year'] ?? 'all'),
+        'selectedPeriod' => (string) ($f['period'] ?? 'annually'),
+        'selectedDateFrom' => (string) (($f['use_custom_dates'] ?? null) === '1' ? ($f['date_from'] ?? '') : ''),
+        'selectedDateTo' => (string) (($f['use_custom_dates'] ?? null) === '1' ? ($f['date_to'] ?? '') : ''),
+        'useCustomDates' => (($f['use_custom_dates'] ?? null) === '1') ? '1' : '',
+        'filtersOpen' => false,
+        'revealTimeFilters' => (bool) $filtersApplied,
+        'hasSort' => false,
+    ];
 @endphp
 <div class="page">
     <div class="page-header">
@@ -27,7 +38,7 @@
         method="GET"
         action="{{ route('reports.index') }}"
         class="app-card app-card-padded space-y-5"
-        x-data="{ filtersOpen: false }"
+        x-data="reportFilters(@js($reportFiltersBoot))"
     >
         @include('partials.filters-toggle-button', [
             'title' => __('reports.filters'),
@@ -46,39 +57,20 @@
             x-transition:leave-end="opacity-0 -translate-y-1"
             class="space-y-5"
         >
-            <div class="wizard-form-grid wizard-form-grid-2 lg:grid-cols-4">
-                <div class="wizard-field">
-                    <label class="app-label" for="fiscal_year">{{ __('reports.fiscal_year') }}</label>
-                    <select name="fiscal_year" id="fiscal_year" class="app-select" onchange="document.getElementById('use_custom_dates').value=''">
-                        @foreach($fiscalYearOptions as $fyKey => $fyLabel)
-                            <option value="{{ $fyKey }}" @selected(($f['fiscal_year'] ?? '') === $fyKey)>{{ $fyLabel }}</option>
-                        @endforeach
-                    </select>
-                </div>
-                <div class="wizard-field">
-                    <label class="app-label" for="period">{{ __('reports.period') }}</label>
-                    <select name="period" id="period" class="app-select" onchange="document.getElementById('use_custom_dates').value=''">
-                        @foreach(\App\Services\ReportService::PERIODS as $period)
-                            <option value="{{ $period }}" @selected(($f['period'] ?? '') === $period)>{{ __('reports.period_'.$period) }}</option>
-                        @endforeach
-                    </select>
-                </div>
-                <div class="wizard-field">
-                    <label class="app-label" for="date_from">{{ __('reports.date_from') }}</label>
-                    <input type="date" name="date_from" id="date_from" value="{{ $f['date_from'] ?? '' }}" class="app-input" onchange="document.getElementById('use_custom_dates').value='1'">
-                </div>
-                <div class="wizard-field">
-                    <label class="app-label" for="date_to">{{ __('reports.date_to') }}</label>
-                    <input type="date" name="date_to" id="date_to" value="{{ $f['date_to'] ?? '' }}" class="app-input" onchange="document.getElementById('use_custom_dates').value='1'">
-                    <input type="hidden" name="use_custom_dates" id="use_custom_dates" value="{{ ($f['use_custom_dates'] ?? null) === '1' ? '1' : '' }}">
-                </div>
+            <div class="wizard-form-grid wizard-form-grid-2 lg:grid-cols-3">
+                @include('partials.report-time-filters', [
+                    'langPrefix' => 'reports',
+                    'fiscalYearOptions' => $fiscalYearOptions,
+                    'periods' => \App\Services\ReportService::PERIODS,
+                    'showSort' => false,
+                ])
             </div>
 
-            <div class="wizard-form-grid wizard-form-grid-2 lg:grid-cols-4">
+            <div class="wizard-form-grid wizard-form-grid-2 lg:grid-cols-4" x-show="showPeriod" x-cloak>
                 <div class="wizard-field">
                     <label class="app-label" for="marital_status">{{ __('reports.marital_status') }}</label>
                     <select name="marital_status" id="marital_status" class="app-select">
-                        <option value="">{{ __('reports.all') }}</option>
+                        <option value="" @selected(empty($f['marital_status']))>{{ __('reports.all') }}</option>
                         @foreach(\App\Models\Applicant::MARITAL_STATUSES as $status)
                             <option value="{{ $status }}" @selected(($f['marital_status'] ?? '') === $status)>{{ __('applicants.marital_statuses.'.$status) }}</option>
                         @endforeach
@@ -87,7 +79,7 @@
                 <div class="wizard-field">
                     <label class="app-label" for="has_disability">{{ __('reports.disability') }}</label>
                     <select name="has_disability" id="has_disability" class="app-select">
-                        <option value="">{{ __('reports.all') }}</option>
+                        <option value="" @selected(! isset($f['has_disability']) || $f['has_disability'] === '' || $f['has_disability'] === null)>{{ __('reports.all') }}</option>
                         <option value="1" @selected(($f['has_disability'] ?? '') === '1' || ($f['has_disability'] ?? null) === 1)>{{ __('reports.with_disability') }}</option>
                         <option value="0" @selected(($f['has_disability'] ?? '') === '0' || ($f['has_disability'] ?? null) === 0)>{{ __('reports.without_disability') }}</option>
                     </select>

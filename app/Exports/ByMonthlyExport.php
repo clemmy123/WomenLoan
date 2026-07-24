@@ -19,17 +19,18 @@ class ByMonthlyExport implements FromArray, WithTitle
     {
         $lines = [
             [__('by_monthly_reports.title')],
+            [__('by_monthly_reports.year'), (string) ($this->filters['year'] ?? '')],
             [__('by_monthly_reports.month'), $this->monthLabel ?: __('by_monthly_reports.all_months')],
-            [__('by_monthly_reports.date_from'), $this->filters['date_from'] ?? ''],
-            [__('by_monthly_reports.date_to'), $this->filters['date_to'] ?? ''],
             [],
             [__('by_monthly_reports.summary')],
+            [__('by_monthly_reports.loan_count'), $this->summary['count'] ?? 0],
             [__('by_monthly_reports.total_disbursed'), $this->summary['total_disbursed']],
             [__('by_monthly_reports.people_financed'), ($this->summary['individual_count'] ?? 0) + ($this->summary['group_members_count'] ?? 0)],
             [__('by_monthly_reports.group_count'), $this->summary['group_count']],
             [__('by_monthly_reports.total_outstanding'), $this->summary['total_outstanding']],
             [__('by_monthly_reports.total_paid'), $this->summary['total_paid']],
             [],
+            [__('by_monthly_reports.detail_table')],
             [
                 __('by_monthly_reports.col_name'),
                 __('dashboard.track_id'),

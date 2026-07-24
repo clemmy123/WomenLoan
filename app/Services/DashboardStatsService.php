@@ -76,7 +76,7 @@ class DashboardStatsService
 
     protected function cacheKeyPrefix(string $prefix): string
     {
-        return "{$prefix}.v3.".Auth::id().'.'.$this->currentFiscalYearKey();
+        return "{$prefix}.v4.".Auth::id().'.'.$this->currentFiscalYearKey();
     }
 
     public function forUser(): array
@@ -89,6 +89,7 @@ class DashboardStatsService
             $row = (clone $query)->selectRaw('COUNT(*) as total')
                 ->selectRaw("SUM(CASE WHEN status IN ('pending','received','in_review','awaiting_applicant') THEN 1 ELSE 0 END) as pending")
                 ->selectRaw("SUM(CASE WHEN status = 'approved' THEN 1 ELSE 0 END) as approved")
+                ->selectRaw("SUM(CASE WHEN status IN ('approved','ready_for_disbursement','disbursed') THEN 1 ELSE 0 END) as approved_total")
                 ->selectRaw("SUM(CASE WHEN status = 'ready_for_disbursement' THEN 1 ELSE 0 END) as ready_for_disbursement")
                 ->selectRaw("SUM(CASE WHEN status = 'disbursed' THEN 1 ELSE 0 END) as disbursed")
                 ->first();
@@ -103,7 +104,10 @@ class DashboardStatsService
                 'total' => (int) ($row->total ?? 0),
                 'my_loans' => $user->hasRole('applicant') ? (int) ($row->total ?? 0) : 0,
                 'pending' => (int) ($row->pending ?? 0),
+                // Awaiting assignment / currently approved only (chief).
                 'approved' => (int) ($row->approved ?? 0),
+                // Cumulative approved path, including ready + disbursed (general dashboards).
+                'approved_total' => (int) ($row->approved_total ?? 0),
                 'ready_for_disbursement' => (int) ($row->ready_for_disbursement ?? 0),
                 'disbursed' => (int) ($row->disbursed ?? 0),
                 'total_amount' => (float) $totalAmount,
@@ -165,7 +169,10 @@ class DashboardStatsService
     {
         match ($filter) {
             'pending' => $query->whereIn('status', ['pending', 'received', 'in_review', 'awaiting_applicant']),
-            'approved' => $query->where('status', 'approved'),
+            // Chief: awaiting assignment only. Others: whole approved path incl. disbursed.
+            'approved' => Auth::user()?->hasRole('chief')
+                ? $query->where('status', 'approved')
+                : $query->whereIn('status', ['approved', 'ready_for_disbursement', 'disbursed']),
             'ready_for_disbursement' => $query->where('status', 'ready_for_disbursement'),
             'disbursed' => $query->where('status', 'disbursed'),
             default => null,
@@ -299,6 +306,7 @@ class DashboardStatsService
         $prefixes = ['stats.user', 'stats.monthly.apps', 'stats.monthly.disb', 'stats.pipeline', 'stats.status', 'stats.region'];
 
         foreach ($prefixes as $prefix) {
+            Cache::forget("{$prefix}.v4.{$userId}.{$fyKey}");
             Cache::forget("{$prefix}.v3.{$userId}.{$fyKey}");
             Cache::forget("{$prefix}.v2.{$userId}.{$fyKey}");
             Cache::forget("{$prefix}.{$userId}.{$fyKey}");

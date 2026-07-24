@@ -100,7 +100,7 @@
                         <p class="mt-3 text-xs text-slate-500 dark:text-zinc-400">
                             {{ $kmApproval->user?->name ?? $loan->approved_by }}
                             @if($kmApproval->created_at)
-                                — {{ $kmApproval->created_at->translatedFormat('d M Y H:i') }}
+                                — {{ format_app_datetime($kmApproval->created_at) }}
                             @endif
                         </p>
                     @else
@@ -116,7 +116,7 @@
                         <p class="mt-3 text-xs text-slate-500 dark:text-zinc-400">
                             {{ $chiefAssignment->user?->name }}
                             @if($chiefAssignment->created_at)
-                                — {{ $chiefAssignment->created_at->translatedFormat('d M Y H:i') }}
+                                — {{ format_app_datetime($chiefAssignment->created_at) }}
                             @endif
                         </p>
                     @else
@@ -392,7 +392,7 @@
                             <div class="h-8 w-8 rounded-full bg-indigo-100 dark:bg-indigo-500/20 text-indigo-700 dark:text-indigo-300 flex items-center justify-center font-bold text-xs shrink-0">{{ $level->step_number }}</div>
                             <div class="min-w-0 flex-1">
                                 <p class="font-semibold text-slate-900 dark:text-white">{{ workflow_action_label($level->action_taken) }}</p>
-                                <p class="text-slate-500 dark:text-zinc-400 text-xs">{{ $level->user?->name }} — {{ $level->created_at->translatedFormat('d M Y H:i') }}</p>
+                                <p class="text-slate-500 dark:text-zinc-400 text-xs">{{ $level->user?->name }} — {{ format_app_datetime($level->created_at) }}</p>
                                 @if($level->proposed_amount)
                                     <p class="text-slate-600 dark:text-zinc-300 mt-1">{{ __('common.proposed') }}: {{ format_tzs($level->proposed_amount) }}</p>
                                 @endif

@@ -5,6 +5,16 @@
 @section('content')
 @php
     $f = $filters;
+    $reportFiltersBoot = [
+        'selectedPrimary' => (string) ($f['month'] ?? ''),
+        'filtersOpen' => false,
+        'revealTimeFilters' => (bool) $filtersApplied,
+        'primarySelectId' => 'month',
+        'hasFiscalYear' => false,
+        'hasPeriod' => false,
+        'hasDates' => false,
+        'hasSort' => false,
+    ];
 @endphp
 <div class="page">
     <div class="page-header">
@@ -29,7 +39,7 @@
         method="GET"
         action="{{ route('reports.by-monthly.index') }}"
         class="app-card app-card-padded space-y-5"
-        x-data="{ filtersOpen: false }"
+        x-data="reportFilters(@js($reportFiltersBoot))"
     >
         @include('partials.filters-toggle-button', [
             'title' => __('by_monthly_reports.filters'),
@@ -50,22 +60,46 @@
         >
             <div class="wizard-form-grid wizard-form-grid-2 lg:grid-cols-3">
                 <div class="wizard-field">
+                    <label class="app-label" for="report_year">{{ __('by_monthly_reports.year') }}</label>
+                    <input
+                        type="text"
+                        id="report_year"
+                        class="app-input"
+                        value="{{ $reportYear }}"
+                        readonly
+                        disabled
+                    >
+                </div>
+
+                <div class="wizard-field">
                     <label class="app-label" for="month">{{ __('by_monthly_reports.month') }}</label>
-                    <select name="month" id="month" class="app-select" onchange="document.getElementById('use_custom_dates').value=''">
-                        <option value="" @selected(empty($f['month']))>{{ __('by_monthly_reports.all_months') }}</option>
-                        @foreach($monthOptions as $value => $label)
-                            <option value="{{ $value }}" @selected((string) ($f['month'] ?? '') === (string) $value)>{{ $label }}</option>
-                        @endforeach
-                    </select>
-                </div>
-                <div class="wizard-field">
-                    <label class="app-label" for="date_from">{{ __('by_monthly_reports.date_from') }}</label>
-                    <input type="date" name="date_from" id="date_from" value="{{ ($f['use_custom_dates'] ?? null) === '1' ? ($f['date_from'] ?? '') : '' }}" class="app-input" onchange="document.getElementById('use_custom_dates').value='1'">
-                </div>
-                <div class="wizard-field">
-                    <label class="app-label" for="date_to">{{ __('by_monthly_reports.date_to') }}</label>
-                    <input type="date" name="date_to" id="date_to" value="{{ ($f['use_custom_dates'] ?? null) === '1' ? ($f['date_to'] ?? '') : '' }}" class="app-input" onchange="document.getElementById('use_custom_dates').value='1'">
-                    <input type="hidden" name="use_custom_dates" id="use_custom_dates" value="{{ ($f['use_custom_dates'] ?? null) === '1' ? '1' : '' }}">
+                    <div class="app-filter-control" :class="{ 'has-clear': selectedPrimary }">
+                        <select
+                            name="month"
+                            id="month"
+                            class="app-select"
+                            x-model="selectedPrimary"
+                            @change="onPrimaryChange()"
+                        >
+                            <option value="">{{ __('by_monthly_reports.all_months') }}</option>
+                            @foreach($monthOptions as $value => $label)
+                                <option value="{{ $value }}">{{ $label }}</option>
+                            @endforeach
+                        </select>
+                        <button
+                            type="button"
+                            class="app-filter-clear-inside"
+                            x-show="selectedPrimary"
+                            x-cloak
+                            @click.prevent="clearPrimaryValue()"
+                            title="{{ __('common.clear') }}"
+                            aria-label="{{ __('common.clear') }}"
+                        >
+                            <svg viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                                <path d="M6.28 5.22a.75.75 0 00-1.06 1.06L8.94 10l-3.72 3.72a.75.75 0 101.06 1.06L10 11.06l3.72 3.72a.75.75 0 101.06-1.06L11.06 10l3.72-3.72a.75.75 0 00-1.06-1.06L10 8.94 6.28 5.22z"/>
+                            </svg>
+                        </button>
+                    </div>
                 </div>
             </div>
 
@@ -93,10 +127,15 @@
             'title' => __('by_monthly_reports.summary'),
             'copy' => __('by_monthly_reports.summary_copy', [
                 'count' => number_format($summary['count']),
+                'year' => $reportYear,
             ]),
             'rate' => $collectionRate,
             'rateLabel' => __('reports.collection_rate', ['rate' => $collectionRate]),
             'metrics' => [
+                [
+                    'label' => __('by_monthly_reports.loan_count'),
+                    'value' => number_format($summary['count']),
+                ],
                 [
                     'label' => __('by_monthly_reports.total_disbursed'),
                     'value' => format_tzs($summary['total_disbursed']),

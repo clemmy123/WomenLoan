@@ -25,7 +25,7 @@
         &nbsp;|&nbsp;
         {{ __('audit.total_records') }}: {{ $rows->count() }}
         &nbsp;|&nbsp;
-        {{ __('reports.generated_at') }}: {{ now()->translatedFormat('d M Y H:i') }}
+        {{ __('reports.generated_at') }}: {{ format_app_datetime() }}
     </p>
 
     <table class="data">

@@ -40,7 +40,8 @@ class BySectorReportTest extends TestCase
         $response->assertSee(__('by_sector_reports.all_sectors'), false);
         $response->assertSee(__('by_sector_reports.detail_table'), false);
         $response->assertSee(__('by_sector_reports.col_name'), false);
-        $response->assertDontSee('name="fiscal_year"', false);
+        $response->assertSee('name="fiscal_year"', false);
+        $response->assertSee('name="sort"', false);
     }
 
     public function test_by_sector_filter_limits_to_selected_sector(): void

@@ -6,6 +6,7 @@ use App\Models\Loan;
 use App\Models\LoanPayment;
 use App\Models\Scopes\ApprovalLevelScope;
 use App\Support\FiscalYear;
+use Carbon\Carbon;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Collection;
@@ -37,6 +38,8 @@ class BySectorReportService
 
     public function normalizeFilters(array $input): array
     {
+        $fiscalYear = FiscalYear::normalize($input['fiscal_year'] ?? null);
+
         $period = $input['period'] ?? 'annually';
         if (! in_array($period, self::PERIODS, true)) {
             $period = 'annually';
@@ -61,18 +64,16 @@ class BySectorReportService
             && filled($customTo)
             && ($input['use_custom_dates'] ?? null) === '1';
 
-        if ($useCustomDates) {
-            $from = (string) $customFrom;
-            $to = (string) $customTo;
-            if ($from > $to) {
-                [$from, $to] = [$to, $from];
-            }
-        } else {
-            [$fyFrom, $fyTo] = FiscalYear::dateRange(FiscalYear::currentKey());
-            [$from, $to] = FiscalYear::periodRangeWithin($period, $fyFrom, $fyTo);
-        }
+        [$from, $to] = FiscalYear::resolveFilterDates(
+            $fiscalYear,
+            $period,
+            is_string($customFrom) ? $customFrom : null,
+            is_string($customTo) ? $customTo : null,
+            $useCustomDates,
+        );
 
         return $this->geo->clampGeoFilters([
+            'fiscal_year' => $fiscalYear,
             'period' => $period,
             'date_from' => $from,
             'date_to' => $to,
@@ -90,6 +91,17 @@ class BySectorReportService
     public function sectors(): Collection
     {
         return $this->businessSectors->sectors();
+    }
+
+    public function fiscalYearOptions(?Carbon $asOf = null): array
+    {
+        $options = FiscalYear::options($asOf, includeAll: true);
+
+        if (isset($options[FiscalYear::ALL_KEY])) {
+            $options[FiscalYear::ALL_KEY] = __('reports.all_years');
+        }
+
+        return $options;
     }
 
     public function sortOptions(): array

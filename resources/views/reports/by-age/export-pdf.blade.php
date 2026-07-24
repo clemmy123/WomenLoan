@@ -29,7 +29,7 @@
         &nbsp;|&nbsp;
         {{ __('by_age_reports.age_max') }}: {{ $filters['age_max'] ?? '—' }}
         &nbsp;|&nbsp;
-        {{ __('by_age_reports.generated_at') }}: {{ now()->translatedFormat('d M Y H:i') }}
+        {{ __('by_age_reports.generated_at') }}: {{ format_app_datetime() }}
     </x-report-pdf-meta-bar>
 
     <table class="summary">

@@ -135,7 +135,23 @@ class UserProvisioningService
             $payload['temporary_password_expires_at'] = null;
         }
 
+        $wasActive = (bool) $user->is_active;
         $user->update($payload);
+
+        if ($wasActive && ! $isActive) {
+            $user->forceFill([
+                'deactivation_reason' => trim((string) ($validated['deactivation_reason'] ?? '')),
+                'deactivated_at' => now(),
+                'deactivated_by' => auth()->id(),
+            ])->save();
+        } elseif (! $wasActive && $isActive) {
+            $user->forceFill([
+                'deactivation_reason' => null,
+                'deactivated_at' => null,
+                'deactivated_by' => null,
+            ])->save();
+        }
+
         $user->syncZone($validated);
         $user->syncRoles($this->sanitizeRoles($validated['roles'] ?? []));
 
@@ -151,6 +167,30 @@ class UserProvisioningService
         $user->syncRoles($this->sanitizeRoles($roles));
 
         return $user->fresh('roles');
+    }
+
+    public function deactivate(User $user, string $reason, User $actor): User
+    {
+        $user->forceFill([
+            'is_active' => false,
+            'deactivation_reason' => trim($reason),
+            'deactivated_at' => now(),
+            'deactivated_by' => $actor->id,
+        ])->save();
+
+        return $user->fresh();
+    }
+
+    public function activate(User $user): User
+    {
+        $user->forceFill([
+            'is_active' => true,
+            'deactivation_reason' => null,
+            'deactivated_at' => null,
+            'deactivated_by' => null,
+        ])->save();
+
+        return $user->fresh();
     }
 
     public function formOptions(): array

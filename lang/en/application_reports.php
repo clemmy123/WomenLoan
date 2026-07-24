@@ -7,6 +7,7 @@ return [
     'show_filters' => 'Show Filters',
     'hide_filters' => 'Hide Filters',
     'apply_filters' => 'Apply Filters',
+    'apply_filters_prompt' => 'No data is shown yet. Apply filters to view application reports.',
     'reset_filters' => 'Reset',
     'fiscal_year' => 'Financial year',
     'period' => 'Period',

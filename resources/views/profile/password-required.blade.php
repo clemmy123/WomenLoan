@@ -14,7 +14,7 @@
     <div class="app-card app-card-padded max-w-lg">
         @if ($expiresAt)
             <p class="mb-4 text-sm text-amber-700 dark:text-amber-300">
-                {{ __('auth.temporary_password_deadline', ['time' => $expiresAt->timezone(config('app.timezone'))->format('H:i:s')]) }}
+                {{ __('auth.temporary_password_deadline', ['time' => format_app_datetime($expiresAt, withSeconds: true)]) }}
             </p>
         @endif
 

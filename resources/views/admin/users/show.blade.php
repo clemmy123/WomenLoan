@@ -4,16 +4,7 @@
 
 @section('content')
 @php
-    use App\Models\Council;
-    use App\Models\Region;
-    use App\Models\Ward;
-
-    $zoneType = match ($user->zoneable_type) {
-        Region::class => __('admin.zone_region'),
-        Council::class => __('admin.zone_council'),
-        Ward::class => __('admin.zone_ward'),
-        default => __('admin.zone_none'),
-    };
+    $zoneType = \App\Support\StaffZone::typeLabelForUser($user);
     $zoneName = $user->zoneable?->name ?? '—';
 @endphp
 
@@ -59,6 +50,30 @@
                     </dd>
                 </div>
             </dl>
+
+            @if (! $user->is_active && can_view_deactivation_reason() && filled($user->deactivation_reason))
+                <div class="rounded-xl border border-amber-200 bg-amber-50 dark:bg-amber-900/20 dark:border-amber-800 p-4 space-y-3">
+                    <h4 class="text-sm font-semibold text-amber-900 dark:text-amber-100">{{ __('admin.deactivation_details') }}</h4>
+                    <dl class="app-detail-list">
+                        <div>
+                            <dt>{{ __('admin.deactivation_reason') }}</dt>
+                            <dd class="whitespace-pre-wrap">{{ $user->deactivation_reason }}</dd>
+                        </div>
+                        @if ($user->deactivated_at)
+                            <div>
+                                <dt>{{ __('admin.deactivated_at') }}</dt>
+                                <dd>{{ format_app_datetime($user->deactivated_at) }}</dd>
+                            </div>
+                        @endif
+                        @if ($user->deactivatedBy)
+                            <div>
+                                <dt>{{ __('admin.deactivated_by') }}</dt>
+                                <dd>{{ $user->deactivatedBy->name }}</dd>
+                            </div>
+                        @endif
+                    </dl>
+                </div>
+            @endif
         </div>
 
         <div class="space-y-6">
@@ -90,7 +105,5 @@
             </div>
         </div>
     </div>
-
-    {{-- Actions zimewekwa kwenye page-header ili kuendana na standard ya UI --}}
 </div>
 @endsection

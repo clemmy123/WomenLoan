@@ -20,7 +20,7 @@
         <dl class="grid gap-4 sm:grid-cols-2">
             <div>
                 <dt class="text-xs font-semibold uppercase tracking-wide text-slate-500">{{ __('audit.when') }}</dt>
-                <dd class="mt-1 font-medium">{{ $activity->created_at?->timezone(config('app.timezone'))->format('d M Y, h:i:s A') }}</dd>
+                <dd class="mt-1 font-medium">{{ $activity->created_at ? format_app_datetime($activity->created_at, withSeconds: true) : '—' }}</dd>
             </div>
             <div>
                 <dt class="text-xs font-semibold uppercase tracking-wide text-slate-500">{{ __('audit.who') }}</dt>

@@ -5,6 +5,7 @@ namespace App\Services;
 use App\Models\Loan;
 use App\Models\LoanPayment;
 use App\Models\Scopes\ApprovalLevelScope;
+use Carbon\Carbon;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Collection;
@@ -25,12 +26,19 @@ class ByMonthlyReportService
 
     public function __construct(private GeoHierarchyService $geo) {}
 
+    public function currentYear(?Carbon $asOf = null): int
+    {
+        return (int) ($asOf ?? now())->year;
+    }
+
     public function normalizeFilters(array $input): array
     {
         $sort = $input['sort'] ?? 'newest';
         if (! in_array($sort, self::SORTS, true)) {
             $sort = 'newest';
         }
+
+        $year = $this->currentYear();
 
         $month = isset($input['month']) && $input['month'] !== ''
             ? (int) $input['month']
@@ -39,41 +47,43 @@ class ByMonthlyReportService
             $month = null;
         }
 
-        $customFrom = $input['date_from'] ?? null;
-        $customTo = $input['date_to'] ?? null;
-        $useCustomDates = filled($customFrom)
-            && filled($customTo)
-            && ($input['use_custom_dates'] ?? null) === '1';
-
-        $from = null;
-        $to = null;
-
-        if ($useCustomDates) {
-            $from = (string) $customFrom;
-            $to = (string) $customTo;
-            if ($from > $to) {
-                [$from, $to] = [$to, $from];
-            }
+        // Only months that belong to the locked calendar year (Jan … current month).
+        $allowedMonths = array_keys($this->monthOptions());
+        if ($month !== null && ! in_array($month, $allowedMonths, true)) {
+            $month = null;
         }
 
         return $this->geo->clampGeoFilters([
+            'year' => $year,
             'month' => $month,
-            'date_from' => $from,
-            'date_to' => $to,
             'region_id' => null,
             'district_id' => null,
             'council_id' => null,
             'ward_id' => null,
             'street_id' => null,
             'sort' => $sort,
-            'use_custom_dates' => $useCustomDates ? '1' : null,
         ]);
     }
 
-    public function monthOptions(): array
+    /**
+     * Months of the locked calendar year, from January through the current month.
+     *
+     * @return array<int, string>
+     */
+    public function monthOptions(?Carbon $asOf = null): array
     {
-        return collect(self::MONTHS)
+        $asOf ??= now();
+        $lastMonth = (int) $asOf->month;
+
+        return collect(range(1, $lastMonth))
             ->mapWithKeys(fn (int $month) => [$month => __('by_monthly_reports.month_'.$month)])
+            ->all();
+    }
+
+    public function sortOptions(): array
+    {
+        return collect(self::SORTS)
+            ->mapWithKeys(fn (string $sort) => [$sort => __('by_monthly_reports.sort_'.$sort)])
             ->all();
     }
 
@@ -149,36 +159,26 @@ class ByMonthlyReportService
             ->where('status', 'disbursed')
             ->where('disbursed_amount', '>', 0);
 
-        if ($filters['date_from']) {
-            $query->where(function (Builder $q) use ($filters) {
-                $q->whereDate('date_issued', '>=', $filters['date_from'])
-                    ->orWhere(function (Builder $inner) use ($filters) {
-                        $inner->whereNull('date_issued')
-                            ->whereDate('updated_at', '>=', $filters['date_from']);
-                    });
-            });
-        }
+        $year = (int) ($filters['year'] ?? $this->currentYear());
+        $month = ! empty($filters['month']) ? (int) $filters['month'] : null;
 
-        if ($filters['date_to']) {
-            $query->where(function (Builder $q) use ($filters) {
-                $q->whereDate('date_issued', '<=', $filters['date_to'])
-                    ->orWhere(function (Builder $inner) use ($filters) {
-                        $inner->whereNull('date_issued')
-                            ->whereDate('updated_at', '<=', $filters['date_to']);
-                    });
-            });
-        }
+        $query->where(function (Builder $q) use ($year, $month) {
+            $q->where(function (Builder $issued) use ($year, $month) {
+                $issued->whereNotNull('date_issued')
+                    ->whereYear('date_issued', $year);
 
-        if (! empty($filters['month']) && empty($filters['use_custom_dates'])) {
-            $month = (int) $filters['month'];
-            $query->where(function (Builder $q) use ($month) {
-                $q->whereMonth('date_issued', $month)
-                    ->orWhere(function (Builder $inner) use ($month) {
-                        $inner->whereNull('date_issued')
-                            ->whereMonth('updated_at', $month);
-                    });
+                if ($month) {
+                    $issued->whereMonth('date_issued', $month);
+                }
+            })->orWhere(function (Builder $fallback) use ($year, $month) {
+                $fallback->whereNull('date_issued')
+                    ->whereYear('updated_at', $year);
+
+                if ($month) {
+                    $fallback->whereMonth('updated_at', $month);
+                }
             });
-        }
+        });
 
         return $query;
     }

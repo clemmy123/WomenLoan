@@ -105,4 +105,41 @@ class ByRegionReportTest extends TestCase
         $this->assertCount($regionCount, $regions);
         $this->assertGreaterThan(1, $regionCount);
     }
+
+    public function test_by_region_accepts_cascading_geo_filters(): void
+    {
+        $ward = Ward::where('name', 'Tambukareli')->firstOrFail();
+        $ward->loadMissing('council.district.region');
+
+        $filters = app(ByRegionReportService::class)->normalizeFilters([
+            'fiscal_year' => 'all',
+            'period' => 'annually',
+            'region_id' => $ward->council->district->region_id,
+            'district_id' => $ward->council->district_id,
+            'council_id' => $ward->council_id,
+            'ward_id' => $ward->id,
+        ]);
+
+        $this->assertSame((string) $ward->council->district->region_id, (string) $filters['region_id']);
+        $this->assertSame((string) $ward->council->district_id, (string) $filters['district_id']);
+        $this->assertSame((string) $ward->council_id, (string) $filters['council_id']);
+        $this->assertSame((string) $ward->id, (string) $filters['ward_id']);
+    }
+
+    public function test_by_region_clears_child_geo_when_region_is_all(): void
+    {
+        $filters = app(ByRegionReportService::class)->normalizeFilters([
+            'fiscal_year' => 'all',
+            'period' => 'annually',
+            'region_id' => '',
+            'district_id' => '99',
+            'council_id' => '88',
+            'ward_id' => '77',
+        ]);
+
+        $this->assertEmpty($filters['region_id']);
+        $this->assertEmpty($filters['district_id']);
+        $this->assertEmpty($filters['council_id']);
+        $this->assertEmpty($filters['ward_id']);
+    }
 }

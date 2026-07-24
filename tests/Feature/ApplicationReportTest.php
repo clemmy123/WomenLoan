@@ -15,6 +15,17 @@ class ApplicationReportTest extends TestCase
         $this->seedApplication();
     }
 
+    public function test_application_reports_wait_for_filters_before_loading_data(): void
+    {
+        $response = $this->actingAsRole('ministry@wdf.go.tz')
+            ->get(route('reports.applications.index'));
+
+        $response->assertOk();
+        $response->assertSee(__('application_reports.apply_filters_prompt'), false);
+        $response->assertDontSee(__('application_reports.detail_table'), false);
+        $response->assertDontSee(__('application_reports.export_excel'), false);
+    }
+
     public function test_ministry_can_view_application_reports_with_filters(): void
     {
         $response = $this->actingAsRole('ministry@wdf.go.tz')
@@ -28,6 +39,7 @@ class ApplicationReportTest extends TestCase
         $response->assertSee(__('reports.fiscal_year'), false);
         $response->assertSee(__('application_reports.all_statuses'), false);
         $response->assertSee(__('application_reports.detail_table'), false);
+        $response->assertDontSee(__('application_reports.apply_filters_prompt'), false);
     }
 
     public function test_application_reports_table_shows_required_columns(): void

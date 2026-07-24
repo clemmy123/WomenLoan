@@ -1,5 +1,7 @@
 <?php
 
+require_once __DIR__.'/DateTimeHelper.php';
+
 if (! function_exists('format_tzs')) {
     function format_tzs($amount): string
     {
@@ -36,6 +38,6 @@ if (! function_exists('format_payment_datetime')) {
             return '—';
         }
 
-        return \Illuminate\Support\Carbon::parse($value)->translatedFormat('d M Y, h:i:s A');
+        return format_app_datetime($value, withSeconds: true);
     }
 }

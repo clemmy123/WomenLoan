@@ -27,14 +27,87 @@ class AdminUserStatusAndPasswordPermissionsTest extends TestCase
                 'password' => 'NewTempPass1!',
                 'password_confirmation' => 'NewTempPass1!',
                 'is_active' => '0',
+                'deactivation_reason' => 'Left the ministry temporarily',
             ]))
-            ->assertRedirect(route('admin.users.index'));
+            ->assertRedirect(route('admin.users.inactive'));
 
         $target->refresh();
 
         $this->assertFalse($target->is_active);
+        $this->assertSame('Left the ministry temporarily', $target->deactivation_reason);
         $this->assertTrue($target->must_change_password);
         $this->assertTrue(Hash::check('NewTempPass1!', $target->password));
+    }
+
+    public function test_admin_can_deactivate_user_via_action_with_reason(): void
+    {
+        $target = User::where('email', 'accountant1@wdf.go.tz')->firstOrFail();
+
+        $this->actingAsRole('admin@wdf.go.tz')
+            ->post(route('admin.users.deactivate', $target), [
+                'deactivation_reason' => 'Contract ended after review',
+            ])
+            ->assertRedirect(route('admin.users.inactive'));
+
+        $target->refresh();
+
+        $this->assertFalse($target->is_active);
+        $this->assertSame('Contract ended after review', $target->deactivation_reason);
+        $this->assertNotNull($target->deactivated_at);
+        $this->assertNotNull($target->deactivated_by);
+    }
+
+    public function test_deactivate_requires_reason(): void
+    {
+        $target = User::where('email', 'accountant1@wdf.go.tz')->firstOrFail();
+
+        $this->actingAsRole('admin@wdf.go.tz')
+            ->from(route('admin.users.index'))
+            ->post(route('admin.users.deactivate', $target), [
+                'deactivation_reason' => '',
+            ])
+            ->assertRedirect(route('admin.users.index'))
+            ->assertSessionHasErrors('deactivation_reason');
+
+        $this->assertTrue($target->fresh()->is_active);
+    }
+
+    public function test_admin_can_activate_user_and_clear_reason(): void
+    {
+        $target = User::where('email', 'accountant1@wdf.go.tz')->firstOrFail();
+        $target->forceFill([
+            'is_active' => false,
+            'deactivation_reason' => 'Temporary leave',
+            'deactivated_at' => now(),
+            'deactivated_by' => User::where('email', 'admin@wdf.go.tz')->value('id'),
+        ])->save();
+
+        $this->actingAsRole('admin@wdf.go.tz')
+            ->post(route('admin.users.activate', $target))
+            ->assertRedirect(route('admin.users.index'));
+
+        $target->refresh();
+
+        $this->assertTrue($target->is_active);
+        $this->assertNull($target->deactivation_reason);
+        $this->assertNull($target->deactivated_at);
+        $this->assertNull($target->deactivated_by);
+    }
+
+    public function test_deactivation_reason_visible_on_show_for_admin(): void
+    {
+        $target = User::where('email', 'accountant1@wdf.go.tz')->firstOrFail();
+        $target->forceFill([
+            'is_active' => false,
+            'deactivation_reason' => 'Admin-only reason comment',
+            'deactivated_at' => now(),
+        ])->save();
+
+        $this->actingAsRole('admin@wdf.go.tz')
+            ->get(route('admin.users.show', $target))
+            ->assertOk()
+            ->assertSee('Admin-only reason comment', false)
+            ->assertSee(__('admin.deactivation_details'), false);
     }
 
     public function test_user_without_reset_permission_cannot_change_password(): void

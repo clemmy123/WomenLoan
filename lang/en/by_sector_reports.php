@@ -11,6 +11,7 @@ return [
     'apply_filters_prompt' => 'No data is shown yet. Apply filters to view statistics and reports.',
     'sector' => 'Sector',
     'all_sectors' => 'All sectors',
+    'fiscal_year' => 'Financial year',
     'period' => 'Period',
     'date_from' => 'From Date',
     'date_to' => 'To Date',

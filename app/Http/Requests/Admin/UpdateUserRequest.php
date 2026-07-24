@@ -52,6 +52,7 @@ class UpdateUserRequest extends FormRequest
             'zone_type' => 'nullable|in:region,council,ward',
             'zone_id' => 'nullable|integer',
             'is_active' => 'boolean',
+            'deactivation_reason' => ['nullable', 'string', 'min:5', 'max:1000'],
             'unlock_login' => 'boolean',
         ];
     }
@@ -87,6 +88,12 @@ class UpdateUserRequest extends FormRequest
 
             if (! $desired && $target->id === $actor->id) {
                 $validator->errors()->add('is_active', __('messages.cannot_deactivate_self'));
+            }
+
+            if (! $desired && ! $this->filled('deactivation_reason')) {
+                $validator->errors()->add('deactivation_reason', __('validation.required', [
+                    'attribute' => __('admin.deactivation_reason'),
+                ]));
             }
         });
     }

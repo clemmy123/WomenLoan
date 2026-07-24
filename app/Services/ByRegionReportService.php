@@ -61,16 +61,22 @@ class ByRegionReportService
             $useCustomDates,
         );
 
+        $regionId = filled($input['region_id'] ?? null) ? $input['region_id'] : null;
+        $districtId = $regionId && filled($input['district_id'] ?? null) ? $input['district_id'] : null;
+        $councilId = $districtId && filled($input['council_id'] ?? null) ? $input['council_id'] : null;
+        $wardId = $councilId && filled($input['ward_id'] ?? null) ? $input['ward_id'] : null;
+        $streetId = $wardId && filled($input['street_id'] ?? null) ? $input['street_id'] : null;
+
         return $this->geo->clampGeoFilters([
             'fiscal_year' => $fiscalYear,
             'period' => $period,
             'date_from' => $from,
             'date_to' => $to,
-            'region_id' => $input['region_id'] ?? null,
-            'district_id' => null,
-            'council_id' => null,
-            'ward_id' => null,
-            'street_id' => null,
+            'region_id' => $regionId,
+            'district_id' => $districtId,
+            'council_id' => $councilId,
+            'ward_id' => $wardId,
+            'street_id' => $streetId,
             'sort' => $sort,
             'use_custom_dates' => $useCustomDates ? '1' : null,
         ]);
@@ -193,6 +199,22 @@ class ByRegionReportService
         if (! empty($filters['region_id'])) {
             $query->whereHas('businessDetails', function (Builder $q) use ($filters) {
                 $q->where('region_id', $filters['region_id']);
+
+                if (! empty($filters['district_id'])) {
+                    $q->where('district_id', $filters['district_id']);
+                }
+
+                if (! empty($filters['council_id'])) {
+                    $q->where('council_id', $filters['council_id']);
+                }
+
+                if (! empty($filters['ward_id'])) {
+                    $q->where('ward_id', $filters['ward_id']);
+                }
+
+                if (! empty($filters['street_id'])) {
+                    $q->where('street_id', $filters['street_id']);
+                }
             });
         }
 

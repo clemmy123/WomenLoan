@@ -118,3 +118,27 @@ if (! function_exists('validation_attribute_label')) {
             : str_replace('_', ' ', $field);
     }
 }
+
+if (! function_exists('can_view_deactivation_reason')) {
+    /**
+     * Deactivation comments are visible only to users with administration permissions.
+     */
+    function can_view_deactivation_reason(?\App\Models\User $user = null): bool
+    {
+        $user ??= auth()->user();
+
+        if (! $user) {
+            return false;
+        }
+
+        $permissions = \App\Support\PermissionCatalog::groups()['administration']['permissions'] ?? [];
+
+        foreach ($permissions as $permission) {
+            if ($user->can($permission)) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+}

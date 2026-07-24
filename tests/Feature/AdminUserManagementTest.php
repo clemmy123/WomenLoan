@@ -126,7 +126,6 @@ class AdminUserManagementTest extends TestCase
             ->get(route('admin.users.index', [
                 'search' => 'Sarah',
                 'role' => 'accountant',
-                'status' => 'active',
             ]));
 
         $response->assertOk();
@@ -138,6 +137,7 @@ class AdminUserManagementTest extends TestCase
         $response->assertSee(e(role_label('cdo_ward')), false);
         $response->assertSee(__('admin.export_excel'), false);
         $response->assertSee(__('admin.export_pdf'), false);
+        $response->assertDontSee(__('admin.active_users'), false);
     }
 
     public function test_admin_can_export_users_excel_and_pdf(): void
@@ -145,7 +145,7 @@ class AdminUserManagementTest extends TestCase
         $this->actingAsRole('admin@wdf.go.tz')
             ->get(route('admin.users.export.excel', [
                 'role' => 'accountant',
-                'status' => 'active',
+                'list' => 'active',
             ]))
             ->assertOk()
             ->assertDownload();
@@ -153,7 +153,7 @@ class AdminUserManagementTest extends TestCase
         $this->actingAsRole('admin@wdf.go.tz')
             ->get(route('admin.users.export.pdf', [
                 'role' => 'accountant',
-                'status' => 'active',
+                'list' => 'active',
             ]))
             ->assertOk()
             ->assertDownload();
@@ -161,10 +161,27 @@ class AdminUserManagementTest extends TestCase
 
     public function test_users_export_excludes_applicants(): void
     {
-        $rows = app(\App\Services\UserProvisioningService::class)->exportRows();
+        $rows = app(\App\Services\UserProvisioningService::class)->exportRows(status: 'active');
 
         $this->assertTrue($rows->contains(fn (array $row) => $row['email'] === 'ward.cdo@wdf.go.tz'));
         $this->assertFalse($rows->contains(fn (array $row) => $row['email'] === 'applicant2@wdf.go.tz'));
+    }
+
+    public function test_active_list_hides_deactivated_users_and_inactive_list_shows_them(): void
+    {
+        $target = User::where('email', 'accountant1@wdf.go.tz')->firstOrFail();
+        $target->update(['is_active' => false]);
+
+        $this->actingAsRole('admin@wdf.go.tz')
+            ->get(route('admin.users.index'))
+            ->assertOk()
+            ->assertDontSee('accountant1@wdf.go.tz', false);
+
+        $this->actingAsRole('admin@wdf.go.tz')
+            ->get(route('admin.users.inactive'))
+            ->assertOk()
+            ->assertSee(__('admin.deactivated_users'), false)
+            ->assertSee('accountant1@wdf.go.tz', false);
     }
 
     public function test_admin_can_view_user_read_only(): void

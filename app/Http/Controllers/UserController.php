@@ -3,6 +3,8 @@
 namespace App\Http\Controllers;
 
 use App\Exports\UsersExport;
+use App\Http\Requests\Admin\ActivateUserRequest;
+use App\Http\Requests\Admin\DeactivateUserRequest;
 use App\Http\Requests\Admin\StoreUserRequest;
 use App\Http\Requests\Admin\UpdateUserRequest;
 use App\Http\Requests\Admin\UpdateUserRolesRequest;
@@ -20,22 +22,17 @@ class UserController extends Controller
 
     public function index(Request $request)
     {
-        [$search, $role, $status, $roleOptions] = $this->listFilters($request);
+        return $this->renderUsersList($request, 'active');
+    }
 
-        $users = $this->users->paginated($search, $role, $status);
-
-        return view('admin.users.index', [
-            'users' => $users,
-            'search' => $search ?? '',
-            'role' => $role ?? '',
-            'status' => $status ?? '',
-            'roleOptions' => $roleOptions,
-        ]);
+    public function inactive(Request $request)
+    {
+        return $this->renderUsersList($request, 'inactive');
     }
 
     public function exportExcel(Request $request): BinaryFileResponse
     {
-        [$search, $role, $status] = $this->listFilters($request);
+        [$search, $role, $status] = $this->listFilters($request, $this->forcedListStatus($request));
         $rows = $this->users->exportRows($search, $role, $status);
 
         return Excel::download(
@@ -50,7 +47,7 @@ class UserController extends Controller
 
     public function exportPdf(Request $request)
     {
-        [$search, $role, $status] = $this->listFilters($request);
+        [$search, $role, $status] = $this->listFilters($request, $this->forcedListStatus($request));
         $rows = $this->users->exportRows($search, $role, $status);
         $filters = [
             'search' => $search ?? '',
@@ -62,14 +59,41 @@ class UserController extends Controller
             ->download($this->users->exportFilename('pdf'));
     }
 
+    protected function renderUsersList(Request $request, string $listStatus)
+    {
+        [$search, $role, $status, $roleOptions] = $this->listFilters($request, $listStatus);
+
+        $users = $this->users->paginated($search, $role, $status);
+
+        return view('admin.users.index', [
+            'users' => $users,
+            'search' => $search ?? '',
+            'role' => $role ?? '',
+            'status' => $status,
+            'listStatus' => $listStatus,
+            'roleOptions' => $roleOptions,
+        ]);
+    }
+
+    protected function forcedListStatus(Request $request): string
+    {
+        $fromQuery = $request->string('list')->toString();
+
+        if (in_array($fromQuery, ['active', 'inactive'], true)) {
+            return $fromQuery;
+        }
+
+        return $request->routeIs('admin.users.inactive') ? 'inactive' : 'active';
+    }
+
     /**
-     * @return array{0: ?string, 1: ?string, 2: ?string, 3: array<string, string>}
+     * @return array{0: ?string, 1: ?string, 2: string, 3: array<string, string>}
      */
-    protected function listFilters(Request $request): array
+    protected function listFilters(Request $request, ?string $forcedStatus = null): array
     {
         $search = $request->string('search')->trim()->toString() ?: null;
         $role = $request->string('role')->trim()->toString() ?: null;
-        $status = $request->string('status')->toString() ?: null;
+        $status = $forcedStatus ?? $request->string('status')->toString() ?: null;
 
         $roles = Role::query()->orderBy('name')->get(['id', 'name']);
         $roleNames = $roles->pluck('name')->all();
@@ -83,7 +107,7 @@ class UserController extends Controller
         }
 
         if (! in_array($status, ['active', 'inactive'], true)) {
-            $status = null;
+            $status = 'active';
         }
 
         $roleOptions = ['' => __('admin.role_all')];
@@ -123,7 +147,7 @@ class UserController extends Controller
 
     public function show(User $user)
     {
-        $user->load(['roles', 'zoneable']);
+        $user->load(['roles', 'zoneable', 'deactivatedBy']);
 
         return view('admin.users.show', compact('user'));
     }
@@ -167,13 +191,46 @@ class UserController extends Controller
             $unlockLogin
         );
 
+        $user->refresh();
+
         $message = __('messages.user_updated');
         if ($unlockLogin) {
             $message = __('messages.user_updated_and_unlocked');
         }
 
-        return redirect()->route('admin.users.index')
+        return redirect()
+            ->route($user->is_active ? 'admin.users.index' : 'admin.users.inactive')
             ->with('success', $message);
+    }
+
+    public function deactivate(DeactivateUserRequest $request, User $user)
+    {
+        if (! $user->is_active) {
+            return redirect()
+                ->route('admin.users.inactive')
+                ->with('success', __('messages.user_already_deactivated'));
+        }
+
+        $this->users->deactivate($user, $request->validated('deactivation_reason'), $request->user());
+
+        return redirect()
+            ->route('admin.users.inactive')
+            ->with('success', __('messages.user_deactivated'));
+    }
+
+    public function activate(ActivateUserRequest $request, User $user)
+    {
+        if ($user->is_active) {
+            return redirect()
+                ->route('admin.users.index')
+                ->with('success', __('messages.user_already_active'));
+        }
+
+        $this->users->activate($user);
+
+        return redirect()
+            ->route('admin.users.index')
+            ->with('success', __('messages.user_activated'));
     }
 
     public function destroy(User $user)
@@ -182,9 +239,11 @@ class UserController extends Controller
             return back()->withErrors(['error' => __('messages.cannot_delete_self')]);
         }
 
+        $wasActive = (bool) $user->is_active;
         $user->delete();
 
-        return redirect()->route('admin.users.index')
+        return redirect()
+            ->route($wasActive ? 'admin.users.index' : 'admin.users.inactive')
             ->with('success', __('messages.user_deleted'));
     }
 

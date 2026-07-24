@@ -7,6 +7,7 @@ return [
     'show_filters' => 'Onyesha Vichujio',
     'hide_filters' => 'Ficha Vichujio',
     'apply_filters' => 'Tumia Vichujio',
+    'apply_filters_prompt' => 'Hakuna data inayoonyeshwa bado. Tumia vichujio kuona ripoti za maombi.',
     'reset_filters' => 'Weka Upya',
     'fiscal_year' => 'Mwaka wa fedha',
     'period' => 'Kipindi',

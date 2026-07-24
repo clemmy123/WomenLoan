@@ -14,6 +14,14 @@ use Illuminate\Support\Facades\Auth;
 
 class ByBankReportService
 {
+    public const PERIODS = [
+        'daily',
+        'weekly',
+        'monthly',
+        'quarterly',
+        'annually',
+    ];
+
     public const SORTS = [
         'newest',
         'oldest',
@@ -28,6 +36,11 @@ class ByBankReportService
     public function normalizeFilters(array $input): array
     {
         $fiscalYear = FiscalYear::normalize($input['fiscal_year'] ?? null);
+
+        $period = $input['period'] ?? 'annually';
+        if (! in_array($period, self::PERIODS, true)) {
+            $period = 'annually';
+        }
 
         $sort = $input['sort'] ?? 'newest';
         if (! in_array($sort, self::SORTS, true)) {
@@ -47,7 +60,7 @@ class ByBankReportService
 
         [$from, $to] = FiscalYear::resolveFilterDates(
             $fiscalYear,
-            'annually',
+            $period,
             is_string($customFrom) ? $customFrom : null,
             is_string($customTo) ? $customTo : null,
             $useCustomDates,
@@ -55,7 +68,7 @@ class ByBankReportService
 
         return $this->geo->clampGeoFilters([
             'fiscal_year' => $fiscalYear,
-            'period' => 'annually',
+            'period' => $period,
             'date_from' => $from,
             'date_to' => $to,
             'bank_name' => $bankName,
@@ -86,6 +99,13 @@ class ByBankReportService
         }
 
         return $options;
+    }
+
+    public function sortOptions(): array
+    {
+        return collect(self::SORTS)
+            ->mapWithKeys(fn (string $sort) => [$sort => __('by_bank_reports.sort_'.$sort)])
+            ->all();
     }
 
     public function summary(array $filters): array

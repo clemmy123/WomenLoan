@@ -56,7 +56,8 @@ class AdminDashboardTest extends TestCase
 
     public function test_admin_overview_user_stats_exclude_applicants(): void
     {
-        $expectedStaff = User::query()
+        $expectedActiveStaff = User::query()
+            ->where('is_active', true)
             ->whereHas('roles', fn ($q) => $q->where('name', '!=', 'applicant'))
             ->count();
 
@@ -65,12 +66,13 @@ class AdminDashboardTest extends TestCase
             ->count();
 
         $this->assertGreaterThan(0, $applicantCount);
-        $this->assertGreaterThan(0, $expectedStaff);
+        $this->assertGreaterThan(0, $expectedActiveStaff);
 
         $summary = app(AdminDashboardService::class)->summary();
         $roles = app(AdminDashboardService::class)->usersByRole();
 
-        $this->assertSame($expectedStaff, $summary['total_users']);
+        $this->assertSame($expectedActiveStaff, $summary['total_users']);
+        $this->assertSame($expectedActiveStaff, $summary['active_users']);
         $this->assertSame(
             Role::query()->where('name', '!=', 'applicant')->count(),
             $summary['roles_count']
@@ -85,7 +87,38 @@ class AdminDashboardTest extends TestCase
             ->get(route('admin.dashboard'))
             ->assertOk()
             ->assertSee('id="adminRolesChart"', false)
-            ->assertSee((string) $expectedStaff, false);
+            ->assertSee((string) $expectedActiveStaff, false);
+    }
+
+    public function test_deactivated_staff_are_excluded_from_active_stats_until_reactivated(): void
+    {
+        $target = User::where('email', 'accountant1@wdf.go.tz')->firstOrFail();
+        $before = app(AdminDashboardService::class)->summary();
+
+        $target->update(['is_active' => false]);
+
+        $afterDeactivate = app(AdminDashboardService::class)->summary();
+        $this->assertSame($before['active_users'] - 1, $afterDeactivate['active_users']);
+        $this->assertSame($before['total_users'] - 1, $afterDeactivate['total_users']);
+        $this->assertSame($before['inactive_users'] + 1, $afterDeactivate['inactive_users']);
+
+        $accountantRoleCount = app(AdminDashboardService::class)
+            ->usersByRole()
+            ->firstWhere('role', 'accountant')['count'] ?? 0;
+
+        $this->assertSame(
+            User::query()
+                ->where('is_active', true)
+                ->role('accountant')
+                ->count(),
+            $accountantRoleCount
+        );
+
+        $target->update(['is_active' => true]);
+
+        $afterReactivate = app(AdminDashboardService::class)->summary();
+        $this->assertSame($before['active_users'], $afterReactivate['active_users']);
+        $this->assertSame($before['inactive_users'], $afterReactivate['inactive_users']);
     }
 
     public function test_admin_dashboard_audit_series_has_seven_days(): void

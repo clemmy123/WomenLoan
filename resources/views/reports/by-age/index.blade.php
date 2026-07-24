@@ -5,7 +5,30 @@
 @section('content')
 @php
     $f = $filters;
-    $regionLocked = ! empty(($geoBounds ?? [])['lock']['region_id'] ?? null);
+    $reportFiltersBoot = [
+        'selectedRegion' => (string) ($f['region_id'] ?? ''),
+        'selectedDistrict' => (string) ($f['district_id'] ?? ''),
+        'selectedCouncil' => (string) ($f['council_id'] ?? ''),
+        'selectedWard' => (string) ($f['ward_id'] ?? ''),
+        'selectedStreet' => (string) ($f['street_id'] ?? ''),
+        'selectedAgeMin' => (string) ($f['age_min'] ?? ''),
+        'selectedAgeMax' => (string) ($f['age_max'] ?? ''),
+        'selectedSort' => (string) ($f['sort'] ?? 'newest'),
+        'filtersOpen' => false,
+        'revealTimeFilters' => (bool) $filtersApplied,
+        'hasFiscalYear' => false,
+        'hasPeriod' => false,
+        'hasDates' => false,
+        'hasSort' => true,
+        'hasAge' => true,
+        'geoApi' => [
+            'districts' => url('/api/loans/districts'),
+            'councils' => url('/api/loans/councils'),
+            'wards' => url('/api/loans/wards'),
+            'streets' => url('/api/loans/streets'),
+        ],
+        'locks' => ($geoBounds ?? [])['lock'] ?? [],
+    ];
 @endphp
 <div class="page">
     <div class="page-header">
@@ -30,7 +53,7 @@
         method="GET"
         action="{{ route('reports.by-age.index') }}"
         class="app-card app-card-padded space-y-5"
-        x-data="{ filtersOpen: false }"
+        x-data="reportFilters(@js($reportFiltersBoot))"
     >
         @include('partials.filters-toggle-button', [
             'title' => __('by_age_reports.filters'),
@@ -50,33 +73,79 @@
             class="space-y-5"
         >
             <div class="wizard-form-grid wizard-form-grid-2 lg:grid-cols-3">
-                <div class="wizard-field">
-                    <label class="app-label" for="region_id">{{ __('by_age_reports.region') }}</label>
-                    @if($regionLocked)
-                        <input type="hidden" name="region_id" value="{{ ($geoBounds['lock']['region_id'] ?? $f['region_id']) }}">
-                    @endif
-                    <select
-                        name="region_id"
-                        id="region_id"
-                        class="app-select"
-                        @disabled($regionLocked)
-                    >
-                        @unless($regionLocked)
-                            <option value="" @selected(empty($f['region_id']))>{{ __('by_age_reports.all_regions') }}</option>
-                        @endunless
-                        @foreach($regions as $region)
-                            <option value="{{ $region->id }}" @selected((string) ($f['region_id'] ?? '') === (string) $region->id)>{{ $region->name }}</option>
-                        @endforeach
-                    </select>
-                </div>
-                <div class="wizard-field">
+                @include('partials.report-geo-filters', [
+                    'regions' => $regions,
+                    'geoBounds' => $geoBounds ?? [],
+                    'allowAllRegions' => true,
+                ])
+
+                <div class="wizard-field" x-show="showAgeMin" x-cloak>
                     <label class="app-label" for="age_min">{{ __('by_age_reports.age_min') }}</label>
-                    <input type="number" name="age_min" id="age_min" min="0" max="120" value="{{ $f['age_min'] ?? '' }}" class="app-input" placeholder="0">
+                    <div class="app-filter-control app-filter-control--input" :class="{ 'has-clear': selectedAgeMin }">
+                        <input
+                            type="number"
+                            name="age_min"
+                            id="age_min"
+                            min="0"
+                            max="120"
+                            class="app-input"
+                            placeholder="0"
+                            x-model="selectedAgeMin"
+                            @change="onAgeMinChange()"
+                        >
+                        <button
+                            type="button"
+                            class="app-filter-clear-inside"
+                            x-show="selectedAgeMin"
+                            x-cloak
+                            @click.prevent="clearAgeMin()"
+                            title="{{ __('common.clear') }}"
+                            aria-label="{{ __('common.clear') }}"
+                        >
+                            <svg viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                                <path d="M6.28 5.22a.75.75 0 00-1.06 1.06L8.94 10l-3.72 3.72a.75.75 0 101.06 1.06L10 11.06l3.72 3.72a.75.75 0 101.06-1.06L11.06 10l3.72-3.72a.75.75 0 00-1.06-1.06L10 8.94 6.28 5.22z"/>
+                            </svg>
+                        </button>
+                    </div>
                 </div>
-                <div class="wizard-field">
+
+                <div class="wizard-field" x-show="showAgeMax" x-cloak>
                     <label class="app-label" for="age_max">{{ __('by_age_reports.age_max') }}</label>
-                    <input type="number" name="age_max" id="age_max" min="0" max="120" value="{{ $f['age_max'] ?? '' }}" class="app-input" placeholder="120">
+                    <div class="app-filter-control app-filter-control--input" :class="{ 'has-clear': selectedAgeMax }">
+                        <input
+                            type="number"
+                            name="age_max"
+                            id="age_max"
+                            min="0"
+                            max="120"
+                            class="app-input"
+                            placeholder="120"
+                            x-model="selectedAgeMax"
+                            @change="onAgeMaxChange()"
+                        >
+                        <button
+                            type="button"
+                            class="app-filter-clear-inside"
+                            x-show="selectedAgeMax"
+                            x-cloak
+                            @click.prevent="clearAgeMax()"
+                            title="{{ __('common.clear') }}"
+                            aria-label="{{ __('common.clear') }}"
+                        >
+                            <svg viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                                <path d="M6.28 5.22a.75.75 0 00-1.06 1.06L8.94 10l-3.72 3.72a.75.75 0 101.06 1.06L10 11.06l3.72 3.72a.75.75 0 101.06-1.06L11.06 10l3.72-3.72a.75.75 0 00-1.06-1.06L10 8.94 6.28 5.22z"/>
+                            </svg>
+                        </button>
+                    </div>
                 </div>
+
+                @include('partials.report-time-filters', [
+                    'langPrefix' => 'by_age_reports',
+                    'showFiscalYear' => false,
+                    'showPeriod' => false,
+                    'showDates' => false,
+                    'sortOptions' => $sortOptions,
+                ])
             </div>
 
             <div class="flex flex-wrap gap-3">

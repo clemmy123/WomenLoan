@@ -31,7 +31,7 @@
         &nbsp;|&nbsp;
         {{ __('application_reports.date_to') }}: {{ $filters['date_to'] ?? '—' }}
         &nbsp;|&nbsp;
-        {{ __('reports.generated_at') }}: {{ now()->translatedFormat('d M Y H:i') }}
+        {{ __('reports.generated_at') }}: {{ format_app_datetime() }}
     </x-report-pdf-meta-bar>
 
     <table class="summary">

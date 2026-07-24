@@ -11,6 +11,7 @@ return [
     'apply_filters_prompt' => 'Hakuna data inayoonyeshwa bado. Tumia vichujio kuona takwimu na ripoti.',
     'sector' => 'Sekta',
     'all_sectors' => 'Sekta zote',
+    'fiscal_year' => 'Mwaka wa fedha',
     'period' => 'Kipindi',
     'date_from' => 'Tarehe ya Kuanzia',
     'date_to' => 'Tarehe ya Mwisho',

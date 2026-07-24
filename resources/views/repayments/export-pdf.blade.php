@@ -25,7 +25,7 @@
         &nbsp;|&nbsp;
         {{ __('common.search') }}: {{ $filters['search'] !== '' ? $filters['search'] : '—' }}
         &nbsp;|&nbsp;
-        {{ __('reports.generated_at') }}: {{ now()->translatedFormat('d M Y, h:i:s A') }}
+        {{ __('reports.generated_at') }}: {{ format_app_datetime(withSeconds: true) }}
     </p>
 
     <table class="summary">

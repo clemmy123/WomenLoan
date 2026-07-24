@@ -46,11 +46,11 @@ class ByAgeReportService
         return $this->geo->clampGeoFilters([
             'age_min' => $ageMin,
             'age_max' => $ageMax,
-            'region_id' => $input['region_id'] ?? null,
-            'district_id' => null,
-            'council_id' => null,
-            'ward_id' => null,
-            'street_id' => null,
+            'region_id' => filled($input['region_id'] ?? null) ? $input['region_id'] : null,
+            'district_id' => filled($input['district_id'] ?? null) ? $input['district_id'] : null,
+            'council_id' => filled($input['council_id'] ?? null) ? $input['council_id'] : null,
+            'ward_id' => filled($input['ward_id'] ?? null) ? $input['ward_id'] : null,
+            'street_id' => filled($input['street_id'] ?? null) ? $input['street_id'] : null,
             'sort' => $sort,
         ]);
     }
@@ -58,6 +58,13 @@ class ByAgeReportService
     public function regions()
     {
         return $this->geo->regionsForUser();
+    }
+
+    public function sortOptions(): array
+    {
+        return collect(self::SORTS)
+            ->mapWithKeys(fn (string $sort) => [$sort => __('by_age_reports.sort_'.$sort)])
+            ->all();
     }
 
     public function summary(array $filters): array
@@ -281,6 +288,22 @@ class ByAgeReportService
         if (! empty($filters['region_id'])) {
             $query->whereHas('businessDetails', function (Builder $q) use ($filters) {
                 $q->where('region_id', $filters['region_id']);
+
+                if (! empty($filters['district_id'])) {
+                    $q->where('district_id', $filters['district_id']);
+                }
+
+                if (! empty($filters['council_id'])) {
+                    $q->where('council_id', $filters['council_id']);
+                }
+
+                if (! empty($filters['ward_id'])) {
+                    $q->where('ward_id', $filters['ward_id']);
+                }
+
+                if (! empty($filters['street_id'])) {
+                    $q->where('street_id', $filters['street_id']);
+                }
             });
         }
 

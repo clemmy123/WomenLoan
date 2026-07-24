@@ -104,7 +104,7 @@
                 @forelse($activities as $activity)
                     <tr>
                         <td class="whitespace-nowrap text-sm text-slate-600 dark:text-zinc-300">
-                            {{ $activity->created_at?->timezone(config('app.timezone'))->format('d M Y, h:i:s A') }}
+                            {{ $activity->created_at ? format_app_datetime($activity->created_at, withSeconds: true) : '—' }}
                         </td>
                         <td class="text-sm">{{ $audits->causerLabel($activity) }}</td>
                         <td>

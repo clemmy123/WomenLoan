@@ -146,7 +146,7 @@
                 'url' => $statCardUrl('approved'),
                 'gradient' => 'violet',
                 'label' => __('dashboard.approved'),
-                'value' => $stats['approved'],
+                'value' => $stats['approved_total'],
                 'ariaLabel' => __('dashboard.approved') . ' — ' . __('dashboard.view_in_recent_list'),
                 'icon' => $statIconApproved,
             ])

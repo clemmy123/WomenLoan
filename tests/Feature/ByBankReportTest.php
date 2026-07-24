@@ -37,7 +37,8 @@ class ByBankReportTest extends TestCase
         $response->assertSee(__('by_bank_reports.all_banks'), false);
         $response->assertSee(__('by_bank_reports.fiscal_year'), false);
         $response->assertSee(__('by_bank_reports.detail_table'), false);
-        $response->assertDontSee('name="period"', false);
+        $response->assertSee('name="period"', false);
+        $response->assertSee('name="sort"', false);
     }
 
     public function test_by_bank_filter_limits_to_selected_bank(): void

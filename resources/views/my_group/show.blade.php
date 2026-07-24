@@ -59,7 +59,7 @@
             @include('partials.detail-field', ['label' => __('groups.reg_number'), 'value' => $group->registration_number])
             @include('partials.detail-field', ['label' => __('groups.phone_number'), 'value' => $group->phone])
             @include('partials.detail-field', ['label' => __('groups.email_address'), 'value' => $group->email])
-            @include('partials.detail-field', ['label' => __('groups.registered_on'), 'value' => $group->setup_completed_at?->translatedFormat('d M Y, H:i')])
+            @include('partials.detail-field', ['label' => __('groups.registered_on'), 'value' => $group->setup_completed_at ? format_app_datetime($group->setup_completed_at) : null])
         </div>
     </div>
 
