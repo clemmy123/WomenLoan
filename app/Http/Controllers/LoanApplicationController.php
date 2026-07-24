@@ -7,6 +7,7 @@ use App\Http\Requests\Loan\UpdateLoanApplicationRequest;
 use App\Models\DraftLoan;
 use App\Models\Loan;
 use App\Models\LoanGroup;
+use App\Models\User;
 use App\Rules\TanzanianNin;
 use App\Services\ApplicantGroupService;
 use App\Services\BusinessSectorService;
@@ -16,7 +17,9 @@ use App\Services\LoanQueryService;
 use App\Support\IdentityNormalizer;
 use App\Support\LoanWizardFieldMap;
 use Illuminate\Http\Request;
+use Illuminate\Routing\Redirector;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\ViewErrorBag;
 
 class LoanApplicationController extends Controller
 {
@@ -136,7 +139,7 @@ class LoanApplicationController extends Controller
         }
 
         $formRequest = StoreLoanApplicationRequest::createFrom($request);
-        $formRequest->setContainer(app())->setRedirector(app('redirect'));
+        $formRequest->setContainer(app())->setRedirector(app(Redirector::class));
         $formRequest->validateResolved();
 
         if ($this->loans->userHasLoanApplication($user)) {
@@ -165,7 +168,7 @@ class LoanApplicationController extends Controller
         $this->authorizeEditableLoan($loan);
 
         $formRequest = UpdateLoanApplicationRequest::createFrom($request);
-        $formRequest->setContainer(app())->setRedirector(app('redirect'));
+        $formRequest->setContainer(app())->setRedirector(app(Redirector::class));
         $formRequest->validateResolved();
 
         $this->applications->update($formRequest, $loan);
@@ -265,6 +268,8 @@ class LoanApplicationController extends Controller
         bool $isDraft = false,
     ): array {
         $user = Auth::user();
+        abort_unless($user instanceof User, 403);
+
         $editing = $editingLoan !== null;
 
         if ($editing) {
@@ -297,6 +302,9 @@ class LoanApplicationController extends Controller
         $canSetupGroup = $this->applicantGroups->canSetupGroup($user);
         $canSubmitToWard = ! $editing || $editingLoan?->status === 'pending';
 
+        $declarationRaw = old('declaration', $formData['declaration'] ?? false);
+        $declarationAccepted = filter_var($declarationRaw, FILTER_VALIDATE_BOOLEAN);
+
         $wizardConfig = [
             'step' => $wizardStep,
             'totalSteps' => 6,
@@ -315,7 +323,7 @@ class LoanApplicationController extends Controller
             'loanType' => old('loan_type', $formData['loan_type'] ?? $applicant?->preferred_loan_type ?? ($editingLoan?->loan_type ?? '')),
             'selectedBusinessSector' => old('business_sector', $formData['business_sector'] ?? ''),
             'selectedBusinessType' => old('business_type', $formData['business_type'] ?? ''),
-            'declarationAccepted' => (bool) old('declaration', $formData['declaration'] ?? false),
+            'declarationAccepted' => $declarationAccepted,
             'businessCatalog' => $this->businessSectors->wizardCatalog(),
             'geoApi' => GeoHierarchyService::apiUrls(),
             'i18n' => [
@@ -355,11 +363,12 @@ class LoanApplicationController extends Controller
     {
         $errors = session('errors');
 
-        if (! $errors || ! $errors->any()) {
+        if (! $errors instanceof ViewErrorBag || ! $errors->any()) {
             return null;
         }
 
-        $firstField = $errors->keys()[0] ?? null;
+        $messages = $errors->getBag('default')->getMessages();
+        $firstField = array_key_first($messages);
 
         if ($firstField === null || $firstField === 'error') {
             return null;
