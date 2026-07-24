@@ -34,9 +34,10 @@ function updatePasswordRequirements(panel) {
     const isStrong = value.length > 0 && allMet;
 
     panel.classList.toggle('password-requirements--valid', isStrong);
+    panel.hidden = isStrong;
 
     if (strongLabel) {
-        strongLabel.hidden = !isStrong;
+        strongLabel.hidden = true;
     }
 }
 
