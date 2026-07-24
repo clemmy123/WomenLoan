@@ -169,6 +169,14 @@ class UserProvisioningService
         return $user->fresh('roles');
     }
 
+    public function syncRolesAndZone(User $user, array $roles, array $zoneData = []): User
+    {
+        $user->syncRoles($this->sanitizeRoles($roles));
+        $user->syncZone($zoneData);
+
+        return $user->fresh(['roles', 'zoneable']);
+    }
+
     public function deactivate(User $user, string $reason, User $actor): User
     {
         $user->forceFill([
@@ -199,8 +207,6 @@ class UserProvisioningService
 
         return [
             'regions' => $geo->regions(),
-            'councils' => $geo->allCouncils(),
-            'wards' => $geo->allWards(),
         ];
     }
 

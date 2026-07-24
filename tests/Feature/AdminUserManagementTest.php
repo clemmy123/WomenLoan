@@ -221,6 +221,71 @@ class AdminUserManagementTest extends TestCase
         $this->assertFalse($target->hasRole('accountant'));
     }
 
+    public function test_cdo_region_role_requires_region_zone(): void
+    {
+        $this->actingAsRole('admin@wdf.go.tz')
+            ->from(route('admin.users.create'))
+            ->post(route('admin.users.store'), [
+                'check_number' => '2223334445',
+                'first_name' => 'Neema',
+                'last_name' => 'Cdo',
+                'email' => 'neema.cdo@wdf.go.tz',
+                'phone' => '0712345111',
+                'password' => $this->strongPassword(),
+                'password_confirmation' => $this->strongPassword(),
+                'roles' => ['cdo_region'],
+                'is_active' => '1',
+            ])
+            ->assertRedirect(route('admin.users.create'))
+            ->assertSessionHasErrors(['zone_id']);
+    }
+
+    public function test_admin_can_create_cdo_region_with_region_zone(): void
+    {
+        $region = \App\Models\Region::where('name', 'Dodoma')->firstOrFail();
+
+        $this->actingAsRole('admin@wdf.go.tz')
+            ->post(route('admin.users.store'), [
+                'check_number' => '2223334446',
+                'first_name' => 'Neema',
+                'last_name' => 'Regional',
+                'email' => 'neema.regional@wdf.go.tz',
+                'phone' => '0712345222',
+                'password' => $this->strongPassword(),
+                'password_confirmation' => $this->strongPassword(),
+                'roles' => ['cdo_region'],
+                'zone_type' => 'region',
+                'zone_id' => $region->id,
+                'is_active' => '1',
+            ])
+            ->assertRedirect(route('admin.users.index'));
+
+        $user = User::where('email', 'neema.regional@wdf.go.tz')->firstOrFail();
+        $this->assertTrue($user->hasRole('cdo_region'));
+        $this->assertSame(\App\Models\Region::class, $user->zoneable_type);
+        $this->assertSame($region->id, $user->zoneable_id);
+    }
+
+    public function test_assign_roles_can_set_cdo_council_zone(): void
+    {
+        $target = User::where('email', 'accountant1@wdf.go.tz')->firstOrFail();
+        $council = \App\Models\Council::query()->firstOrFail();
+
+        $this->actingAsRole('admin@wdf.go.tz')
+            ->put(route('admin.users.assign-roles.update', $target), [
+                'roles' => ['cdo_council'],
+                'zone_type' => 'council',
+                'zone_id' => $council->id,
+            ])
+            ->assertRedirect(route('admin.users.assign-roles', $target))
+            ->assertSessionHas('success');
+
+        $target->refresh();
+        $this->assertTrue($target->hasRole('cdo_council'));
+        $this->assertSame(\App\Models\Council::class, $target->zoneable_type);
+        $this->assertSame($council->id, $target->zoneable_id);
+    }
+
     public function test_users_index_shows_row_action_menu_links(): void
     {
         $target = User::where('email', 'accountant1@wdf.go.tz')->firstOrFail();

@@ -51,6 +51,13 @@ class StoreUserRequest extends FormRequest
     public function withValidator($validator): void
     {
         $validator->after(function ($validator) {
+            \App\Support\StaffZone::validateRoleZone(
+                $validator,
+                $this->input('roles'),
+                $this->input('zone_type'),
+                $this->input('zone_id')
+            );
+
             $actor = $this->user();
             $canActivate = $actor->can('activate users');
             $canDeactivate = $actor->can('deactivate users');

@@ -156,6 +156,7 @@ class UserController extends Controller
     {
         $roles = Role::orderBy('name')->get();
         $userRoles = $user->roles->pluck('name')->toArray();
+        $user->loadMissing('zoneable');
 
         return view('admin.users.edit', array_merge(
             compact('user', 'roles', 'userRoles'),
@@ -167,13 +168,18 @@ class UserController extends Controller
     {
         $roles = Role::orderBy('name')->get();
         $userRoles = $user->roles->pluck('name')->toArray();
+        $user->loadMissing('zoneable');
 
-        return view('admin.users.assign-roles', compact('user', 'roles', 'userRoles'));
+        return view('admin.users.assign-roles', array_merge(
+            compact('user', 'roles', 'userRoles'),
+            $this->users->formOptions()
+        ));
     }
 
     public function updateRoles(UpdateUserRolesRequest $request, User $user)
     {
-        $this->users->syncRolesOnly($user, $request->validated('roles') ?? []);
+        $validated = $request->validated();
+        $this->users->syncRolesAndZone($user, $validated['roles'] ?? [], $validated);
 
         return redirect()
             ->route('admin.users.assign-roles', $user)

@@ -10,7 +10,7 @@
         'actions' => '<a href="'.e(route('admin.users.index')).'" class="app-btn app-btn-secondary">'.e(__('common.back')).'</a>',
     ])
 
-    <form method="POST" action="{{ route('admin.users.assign-roles.update', $user) }}" class="max-w-2xl">
+    <form method="POST" action="{{ route('admin.users.assign-roles.update', $user) }}" class="max-w-3xl">
         @csrf
         @method('PUT')
 
@@ -38,6 +38,8 @@
             @error('roles') <p class="mt-2 text-xs font-medium text-red-600">{{ $message }}</p> @enderror
             @error('roles.*') <p class="mt-2 text-xs font-medium text-red-600">{{ $message }}</p> @enderror
         </div>
+
+        @include('partials.admin-user-geo-zone')
 
         <div class="mt-6 flex flex-wrap gap-3">
             <button type="submit" class="app-btn app-btn-primary">{{ __('admin.save_roles') }}</button>
