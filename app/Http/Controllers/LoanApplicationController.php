@@ -315,6 +315,7 @@ class LoanApplicationController extends Controller
             'loanType' => old('loan_type', $formData['loan_type'] ?? $applicant?->preferred_loan_type ?? ($editingLoan?->loan_type ?? '')),
             'selectedBusinessSector' => old('business_sector', $formData['business_sector'] ?? ''),
             'selectedBusinessType' => old('business_type', $formData['business_type'] ?? ''),
+            'declarationAccepted' => (bool) old('declaration', $formData['declaration'] ?? false),
             'businessCatalog' => $this->businessSectors->wizardCatalog(),
             'geoApi' => GeoHierarchyService::apiUrls(),
             'i18n' => [

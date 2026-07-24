@@ -53,6 +53,7 @@ return [
     'documents' => 'Nyaraka',
     'submit_application' => 'Wasilisha Ombi',
     'confirm_accuracy' => 'Nathibitisha kuwa taarifa zote ni sahihi na za kweli.',
+    'declaration_required_hint' => 'Weka alama kwenye kisanduku cha tamko ili kuendelea.',
     'loading_data' => 'Inapakia data…',
     'load_failed' => 'Imeshindwa kupakia data',
     'details' => 'Maelezo ya Mkopo',

@@ -11,7 +11,7 @@ return [
     'assistant_director' => 'Mkurugenzi Msaidizi',
     'director' => 'Mkurugenzi',
     'km' => 'Katibu Mkuu',
-    'chief' => 'Mkuu wa Idara',
+    'chief' => 'Mhasibu Mkuu',
     'accountant' => 'Mhasibu',
     'tehama_staff' => 'Tehama Staff',
 ];

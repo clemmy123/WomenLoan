@@ -53,6 +53,7 @@ return [
     'documents' => 'Documents',
     'submit_application' => 'Submit Application',
     'confirm_accuracy' => 'I confirm that all information provided is accurate and true.',
+    'declaration_required_hint' => 'Tick the declaration checkbox to continue.',
     'loading_data' => 'Loading data…',
     'load_failed' => 'Failed to load data',
     'details' => 'Loan Details',

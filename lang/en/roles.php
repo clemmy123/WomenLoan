@@ -11,7 +11,7 @@ return [
     'assistant_director' => 'Assistant Director',
     'director' => 'Director',
     'km' => 'Permanent Secretary',
-    'chief' => 'Chief Officer',
+    'chief' => 'Chief Accountant',
     'accountant' => 'Accountant',
     'tehama_staff' => 'Tehama Staff',
 ];

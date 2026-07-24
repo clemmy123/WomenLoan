@@ -61,6 +61,7 @@ document.addEventListener('alpine:init', () => {
             loanType: config.loanType ?? '',
             selectedBusinessSector: config.selectedBusinessSector ?? '',
             selectedBusinessType: config.selectedBusinessType ?? '',
+            declarationAccepted: Boolean(config.declarationAccepted),
             businessCatalog: config.businessCatalog ?? [],
             i18n: config.i18n ?? {},
 
@@ -674,6 +675,13 @@ document.addEventListener('alpine:init', () => {
             },
 
             openSubmitConfirm() {
+                if (!this.declarationAccepted) {
+                    this.step = 5;
+                    this.scrollToActiveStep();
+
+                    return;
+                }
+
                 const form = this.$root.querySelector('form');
 
                 if (form) {

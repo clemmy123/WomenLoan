@@ -495,9 +495,17 @@
         <div data-wizard-step="5" class="app-card app-card-padded wizard-panel" :class="step === 5 ? 'wizard-step-active' : 'wizard-step-inactive'">
             <h3 class="text-lg font-bold text-slate-900 dark:text-white">{{ __('loans.wizard_steps.5') }}</h3>
             <label class="flex items-start gap-3 cursor-pointer text-slate-900 dark:text-white">
-                <input type="checkbox" name="declaration" value="1" :required="step === 5" @checked($fd('declaration')) class="mt-1 w-5 h-5 accent-indigo-600">
-                <span>{{ __('loans.confirm_accuracy') }}</span>
+                <input
+                    type="checkbox"
+                    name="declaration"
+                    value="1"
+                    required
+                    x-model="declarationAccepted"
+                    class="mt-1 w-5 h-5 accent-indigo-600"
+                >
+                <span>{{ __('loans.confirm_accuracy') }} <span class="text-red-600" aria-hidden="true">*</span></span>
             </label>
+            <p x-show="!declarationAccepted" x-cloak class="mt-3 text-sm text-amber-700 dark:text-amber-300">{{ __('loans.declaration_required_hint') }}</p>
         </div>
 
         <div data-wizard-step="6" class="app-card app-card-padded wizard-panel" :class="step === 6 ? 'wizard-step-active' : 'wizard-step-inactive'">
@@ -530,7 +538,13 @@
                             <h4 class="font-bold text-emerald-900 dark:text-emerald-200">{{ __('loans.preview_submit_title') }}</h4>
                             <p class="text-sm text-slate-600 dark:text-zinc-400 mt-1">{{ __('loans.preview_submit_hint') }}</p>
                         </div>
-                        <button type="button" @click="openSubmitConfirm()" class="app-btn app-btn-success mt-auto">{{ __('loans.submit_application') }}</button>
+                        <button
+                            type="button"
+                            @click="openSubmitConfirm()"
+                            :disabled="!declarationAccepted"
+                            class="app-btn app-btn-success mt-auto"
+                            :class="{ 'app-btn--faint': !declarationAccepted }"
+                        >{{ __('loans.submit_application') }}</button>
                     </div>
                     @endif
                 </div>
@@ -543,7 +557,15 @@
                 @if(!($editing ?? false))
                 <button type="submit" name="form_action" value="save_draft" formnovalidate @click="prepareDraftSubmit()" x-show="step < totalSteps" x-cloak class="app-btn app-btn-ghost">{{ __('loans.save_draft') }}</button>
                 @endif
-                <button type="button" x-show="step < totalSteps" x-cloak @click="nextStep()" class="app-btn app-btn-primary">{{ __('common.next') }}</button>
+                <button
+                    type="button"
+                    x-show="step < totalSteps"
+                    x-cloak
+                    @click="nextStep()"
+                    :disabled="step === 5 && !declarationAccepted"
+                    class="app-btn app-btn-primary"
+                    :class="{ 'app-btn--faint': step === 5 && !declarationAccepted }"
+                >{{ __('common.next') }}</button>
                 <button type="submit" x-ref="finalSubmit" class="hidden" tabindex="-1" aria-hidden="true"></button>
             </div>
         </div>

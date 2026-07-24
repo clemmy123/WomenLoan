@@ -2977,15 +2977,29 @@
         font-weight: 600;
         line-height: 1.25rem;
         border: 1px solid transparent;
-        transition: transform 0.15s ease, box-shadow 0.15s ease, filter 0.15s ease, background 0.15s ease;
+        transition: transform 0.15s ease, box-shadow 0.15s ease, filter 0.15s ease, background 0.15s ease, opacity 0.15s ease;
         box-shadow: 0 2px 8px rgba(15, 23, 42, 0.08);
     }
 
-    .app-btn:hover {
+    .app-btn:disabled,
+    .app-btn.app-btn--faint {
+        opacity: 0.45;
+        cursor: not-allowed;
+        box-shadow: none;
+        transform: none;
+        filter: grayscale(0.15);
+    }
+
+    .app-btn:disabled:hover,
+    .app-btn.app-btn--faint:hover {
+        transform: none;
+    }
+
+    .app-btn:hover:not(:disabled):not(.app-btn--faint) {
         transform: translateY(-1px);
     }
 
-    .app-btn:active {
+    .app-btn:active:not(:disabled):not(.app-btn--faint) {
         transform: translateY(0);
         filter: brightness(0.97);
     }
