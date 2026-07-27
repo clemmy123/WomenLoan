@@ -90,13 +90,17 @@ document.addEventListener('alpine:init', () => {
         },
 
         async fetchGeo(url, target) {
-            const response = await fetch(url, { headers: { Accept: 'application/json' } });
+            const response = await fetch(url, {
+                headers: { Accept: 'application/json' },
+                credentials: 'same-origin',
+            });
             if (! response.ok) {
                 this[target] = [];
                 return;
             }
             const data = await response.json();
-            this[target] = data?.data ?? data;
+            const items = data?.data ?? data;
+            this[target] = Array.isArray(items) ? items : [];
 
             const scrollPosition = captureScrollPosition();
 
@@ -120,7 +124,7 @@ document.addEventListener('alpine:init', () => {
                 return Promise.resolve();
             }
 
-            return this.fetchGeo(`${this.geoApi.districts}?region_id=${encodeURIComponent(regionId)}`, 'districts');
+            return this.fetchGeo(`${this.geoApi.districts}/${encodeURIComponent(regionId)}`, 'districts');
         },
 
         loadCouncils(districtId) {
@@ -129,7 +133,7 @@ document.addEventListener('alpine:init', () => {
                 return Promise.resolve();
             }
 
-            return this.fetchGeo(`${this.geoApi.councils}?district_id=${encodeURIComponent(districtId)}`, 'councils');
+            return this.fetchGeo(`${this.geoApi.councils}/${encodeURIComponent(districtId)}`, 'councils');
         },
 
         loadWards(councilId) {
@@ -138,7 +142,7 @@ document.addEventListener('alpine:init', () => {
                 return Promise.resolve();
             }
 
-            return this.fetchGeo(`${this.geoApi.wards}?council_id=${encodeURIComponent(councilId)}`, 'wards');
+            return this.fetchGeo(`${this.geoApi.wards}/${encodeURIComponent(councilId)}`, 'wards');
         },
 
         loadStreets(wardId) {
@@ -147,7 +151,7 @@ document.addEventListener('alpine:init', () => {
                 return Promise.resolve();
             }
 
-            return this.fetchGeo(`${this.geoApi.streets}?ward_id=${encodeURIComponent(wardId)}`, 'streets');
+            return this.fetchGeo(`${this.geoApi.streets}/${encodeURIComponent(wardId)}`, 'streets');
         },
 
         onRegionChange() {

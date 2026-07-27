@@ -9,6 +9,7 @@ return [
     'headline' => 'Wezesha na Inua wanawake kiuchumi',
     'subheadline' => 'Pata mikopo nafuu, jenga biashara yako, na kukua kwa ujasiri kupitia Mfuko wa Maendeleo ya Wanawake — ulioundwa kuwasaidia wanawake wajasiriamali nchini Tanzania.',
     'prompt_text' => 'Jiunge na maelfu ya wanawake wanaobadilisha maisha yao. Fungua akaunti yako leo, kamilisha taarifa zako, na omba mkopo wa mtu mmoja au wa kikundi kwa mchakato rahisi unaongozwa.',
+    'stats_section_label' => 'Takwimu za athari',
     'stats' => [
         'beneficiaries_label' => 'Waliopata Mkopo',
         'beneficiaries_caption' => 'Watu halisi kwenye mikopo iliyotolewa',
@@ -44,7 +45,7 @@ return [
         ],
     ],
     'help_title' => 'Unahitaji Msaada?',
-    'help_text' => 'Wasiliana na ofisi ya CDO kata yako au piga simu ya msaada wa WDF kwa usaidizi wa usajili, maombi, na marejesho.',
+    'help_text' => 'Wasiliana na ofisi ya Afisa Maendeleo kata yako au piga simu ya msaada wa WDF kwa usaidizi wa usajili, maombi, na marejesho.',
     'guide_title' => 'Mwongozo wa Mtumiaji',
     'guide_text' => 'Jisajili kama mwombaji, kamilisha taarifa zako, wasilisha ombi la mkopo pamoja na nyaraka za usaidizi, na fuatilia hali yako katika kila hatua ya idhini hadi utoaji wa fedha.',
     'footer_copyright' => 'Haki Zote Zimehifadhiwa © MoCDGWSG 2026',

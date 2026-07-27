@@ -6955,196 +6955,64 @@
         color: rgba(226, 232, 240, 0.72);
     }
 
-    .landing-carousel-wrap {
+    .landing-stats {
         position: relative;
-        padding: 1.25rem 0 0.5rem;
+        width: min(100%, 72rem);
+        margin: 0.75rem auto 0;
+        padding: 0;
     }
 
-    .landing-carousel {
-        position: relative;
+    .landing-stats-bar {
         display: flex;
-        align-items: center;
-        justify-content: center;
-        height: clamp(15rem, 32vw, 21rem);
-        max-width: min(100%, 68rem);
-        margin-inline: auto;
-        perspective: 1200px;
-    }
-
-    .landing-carousel-slide {
-        position: absolute;
-        left: 50%;
-        top: 50%;
-        width: min(32vw, 18rem);
-        height: clamp(11.5rem, 25vw, 16.5rem);
-        border-radius: 1.25rem;
-        overflow: hidden;
-        border: 1px solid rgba(255, 255, 255, 0.12);
-        transition: transform 0.55s cubic-bezier(0.22, 1, 0.36, 1), opacity 0.45s ease, filter 0.45s ease;
-        opacity: 0;
-        pointer-events: none;
-        transform: translate(-50%, -50%) scale(0.72);
-        filter: blur(2px);
-    }
-
-    .landing-carousel-slide--violet {
-        background: linear-gradient(145deg, #0f766e 0%, #0e7490 45%, #0284c7 100%);
-    }
-
-    .landing-carousel-slide--cyan {
-        background: linear-gradient(145deg, #0c4a6e 0%, #0891b2 40%, #0ea5e9 100%);
-    }
-
-    .landing-carousel-slide--indigo {
-        border-color: rgba(255, 255, 255, 0.1);
-        background: linear-gradient(135deg, rgba(255, 255, 255, 0.06) 0%, rgba(255, 255, 255, 0.02) 100%);
+        align-items: stretch;
+        justify-content: space-between;
+        gap: 0;
+        padding: 1.35rem 0.5rem;
+        border-radius: 1.15rem;
+        border: 1px solid rgba(255, 255, 255, 0.16);
+        background:
+            linear-gradient(135deg, rgba(15, 118, 110, 0.42) 0%, rgba(30, 58, 138, 0.5) 48%, rgba(14, 165, 233, 0.38) 100%),
+            rgba(10, 37, 64, 0.72);
         backdrop-filter: blur(14px);
-    }
-
-    .landing-carousel-slide.is-active {
-        opacity: 1;
-        pointer-events: auto;
-        transform: translate(-50%, -50%) scale(1);
-        filter: blur(0);
-        z-index: 30;
         box-shadow:
-            0 0 0 1px rgba(255, 255, 255, 0.14),
-            0 25px 60px rgba(14, 165, 233, 0.32),
-            0 0 80px rgba(15, 118, 110, 0.22);
+            0 18px 44px rgba(0, 0, 0, 0.35),
+            0 0 0 1px rgba(14, 165, 233, 0.08),
+            0 1px 0 rgba(255, 255, 255, 0.08) inset;
     }
 
-    .landing-carousel-slide.is-prev {
-        opacity: 0.76;
-        transform: translate(calc(-50% - min(34vw, 19.5rem)), -50%) scale(0.86);
-        z-index: 20;
-        filter: blur(0.5px);
-    }
-
-    .landing-carousel-slide.is-next {
-        opacity: 0.76;
-        transform: translate(calc(-50% + min(34vw, 19.5rem)), -50%) scale(0.86);
-        z-index: 20;
-        filter: blur(0.5px);
-    }
-
-    .landing-carousel-slide.is-far-prev {
-        opacity: 0.4;
-        transform: translate(calc(-50% - min(58vw, 33rem)), -50%) scale(0.74);
-        z-index: 10;
-        filter: blur(1px);
-    }
-
-    .landing-carousel-slide.is-far-next {
-        opacity: 0.4;
-        transform: translate(calc(-50% + min(58vw, 33rem)), -50%) scale(0.74);
-        z-index: 10;
-        filter: blur(1px);
-    }
-
-    .landing-carousel-slide.is-hidden {
-        opacity: 0;
-        pointer-events: none;
-        z-index: 0;
-    }
-
-    .landing-slide-glow {
-        position: absolute;
-        inset: 0;
-        background: radial-gradient(circle at 30% 20%, rgba(255, 255, 255, 0.22), transparent 55%);
-        pointer-events: none;
-    }
-
-    .landing-slide-content {
-        position: relative;
-        z-index: 1;
-        display: flex;
-        flex-direction: column;
-        justify-content: flex-end;
-        height: 100%;
-        padding: 1.25rem;
-    }
-
-    .landing-slide-content--stat {
-        justify-content: center;
-        align-items: center;
+    .landing-stat-item {
+        flex: 1 1 0;
+        min-width: 0;
+        padding: 0.25rem 0.75rem;
         text-align: center;
-        padding: 1.5rem 1.25rem;
+        border-right: 1px solid rgba(255, 255, 255, 0.16);
     }
 
-    .landing-stat-title {
-        margin: 0;
-        font-size: clamp(1rem, 2.6vw, 1.2rem);
-        font-weight: 700;
-        line-height: 1.35;
-        letter-spacing: 0.01em;
+    .landing-stat-item:last-child {
+        border-right: none;
     }
 
     .landing-stat-value {
-        display: inline;
-        font: inherit;
-        color: inherit;
+        margin: 0;
+        font-size: clamp(1.35rem, 2.2vw, 1.95rem);
+        font-weight: 700;
+        line-height: 1.15;
+        letter-spacing: -0.02em;
+        font-variant-numeric: tabular-nums;
+        color: #f8fafc;
     }
 
-    .landing-slide-content--stat .landing-slide-caption {
-        margin-top: 0.55rem;
-        font-size: 0.75rem;
-        color: rgba(255, 255, 255, 0.78);
+    .landing-stat-item--accent .landing-stat-value {
+        color: #67e8f9;
     }
 
-    .landing-carousel-slide--indigo .landing-slide-content--stat .landing-slide-caption {
-        color: rgba(255, 255, 255, 0.72);
-    }
-
-    .landing-slide-badge {
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        width: 1.75rem;
-        height: 1.75rem;
-        border-radius: 9999px;
-        font-size: 0.7rem;
-        font-weight: 800;
-        background: rgba(255, 255, 255, 0.2);
-        margin-bottom: 0.65rem;
-    }
-
-    .landing-slide-title {
-        font-size: 1.15rem;
-        font-weight: 800;
-        line-height: 1.2;
-    }
-
-    .landing-slide-caption {
-        margin-top: 0.35rem;
-        font-size: 0.8rem;
-        line-height: 1.45;
-        color: rgba(255, 255, 255, 0.85);
-    }
-
-    .landing-carousel-controls {
-        display: flex;
-        justify-content: center;
-        gap: 0.5rem;
-        margin-top: 1.25rem;
-    }
-
-    .landing-carousel-btn {
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        width: 2.25rem;
-        height: 2.25rem;
-        border-radius: 9999px;
-        border: 1px solid rgba(255, 255, 255, 0.16);
-        background: rgba(255, 255, 255, 0.06);
-        color: #fff;
-        cursor: pointer;
-        transition: background 0.2s ease, border-color 0.2s ease;
-    }
-
-    .landing-carousel-btn:hover {
-        background: rgba(255, 255, 255, 0.12);
-        border-color: rgba(255, 255, 255, 0.28);
+    .landing-stat-label {
+        margin: 0.4rem 0 0;
+        font-size: clamp(0.68rem, 1.1vw, 0.82rem);
+        font-weight: 500;
+        line-height: 1.35;
+        letter-spacing: 0.01em;
+        color: rgba(226, 232, 240, 0.78);
     }
 
     .landing-prompt-card {
@@ -7314,26 +7182,29 @@
             padding: 0.55rem;
         }
 
-        .landing-carousel-slide {
-            width: min(62vw, 16rem);
+        .landing-stats-bar {
+            flex-wrap: wrap;
+            padding: 0.85rem 0.35rem;
         }
 
-        .landing-carousel-slide.is-prev {
-            transform: translate(calc(-50% - min(68vw, 17rem)), -50%) scale(0.82);
+        .landing-stat-item {
+            flex: 1 1 calc(50% - 1px);
+            padding: 0.65rem 0.5rem;
+            border-right: none;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.14);
         }
 
-        .landing-carousel-slide.is-next {
-            transform: translate(calc(-50% + min(68vw, 17rem)), -50%) scale(0.82);
+        .landing-stat-item:nth-child(odd) {
+            border-right: 1px solid rgba(255, 255, 255, 0.14);
         }
 
-        .landing-carousel-slide.is-far-prev {
-            transform: translate(calc(-50% - min(95vw, 24rem)), -50%) scale(0.7);
-            opacity: 0.28;
+        .landing-stat-item:nth-last-child(-n + 2) {
+            border-bottom: none;
         }
 
-        .landing-carousel-slide.is-far-next {
-            transform: translate(calc(-50% + min(95vw, 24rem)), -50%) scale(0.7);
-            opacity: 0.28;
+        .landing-stat-item:last-child:nth-child(odd) {
+            flex-basis: 100%;
+            border-right: none;
         }
     }
 

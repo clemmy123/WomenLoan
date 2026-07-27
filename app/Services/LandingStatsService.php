@@ -115,7 +115,7 @@ class LandingStatsService
                 'value' => $counts['beneficiaries'],
                 'label' => __('home.stats.beneficiaries_label'),
                 'caption' => __('home.stats.beneficiaries_caption'),
-                'theme' => 'violet',
+                'theme' => 'teal',
             ],
             [
                 'key' => 'groups',
@@ -129,7 +129,7 @@ class LandingStatsService
                 'value' => $counts['applications'],
                 'label' => __('home.stats.applications_label'),
                 'caption' => __('home.stats.applications_caption'),
-                'theme' => 'indigo',
+                'theme' => 'sky',
             ],
             [
                 'key' => 'sectors',
@@ -143,7 +143,7 @@ class LandingStatsService
                 'value' => $counts['banks'],
                 'label' => __('home.stats.banks_label'),
                 'caption' => __('home.stats.banks_caption'),
-                'theme' => 'violet',
+                'theme' => 'teal',
             ],
         ];
     }

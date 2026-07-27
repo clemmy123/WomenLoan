@@ -59,60 +59,26 @@
             $landingStats = $landingStats ?? [];
         @endphp
 
-        <section
-            class="landing-carousel-wrap"
-            x-data="landingCarousel({{ count($landingStats) ?: 5 }})"
-            @mouseenter="stopAutoplay()"
-            @mouseleave="startAutoplay()"
-        >
-            <div class="landing-carousel">
-                @forelse($landingStats as $index => $stat)
-                    <article
-                        class="landing-carousel-slide landing-carousel-slide--{{ $stat['theme'] }}"
-                        :class="slideClass({{ $index }})"
-                        :aria-hidden="active !== {{ $index }}"
-                        aria-label="{{ $stat['label'] }}: {{ number_format($stat['value']) }}"
-                    >
-                        <div class="landing-slide-glow"></div>
-                        <div class="landing-slide-content landing-slide-content--stat">
-                            <h3 class="landing-slide-title landing-stat-title">
-                                {{ $stat['label'] }}:
-                                <span class="landing-stat-value">{{ number_format($stat['value']) }}</span>
-                            </h3>
-                            <p class="landing-slide-caption">{{ $stat['caption'] }}</p>
+        @if(count($landingStats) > 0)
+            <section class="landing-stats" aria-label="{{ __('home.stats_section_label') }}" data-landing-stats>
+                <div class="landing-stats-bar">
+                    @foreach($landingStats as $stat)
+                        <div @class([
+                            'landing-stat-item',
+                            'landing-stat-item--accent' => $stat['key'] === 'applications',
+                        ])>
+                            <p
+                                class="landing-stat-value"
+                                data-counter
+                                data-target="{{ (int) $stat['value'] }}"
+                                aria-label="{{ number_format($stat['value']) }}"
+                            >0</p>
+                            <p class="landing-stat-label">{{ $stat['label'] }}</p>
                         </div>
-                    </article>
-                @empty
-                    @php
-                        $slides = __('home.slides');
-                        $slideThemes = ['violet', 'cyan', 'indigo', 'cyan', 'violet'];
-                    @endphp
-                    @foreach($slides as $index => $slide)
-                        <article
-                            class="landing-carousel-slide landing-carousel-slide--{{ $slideThemes[$index] ?? 'indigo' }}"
-                            :class="slideClass({{ $index }})"
-                            :aria-hidden="active !== {{ $index }}"
-                        >
-                            <div class="landing-slide-glow"></div>
-                            <div class="landing-slide-content">
-                                <span class="landing-slide-badge">{{ $index + 1 }}</span>
-                                <h3 class="landing-slide-title">{{ $slide['title'] }}</h3>
-                                <p class="landing-slide-caption">{{ $slide['caption'] }}</p>
-                            </div>
-                        </article>
                     @endforeach
-                @endforelse
-            </div>
-
-            <div class="landing-carousel-controls">
-                <button type="button" class="landing-carousel-btn" @click="prev()" aria-label="{{ __('common.back') }}">
-                    <svg viewBox="0 0 24 24" fill="none" class="h-4 w-4"><path d="M15 18l-6-6 6-6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
-                </button>
-                <button type="button" class="landing-carousel-btn" @click="next()" aria-label="{{ __('common.next') }}">
-                    <svg viewBox="0 0 24 24" fill="none" class="h-4 w-4"><path d="M9 18l6-6-6-6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
-                </button>
-            </div>
-        </section>
+                </div>
+            </section>
+        @endif
 
         <div class="landing-prompt-card">
             <p class="landing-prompt-text">{{ __('home.prompt_text') }}</p>
