@@ -3,15 +3,19 @@
 namespace App\Http\Requests\Admin;
 
 use App\Http\Requests\Concerns\NormalizesIdentityFields;
+use App\Http\Requests\Concerns\NormalizesStaffRoleSelection;
 use App\Rules\TanzaniaPhone;
 use App\Rules\UniqueEmail;
 use App\Rules\UniquePhone;
+use App\Support\StaffAdminScope;
+use App\Support\StaffZone;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rules\Password;
 
 class StoreUserRequest extends FormRequest
 {
     use NormalizesIdentityFields;
+    use NormalizesStaffRoleSelection;
 
     public function authorize(): bool
     {
@@ -21,6 +25,7 @@ class StoreUserRequest extends FormRequest
     protected function prepareForValidation(): void
     {
         $this->normalizeIdentityInput(['phone', 'email']);
+        $this->normalizeStaffRoleSelection();
 
         if ($this->filled('check_number')) {
             $digits = preg_replace('/\D+/', '', (string) $this->input('check_number')) ?? '';
@@ -40,18 +45,28 @@ class StoreUserRequest extends FormRequest
             'email' => ['required', 'email', 'max:255', new UniqueEmail],
             'phone' => ['required', 'string', new TanzaniaPhone, new UniquePhone],
             'password' => ['required', 'confirmed', Password::defaults()],
-            'roles' => 'array',
-            'roles.*' => 'exists:roles,name',
+            'role' => ['required', 'string', 'exists:roles,name'],
+            'roles' => ['required', 'array', 'size:1'],
+            'roles.*' => ['required', 'string', 'exists:roles,name'],
             'zone_type' => 'nullable|in:region,council,ward',
             'zone_id' => 'nullable|integer',
             'is_active' => 'boolean',
         ];
     }
 
+    public function messages(): array
+    {
+        return [
+            'role.required' => __('admin.roles_required'),
+            'roles.required' => __('admin.roles_required'),
+            'roles.size' => __('admin.roles_required'),
+        ];
+    }
+
     public function withValidator($validator): void
     {
         $validator->after(function ($validator) {
-            \App\Support\StaffZone::validateRoleZone(
+            StaffZone::validateRoleZone(
                 $validator,
                 $this->input('roles'),
                 $this->input('zone_type'),
@@ -59,6 +74,15 @@ class StoreUserRequest extends FormRequest
             );
 
             $actor = $this->user();
+            StaffAdminScope::validateAssignableRoles($validator, $actor, $this->input('roles'));
+            StaffAdminScope::validateZoneWithinScope(
+                $validator,
+                $actor,
+                $this->input('roles'),
+                $this->input('zone_type'),
+                $this->input('zone_id')
+            );
+
             $canActivate = $actor->can('activate users');
             $canDeactivate = $actor->can('deactivate users');
 

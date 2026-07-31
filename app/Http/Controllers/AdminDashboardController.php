@@ -13,9 +13,15 @@ class AdminDashboardController extends Controller
 
     public function index(): View
     {
+        $user = auth()->user();
+        $isScopedIct = (bool) $user?->hasAnyRole(['tehama_region', 'tehama_council']);
+        $canViewAudit = ((bool) $user?->can('view audit logs')) && ! $isScopedIct;
+
         $summary = $this->dashboard->summary();
         $usersByRole = $this->dashboard->usersByRole();
-        $auditSeries = $this->dashboard->auditActivitySeries(7);
+        $auditSeries = $canViewAudit
+            ? $this->dashboard->auditActivitySeries(7)
+            : ['labels' => [], 'data' => []];
 
         $adminChartData = [
             'roles' => [
@@ -28,7 +34,7 @@ class AdminDashboardController extends Controller
                 'data' => $auditSeries['data'],
                 'label' => __('admin.dashboard_audit_activity'),
             ],
-            'canViewAudit' => auth()->user()?->can('view audit logs') ?? false,
+            'canViewAudit' => $canViewAudit,
         ];
 
         return view('admin.dashboard', [

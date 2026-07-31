@@ -6,11 +6,34 @@
 @php
     $isInactiveList = $listStatus === 'inactive';
     $listRoute = $isInactiveList ? route('admin.users.inactive') : route('admin.users.index');
+    $f = $filters ?? [];
     $exportQuery = array_filter([
-        'search' => $search ?: null,
-        'role' => $role ?: null,
+        'search' => ($search ?? null) ?: null,
+        'role' => ($role ?? null) ?: null,
+        'region_id' => ($f['region_id'] ?? null) ?: null,
+        'district_id' => ($f['district_id'] ?? null) ?: null,
+        'council_id' => ($f['council_id'] ?? null) ?: null,
+        'ward_id' => ($f['ward_id'] ?? null) ?: null,
         'list' => $listStatus,
     ]);
+    $userFiltersBoot = [
+        'selectedRegion' => (string) ($f['region_id'] ?? ''),
+        'selectedDistrict' => (string) ($f['district_id'] ?? ''),
+        'selectedCouncil' => (string) ($f['council_id'] ?? ''),
+        'selectedWard' => (string) ($f['ward_id'] ?? ''),
+        'filtersOpen' => (bool) ($filtersApplied ?? false),
+        'includeStreet' => false,
+        'hasFiscalYear' => false,
+        'hasPeriod' => false,
+        'hasDates' => false,
+        'hasSort' => false,
+        'geoApi' => [
+            'districts' => url('/api/loans/districts'),
+            'councils' => url('/api/loans/councils'),
+            'wards' => url('/api/loans/wards'),
+        ],
+        'locks' => ($geoBounds ?? [])['lock'] ?? [],
+    ];
 @endphp
 <div
     class="page"
@@ -39,19 +62,65 @@
             ])->render(),
     ])
 
-    <div class="app-card app-card-padded mb-4">
-        @include('partials.loan-list-toolbar', [
-            'action' => $listRoute,
-            'search' => $search,
-            'sort' => $role,
-            'sortName' => 'role',
-            'sortLabel' => __('admin.sort_by_role'),
-            'searchPlaceholder' => __('admin.users_search_placeholder'),
-            'sortOptions' => $roleOptions,
-            'showClear' => filled($search) || filled($role),
-            'clearUrl' => $listRoute,
+    <form
+        method="GET"
+        action="{{ $listRoute }}"
+        class="app-card app-card-padded mb-4 space-y-5"
+        x-data="reportFilters(@js($userFiltersBoot))"
+    >
+        @include('partials.filters-toggle-button', [
+            'title' => __('common.filter'),
+            'showLabel' => __('common.show_filters'),
+            'hideLabel' => __('common.hide_filters'),
         ])
-    </div>
+
+        <div class="dashboard-recent-toolbar-row list-filters-toolbar-controls">
+            <input
+                type="search"
+                name="search"
+                value="{{ $search }}"
+                placeholder="{{ __('admin.users_search_placeholder') }}"
+                class="dashboard-recent-input"
+                autocomplete="off"
+            >
+        </div>
+
+        <div
+            x-show="filtersOpen"
+            x-cloak
+            x-transition:enter="transition ease-out duration-150"
+            x-transition:enter-start="opacity-0 -translate-y-1"
+            x-transition:enter-end="opacity-100 translate-y-0"
+            x-transition:leave="transition ease-in duration-100"
+            x-transition:leave-start="opacity-100 translate-y-0"
+            x-transition:leave-end="opacity-0 -translate-y-1"
+            class="space-y-5"
+        >
+            <div class="wizard-form-grid wizard-form-grid-2 lg:grid-cols-3">
+                @include('partials.report-geo-filters', [
+                    'regions' => $regions,
+                    'geoBounds' => $geoBounds ?? [],
+                    'allowAllRegions' => empty(($geoBounds ?? [])['lock']['region_id'] ?? null),
+                ])
+
+                <div class="wizard-field">
+                    <label class="app-label" for="role">{{ __('common.roles') }}</label>
+                    <select name="role" id="role" class="app-select">
+                        @foreach($roleOptions as $value => $label)
+                            <option value="{{ $value }}" @selected((string) $role === (string) $value)>{{ $label }}</option>
+                        @endforeach
+                    </select>
+                </div>
+            </div>
+        </div>
+
+        <div class="flex flex-wrap items-center gap-3">
+            <button type="submit" class="app-btn app-btn-primary">{{ __('common.apply_filters') }}</button>
+            @if($filtersApplied ?? false)
+                <a href="{{ $listRoute }}" class="app-btn app-btn-secondary">{{ __('common.clear') }}</a>
+            @endif
+        </div>
+    </form>
 
 <div class="app-card">
     <div class="overflow-x-auto">
@@ -62,6 +131,7 @@
                 <th>{{ __('common.name') }}</th>
                 <th>{{ __('common.email') }}</th>
                 <th>{{ __('common.roles') }}</th>
+                <th>{{ __('admin.zone_name') }}</th>
                 <th>{{ __('common.status') }}</th>
                 <th class="text-right">{{ __('common.actions') }}</th>
             </tr>
@@ -77,6 +147,14 @@
                         @include('partials.badge', ['variant' => 'primary', 'text' => role_label($roleItem->name), 'class' => 'mr-1 mb-1'])
                     @endforeach
                 </td>
+                <td class="text-sm text-slate-600">
+                    @if($user->zoneable)
+                        <span class="block text-xs text-slate-400">{{ \App\Support\StaffZone::typeLabelForUser($user) }}</span>
+                        {{ $user->zoneable->name }}
+                    @else
+                        {{ \App\Support\StaffZone::emptyZoneTypeLabel($user->roles->pluck('name')) }}
+                    @endif
+                </td>
                 <td>
                     @include('partials.badge', [
                         'variant' => active_status_badge_variant($user->is_active),
@@ -91,7 +169,7 @@
             </tr>
             @empty
             <tr>
-                <td colspan="6" class="app-table-empty">
+                <td colspan="7" class="app-table-empty">
                     {{ $isInactiveList ? __('admin.no_deactivated_users') : __('admin.no_users') }}
                 </td>
             </tr>

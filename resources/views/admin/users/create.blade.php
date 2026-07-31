@@ -8,7 +8,20 @@
     <p class="text-sm text-slate-500 mt-1">{{ __('admin.create_user_subtitle') }}</p>
 </div>
 
-<form method="POST" action="{{ route('admin.users.store') }}" class="space-y-6">
+<form
+    method="POST"
+    action="{{ route('admin.users.store') }}"
+    class="space-y-6"
+    data-staff-user-form
+    data-role-zone-map='@json(\App\Support\StaffZone::GEO_ROLE_PRIORITY)'
+    data-roles-required="{{ __('admin.roles_required') }}"
+    data-geo-zone-required="{{ __('admin.geo_zone_required') }}"
+    data-geo-zone-incomplete="{{ __('admin.geo_zone_incomplete') }}"
+    data-complete-section-here="{{ __('admin.complete_section_here') }}"
+    data-ok-label="{{ __('common.ok') }}"
+    data-error-label="{{ __('common.error') }}"
+    novalidate
+>
     @csrf
     @include('admin.users._form')
     <button type="submit" class="app-btn app-btn-primary">{{ __('admin.create_user') }}</button>

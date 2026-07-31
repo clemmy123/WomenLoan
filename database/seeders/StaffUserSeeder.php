@@ -28,11 +28,14 @@ class StaffUserSeeder extends Seeder
             ['email' => 'chief@wdf.go.tz', 'check' => '1000000009', 'first' => 'James', 'middle' => null, 'last' => 'Mdoe', 'phone' => '255712345008', 'role' => 'chief'],
             ['email' => 'accountant1@wdf.go.tz', 'check' => '1000000010', 'first' => 'Sarah', 'middle' => null, 'last' => 'Ngowi', 'phone' => '255712345009', 'role' => 'accountant'],
             ['email' => 'accountant2@wdf.go.tz', 'check' => '1000000011', 'first' => 'David', 'middle' => null, 'last' => 'Mushi', 'phone' => '255712345010', 'role' => 'accountant'],
+            ['email' => 'ministry.admin@wdf.go.tz', 'check' => '1000000020', 'first' => 'Joseph', 'middle' => null, 'last' => 'Mkude', 'phone' => '255712345020', 'role' => 'ministry_admin'],
+            ['email' => 'region.tehama@wdf.go.tz', 'check' => '1000000012', 'first' => 'Hassan', 'middle' => null, 'last' => 'Mwinyi', 'phone' => '255712345011', 'role' => 'tehama_region', 'zone' => 'region'],
+            ['email' => 'council.tehama@wdf.go.tz', 'check' => '1000000013', 'first' => 'Rehema', 'middle' => null, 'last' => 'Ally', 'phone' => '255712345012', 'role' => 'tehama_council', 'zone' => 'council'],
         ];
 
         $dodomaRegion = Region::where('name', 'Dodoma')->first();
-        $dodomaCouncil = Council::where('name', 'Dodoma Jiji')->first();
-        $tambukareliWard = Ward::where('name', 'Tambukareli')->first();
+        $dodomaCouncil = Council::where('name', 'Dodoma City Council')->first();
+        $hazinaWard = Ward::where('name', 'Hazina Ward')->first();
 
         foreach ($users as $data) {
             $user = User::updateOrCreate(
@@ -49,8 +52,8 @@ class StaffUserSeeder extends Seeder
                 ]
             );
 
-            if (($data['zone'] ?? null) === 'ward' && $tambukareliWard) {
-                $user->update(['zoneable_type' => Ward::class, 'zoneable_id' => $tambukareliWard->id]);
+            if (($data['zone'] ?? null) === 'ward' && $hazinaWard) {
+                $user->update(['zoneable_type' => Ward::class, 'zoneable_id' => $hazinaWard->id]);
             } elseif (($data['zone'] ?? null) === 'council' && $dodomaCouncil) {
                 $user->update(['zoneable_type' => Council::class, 'zoneable_id' => $dodomaCouncil->id]);
             } elseif (($data['zone'] ?? null) === 'region' && $dodomaRegion) {

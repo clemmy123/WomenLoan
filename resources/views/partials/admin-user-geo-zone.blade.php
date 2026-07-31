@@ -1,19 +1,30 @@
 @php
+    $selectedRoleForGeo = old('role', old('roles.0', ($userRoles ?? [])[0] ?? null));
+    $rolesForGeoBoot = filled($selectedRoleForGeo) ? [(string) $selectedRoleForGeo] : [];
     $staffGeoBoot = \App\Support\StaffZone::formCascadeBoot(
         $user ?? null,
-        array_values(old('roles', $userRoles ?? [])),
+        $rolesForGeoBoot,
         $regions ?? []
     );
+    $geoHasError = $errors->has('zone_id') || $errors->has('zone_type');
 @endphp
 
 <div
-    class="app-card app-card-padded mt-6"
+    id="staff-geo-section"
+    class="app-card app-card-padded mt-6 {{ $geoHasError ? 'ring-2 ring-red-400' : '' }}"
+    data-staff-geo-section
+    @if($geoHasError) data-error-anchor @endif
     x-data="userGeoZoneForm(@js($staffGeoBoot))"
     x-cloak
     x-show="showGeo"
 >
-    <h3 class="font-bold text-slate-900 mb-1">{{ __('admin.geo_zone') }}</h3>
-    <p class="text-sm text-slate-500 mb-4" x-text="labels.geo_hint"></p>
+    <h3 class="font-bold text-slate-900 mb-1">
+        {{ __('admin.geo_zone') }} @include('partials.required-mark')
+    </h3>
+    <p class="text-sm text-slate-500 mb-2" x-text="labels.geo_hint"></p>
+    <p class="text-xs font-medium text-amber-700 dark:text-amber-300 mb-4" x-show="showGeo">
+        {{ __('admin.geo_zone_required') }}
+    </p>
 
     <input type="hidden" name="zone_type" :value="zoneType">
     <input type="hidden" name="zone_id" :value="zoneId">
@@ -27,10 +38,11 @@
             <label class="app-label" for="staff_region_id">{{ __('geo.region') }} @include('partials.required-mark')</label>
             <select
                 id="staff_region_id"
-                class="app-select"
+                class="app-select {{ $geoHasError && ! old('cascade_region_id') && ! old('zone_id') ? 'border-red-400' : '' }}"
                 x-model="selectedRegion"
                 @change="onRegionChange()"
                 :required="showGeo"
+                data-geo-step="region"
             >
                 <option value="">{{ __('admin.select_region') }}</option>
                 <template x-for="item in regions" :key="'r-'+item.id">
@@ -48,6 +60,7 @@
                 @change="onDistrictChange()"
                 :required="showDistrict"
                 :disabled="! selectedRegion"
+                data-geo-step="district"
             >
                 <option value="">{{ __('geo.select_district') }}</option>
                 <template x-for="item in districts" :key="'d-'+item.id">
@@ -65,6 +78,7 @@
                 @change="onCouncilChange()"
                 :required="showCouncil"
                 :disabled="! selectedDistrict"
+                data-geo-step="council"
             >
                 <option value="">{{ __('admin.select_council') }}</option>
                 <template x-for="item in councils" :key="'c-'+item.id">
@@ -82,6 +96,7 @@
                 @change="onWardChange()"
                 :required="showWard"
                 :disabled="! selectedCouncil"
+                data-geo-step="ward"
             >
                 <option value="">{{ __('admin.select_ward') }}</option>
                 <template x-for="item in wards" :key="'w-'+item.id">
@@ -91,6 +106,11 @@
         </div>
     </div>
 
-    @error('zone_type') <p class="mt-2 text-xs font-medium text-red-600">{{ $message }}</p> @enderror
-    @error('zone_id') <p class="mt-2 text-xs font-medium text-red-600">{{ $message }}</p> @enderror
+    <p class="mt-2 text-xs font-medium text-red-600" data-staff-gap-message hidden></p>
+    @error('zone_type')
+        <p class="mt-2 text-xs font-medium text-red-600">{{ $message }}</p>
+    @enderror
+    @error('zone_id')
+        <p class="mt-2 text-xs font-medium text-red-600">{{ $message }}</p>
+    @enderror
 </div>

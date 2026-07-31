@@ -30,6 +30,7 @@ return [
     'filter' => 'Chuja',
     'show_filters' => 'Onyesha vichujio',
     'hide_filters' => 'Ficha vichujio',
+    'apply_filters' => 'Tumia Vichujio',
     'clear' => 'Futa',
     'actions' => 'Vitendo',
     'attachment' => 'Kiambatisho',

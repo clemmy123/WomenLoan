@@ -63,7 +63,7 @@ class ByRegionReportTest extends TestCase
 
     public function test_ward_cdo_by_region_is_scoped_to_own_zone(): void
     {
-        $ward = Ward::where('name', 'Tambukareli')->firstOrFail();
+        $ward = Ward::where('name', 'Hazina Ward')->firstOrFail();
         $ward->loadMissing('council.district.region');
         $ownRegion = $ward->council->district->region;
         $otherRegion = Region::query()->whereKeyNot($ownRegion->id)->first();
@@ -108,7 +108,7 @@ class ByRegionReportTest extends TestCase
 
     public function test_by_region_accepts_cascading_geo_filters(): void
     {
-        $ward = Ward::where('name', 'Tambukareli')->firstOrFail();
+        $ward = Ward::where('name', 'Hazina Ward')->firstOrFail();
         $ward->loadMissing('council.district.region');
 
         $filters = app(ByRegionReportService::class)->normalizeFilters([

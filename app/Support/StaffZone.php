@@ -15,13 +15,17 @@ class StaffZone
         'cdo_ward',
         'cdo_council',
         'cdo_region',
+        'tehama_council',
+        'tehama_region',
     ];
 
     /** Most-specific first — drives cascade depth when multiple are checked. */
     public const GEO_ROLE_PRIORITY = [
         'cdo_ward' => 'ward',
         'cdo_council' => 'council',
+        'tehama_council' => 'council',
         'cdo_region' => 'region',
+        'tehama_region' => 'region',
     ];
 
     /** National / ministry-scope roles — no geo zone; shown as Ministry Level. */
@@ -33,7 +37,7 @@ class StaffZone
         'accountant',
         'admin',
         'super_admin',
-        'tehama_staff',
+        'ministry_admin',
     ];
 
     public const KM_ROLE = 'km';
@@ -214,6 +218,12 @@ class StaffZone
                 'select_council' => __('admin.select_council'),
                 'select_ward' => __('admin.select_ward'),
                 'geo_hint' => __('admin.geo_zone_role_hint'),
+                'roles_required' => __('admin.roles_required'),
+                'geo_zone_required' => __('admin.geo_zone_required'),
+                'geo_zone_incomplete' => __('admin.geo_zone_incomplete'),
+                'complete_section_here' => __('admin.complete_section_here'),
+                'ok' => __('common.ok'),
+                'error' => __('common.error'),
             ],
         ];
     }

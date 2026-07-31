@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests\Admin;
 
+use App\Support\StaffAdminScope;
 use Illuminate\Contracts\Validation\Validator;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\ValidationException;
@@ -15,7 +16,8 @@ class DeactivateUserRequest extends FormRequest
 
         return $actor->can('manage users')
             && $actor->can('deactivate users')
-            && $actor->id !== $target->id;
+            && $actor->id !== $target->id
+            && StaffAdminScope::canManage($actor, $target);
     }
 
     public function rules(): array

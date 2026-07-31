@@ -132,7 +132,7 @@ class AdminUserManagementTest extends TestCase
         $response->assertSee('accountant1@wdf.go.tz', false);
         $response->assertDontSee('ward.cdo@wdf.go.tz', false);
         $response->assertSee(__('admin.users_search_placeholder'), false);
-        $response->assertSee(__('admin.sort_by_role'), false);
+        $response->assertSee(__('common.apply_filters'), false);
         $response->assertSee(e(role_label('accountant')), false);
         $response->assertSee(e(role_label('cdo_ward')), false);
         $response->assertSee(__('admin.export_excel'), false);
@@ -161,7 +161,7 @@ class AdminUserManagementTest extends TestCase
 
     public function test_users_export_excludes_applicants(): void
     {
-        $rows = app(\App\Services\UserProvisioningService::class)->exportRows(status: 'active');
+        $rows = app(\App\Services\UserProvisioningService::class)->exportRows(['status' => 'active']);
 
         $this->assertTrue($rows->contains(fn (array $row) => $row['email'] === 'ward.cdo@wdf.go.tz'));
         $this->assertFalse($rows->contains(fn (array $row) => $row['email'] === 'applicant2@wdf.go.tz'));
@@ -207,11 +207,11 @@ class AdminUserManagementTest extends TestCase
             ->get(route('admin.users.assign-roles', $target))
             ->assertOk()
             ->assertSee(__('admin.assign_roles'), false)
-            ->assertSee('name="roles[]"', false);
+            ->assertSee('name="role"', false);
 
         $this->actingAsRole('admin@wdf.go.tz')
             ->put(route('admin.users.assign-roles.update', $target), [
-                'roles' => ['chief'],
+                'role' => 'chief',
             ])
             ->assertRedirect(route('admin.users.assign-roles', $target))
             ->assertSessionHas('success');
@@ -219,6 +219,26 @@ class AdminUserManagementTest extends TestCase
         $target->refresh();
         $this->assertTrue($target->hasRole('chief'));
         $this->assertFalse($target->hasRole('accountant'));
+    }
+
+    public function test_create_user_requires_at_least_one_role(): void
+    {
+        $this->actingAsRole('admin@wdf.go.tz')
+            ->from(route('admin.users.create'))
+            ->post(route('admin.users.store'), [
+                'check_number' => '2223334444',
+                'first_name' => 'No',
+                'last_name' => 'Role',
+                'email' => 'norole@wdf.go.tz',
+                'phone' => '0712345000',
+                'password' => $this->strongPassword(),
+                'password_confirmation' => $this->strongPassword(),
+                'is_active' => '1',
+            ])
+            ->assertRedirect(route('admin.users.create'))
+            ->assertSessionHasErrors(['role']);
+
+        $this->assertNull(User::where('email', 'norole@wdf.go.tz')->first());
     }
 
     public function test_cdo_region_role_requires_region_zone(): void

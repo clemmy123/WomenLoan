@@ -30,6 +30,7 @@ document.addEventListener('alpine:init', () => {
         hasDates: config.hasDates !== false,
         hasSort: config.hasSort !== false,
         hasAge: Boolean(config.hasAge),
+        includeStreet: config.includeStreet !== false,
         geoApi: config.geoApi ?? {},
         locks: config.locks ?? {},
         districts: [],
@@ -347,7 +348,7 @@ document.addEventListener('alpine:init', () => {
         },
 
         get showStreet() {
-            return Boolean(this.selectedWard);
+            return this.includeStreet && Boolean(this.selectedWard);
         },
 
         get showFiscalYear() {

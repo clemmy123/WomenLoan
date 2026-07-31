@@ -20,7 +20,7 @@ class StaffZoneTest extends TestCase
 
     public function test_ministry_roles_use_ministry_level_label_when_no_geo_zone(): void
     {
-        foreach (['cdo_ministry', 'assistant_director', 'director', 'chief', 'accountant'] as $role) {
+        foreach (['cdo_ministry', 'assistant_director', 'director', 'chief', 'accountant', 'ministry_admin'] as $role) {
             $this->assertSame(
                 __('admin.zone_ministry_level'),
                 StaffZone::emptyZoneTypeLabel([$role]),
@@ -39,7 +39,7 @@ class StaffZoneTest extends TestCase
 
     public function test_geo_cdo_roles_keep_none_label(): void
     {
-        foreach (['cdo_ward', 'cdo_council', 'cdo_region'] as $role) {
+        foreach (['cdo_ward', 'cdo_council', 'cdo_region', 'tehama_region', 'tehama_council'] as $role) {
             $this->assertSame(
                 __('admin.zone_none'),
                 StaffZone::emptyZoneTypeLabel([$role]),

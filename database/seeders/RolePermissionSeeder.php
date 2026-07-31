@@ -92,11 +92,61 @@ class RolePermissionSeeder extends Seeder
                 'view loan by track id', 'view repayments',
                 ...$allReportPermissions,
             ],
+            'ministry_admin' => [
+                'view dashboard',
+                'view administration dashboard',
+                'manage users',
+                'reset user password',
+                'activate users',
+                'deactivate users',
+                'manage roles',
+                'view audit logs',
+            ],
+            'tehama_region' => [
+                'view dashboard',
+                'view administration dashboard',
+                'manage users',
+                'reset user password',
+                'activate users',
+                'deactivate users',
+            ],
+            'tehama_council' => [
+                'view dashboard',
+                'view administration dashboard',
+                'manage users',
+                'reset user password',
+                'activate users',
+                'deactivate users',
+            ],
         ];
 
         foreach ($rolePermissions as $roleName => $perms) {
             $role = Role::firstOrCreate(['name' => $roleName, 'guard_name' => 'web']);
             $role->syncPermissions($perms);
         }
+
+        $this->renameLegacyTehamaStaffRole();
+    }
+
+    /**
+     * Older installs used tehama_staff as a national IT stub — migrate to ministry_admin.
+     */
+    protected function renameLegacyTehamaStaffRole(): void
+    {
+        $legacy = Role::query()->where('name', 'tehama_staff')->where('guard_name', 'web')->first();
+        $ministryAdmin = Role::query()->where('name', 'ministry_admin')->where('guard_name', 'web')->first();
+
+        if (! $legacy || ! $ministryAdmin) {
+            return;
+        }
+
+        foreach ($legacy->users()->get() as $user) {
+            if (! $user->hasRole('ministry_admin')) {
+                $user->assignRole($ministryAdmin);
+            }
+            $user->removeRole($legacy);
+        }
+
+        $legacy->delete();
     }
 }

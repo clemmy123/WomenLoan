@@ -56,8 +56,11 @@ class NavPermissions
             'viewTotalLoansReports' => collect($byReportFlags)->contains(true),
             'viewReportsSection' => collect($reportFlags)->contains(true),
             'manageUsers' => $user->can('manage users'),
-            'manageRoles' => $user->can('manage roles'),
-            'viewAuditLogs' => $user->can('view audit logs'),
+            // Region/Council ICT manage users in-scope only — no roles/permissions or audit trails.
+            'manageRoles' => $user->can('manage roles')
+                && ! $user->hasAnyRole(['tehama_region', 'tehama_council']),
+            'viewAuditLogs' => $user->can('view audit logs')
+                && ! $user->hasAnyRole(['tehama_region', 'tehama_council']),
             'viewAdminDashboard' => $user->can('view administration dashboard'),
         ];
     }

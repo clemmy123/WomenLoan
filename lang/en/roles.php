@@ -13,5 +13,7 @@ return [
     'km' => 'Permanent Secretary',
     'chief' => 'Chief Accountant',
     'accountant' => 'Accountant',
-    'tehama_staff' => 'Tehama Staff',
+    'ministry_admin' => 'Ministry Administrator',
+    'tehama_region' => 'Regional ICT Officer',
+    'tehama_council' => 'Council ICT Officer',
 ];

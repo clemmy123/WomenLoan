@@ -4,6 +4,7 @@ namespace App\Services;
 
 use App\Models\Role;
 use App\Models\User;
+use App\Support\StaffAdminScope;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
@@ -40,13 +41,19 @@ class AdminDashboardService
     }
 
     /**
+     * Active staff counts by role. Region/Council ICT see only roles and users in their zone.
+     *
      * @return Collection<int, array{role: string, label: string, count: int}>
      */
     public function usersByRole(): Collection
     {
         return $this->staffRolesQuery()
             ->withCount([
-                'users as users_count' => fn (Builder $query) => $query->where('is_active', true),
+                'users as users_count' => function (Builder $query) {
+                    $query->where('is_active', true);
+                    // Scope counts to the actor's region/council (no-op for national admins).
+                    StaffAdminScope::applyToStaffQuery($query);
+                },
             ])
             ->orderBy('name')
             ->get()
@@ -54,7 +61,12 @@ class AdminDashboardService
                 'role' => $role->name,
                 'label' => role_label($role->name),
                 'count' => (int) $role->users_count,
-            ]);
+            ])
+            // Hide empty assignable roles so scoped ICT charts reflect their area only.
+            ->when(
+                StaffAdminScope::isScopedAdmin(auth()->user()),
+                fn (Collection $rows) => $rows->filter(fn (array $row) => $row['count'] > 0)->values()
+            );
     }
 
     /**
@@ -100,15 +112,27 @@ class AdminDashboardService
 
     protected function staffUsersQuery(): Builder
     {
-        return User::query()->whereHas(
+        $query = User::query()->whereHas(
             'roles',
             fn (Builder $roles) => $roles->where('name', '!=', self::APPLICANT_ROLE)
         );
+
+        StaffAdminScope::applyToStaffQuery($query);
+
+        return $query;
     }
 
     protected function staffRolesQuery(): Builder
     {
-        return Role::query()->where('name', '!=', self::APPLICANT_ROLE);
+        $query = Role::query()->where('name', '!=', self::APPLICANT_ROLE);
+
+        $assignable = StaffAdminScope::assignableRoleNames();
+
+        if ($assignable !== null) {
+            $query->whereIn('name', $assignable);
+        }
+
+        return $query;
     }
 
     protected function dayPeriodExpression(string $dateColumn): string

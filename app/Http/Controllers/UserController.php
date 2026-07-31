@@ -10,15 +10,21 @@ use App\Http\Requests\Admin\UpdateUserRequest;
 use App\Http\Requests\Admin\UpdateUserRolesRequest;
 use App\Models\Role;
 use App\Models\User;
+use App\Services\GeoHierarchyService;
 use App\Services\UserProvisioningService;
+use App\Support\StaffAdminScope;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\Request;
+use Illuminate\Support\Collection;
 use Maatwebsite\Excel\Facades\Excel;
 use Symfony\Component\HttpFoundation\BinaryFileResponse;
 
 class UserController extends Controller
 {
-    public function __construct(private UserProvisioningService $users) {}
+    public function __construct(
+        private UserProvisioningService $users,
+        private GeoHierarchyService $geo,
+    ) {}
 
     public function index(Request $request)
     {
@@ -32,14 +38,14 @@ class UserController extends Controller
 
     public function exportExcel(Request $request): BinaryFileResponse
     {
-        [$search, $role, $status] = $this->listFilters($request, $this->forcedListStatus($request));
-        $rows = $this->users->exportRows($search, $role, $status);
+        $filters = $this->listFilters($request, $this->forcedListStatus($request));
+        $rows = $this->users->exportRows($filters);
 
         return Excel::download(
             new UsersExport($rows, [
-                'search' => $search ?? '',
-                'role' => $role ?? '',
-                'status' => $status ?? '',
+                'search' => $filters['search'] ?? '',
+                'role' => $filters['role'] ?? '',
+                'status' => $filters['status'] ?? '',
             ]),
             $this->users->exportFilename('xlsx')
         );
@@ -47,31 +53,39 @@ class UserController extends Controller
 
     public function exportPdf(Request $request)
     {
-        [$search, $role, $status] = $this->listFilters($request, $this->forcedListStatus($request));
-        $rows = $this->users->exportRows($search, $role, $status);
-        $filters = [
-            'search' => $search ?? '',
-            'role' => $role ?? '',
-            'status' => $status ?? '',
-        ];
+        $filters = $this->listFilters($request, $this->forcedListStatus($request));
+        $rows = $this->users->exportRows($filters);
 
-        return Pdf::loadView('admin.users.export-pdf', compact('filters', 'rows'))
-            ->download($this->users->exportFilename('pdf'));
+        return Pdf::loadView('admin.users.export-pdf', [
+            'filters' => [
+                'search' => $filters['search'] ?? '',
+                'role' => $filters['role'] ?? '',
+                'status' => $filters['status'] ?? '',
+            ],
+            'rows' => $rows,
+        ])->download($this->users->exportFilename('pdf'));
     }
 
     protected function renderUsersList(Request $request, string $listStatus)
     {
-        [$search, $role, $status, $roleOptions] = $this->listFilters($request, $listStatus);
+        $filters = $this->listFilters($request, $listStatus);
+        $roleOptions = $filters['roleOptions'];
+        unset($filters['roleOptions']);
 
-        $users = $this->users->paginated($search, $role, $status);
+        $users = $this->users->paginated($filters);
+        $geoBounds = $this->geo->zoneBounds($request->user());
 
         return view('admin.users.index', [
             'users' => $users,
-            'search' => $search ?? '',
-            'role' => $role ?? '',
-            'status' => $status,
+            'search' => $filters['search'] ?? '',
+            'role' => $filters['role'] ?? '',
+            'status' => $filters['status'],
             'listStatus' => $listStatus,
             'roleOptions' => $roleOptions,
+            'filters' => $filters,
+            'regions' => $this->geo->regionsForUser($request->user()),
+            'geoBounds' => $geoBounds ?? [],
+            'filtersApplied' => $this->filtersAreApplied($filters, $geoBounds['lock'] ?? []),
         ]);
     }
 
@@ -87,7 +101,16 @@ class UserController extends Controller
     }
 
     /**
-     * @return array{0: ?string, 1: ?string, 2: string, 3: array<string, string>}
+     * @return array{
+     *     search: ?string,
+     *     role: ?string,
+     *     status: string,
+     *     region_id: ?string,
+     *     district_id: ?string,
+     *     council_id: ?string,
+     *     ward_id: ?string,
+     *     roleOptions: array<string, string>
+     * }
      */
     protected function listFilters(Request $request, ?string $forcedStatus = null): array
     {
@@ -95,7 +118,7 @@ class UserController extends Controller
         $role = $request->string('role')->trim()->toString() ?: null;
         $status = $forcedStatus ?? $request->string('status')->toString() ?: null;
 
-        $roles = Role::query()->orderBy('name')->get(['id', 'name']);
+        $roles = $this->assignableRoles($request->user());
         $roleNames = $roles->pluck('name')->all();
 
         if ($role !== null && ! in_array($role, $roleNames, true)) {
@@ -112,21 +135,50 @@ class UserController extends Controller
 
         $roleOptions = ['' => __('admin.role_all')];
         foreach ($roles as $item) {
-            if ($item->name === 'applicant') {
-                continue;
-            }
-            if ($item->name === 'super_admin' && ! $request->user()?->hasRole('super_admin')) {
-                continue;
-            }
             $roleOptions[$item->name] = role_label($item->name);
         }
 
-        return [$search, $role, $status, $roleOptions];
+        $geo = $this->geo->clampGeoFilters([
+            'region_id' => $request->input('region_id'),
+            'district_id' => $request->input('district_id'),
+            'council_id' => $request->input('council_id'),
+            'ward_id' => $request->input('ward_id'),
+        ], $request->user());
+
+        return [
+            'search' => $search,
+            'role' => $role,
+            'status' => $status,
+            'region_id' => filled($geo['region_id'] ?? null) ? (string) $geo['region_id'] : null,
+            'district_id' => filled($geo['district_id'] ?? null) ? (string) $geo['district_id'] : null,
+            'council_id' => filled($geo['council_id'] ?? null) ? (string) $geo['council_id'] : null,
+            'ward_id' => filled($geo['ward_id'] ?? null) ? (string) $geo['ward_id'] : null,
+            'roleOptions' => $roleOptions,
+        ];
+    }
+
+    /**
+     * @param  array<string, mixed>  $filters
+     * @param  array<string, string>  $locks
+     */
+    protected function filtersAreApplied(array $filters, array $locks = []): bool
+    {
+        $regionApplied = filled($filters['region_id'] ?? null) && empty($locks['region_id']);
+        $districtApplied = filled($filters['district_id'] ?? null) && empty($locks['district_id']);
+        $councilApplied = filled($filters['council_id'] ?? null) && empty($locks['council_id']);
+        $wardApplied = filled($filters['ward_id'] ?? null) && empty($locks['ward_id']);
+
+        return filled($filters['search'] ?? null)
+            || filled($filters['role'] ?? null)
+            || $regionApplied
+            || $districtApplied
+            || $councilApplied
+            || $wardApplied;
     }
 
     public function create()
     {
-        $roles = Role::orderBy('name')->get();
+        $roles = $this->assignableRoles(auth()->user());
 
         return view('admin.users.create', array_merge(
             compact('roles'),
@@ -147,6 +199,7 @@ class UserController extends Controller
 
     public function show(User $user)
     {
+        $this->ensureCanManage($user);
         $user->load(['roles', 'zoneable', 'deactivatedBy']);
 
         return view('admin.users.show', compact('user'));
@@ -154,7 +207,8 @@ class UserController extends Controller
 
     public function edit(User $user)
     {
-        $roles = Role::orderBy('name')->get();
+        $this->ensureCanManage($user);
+        $roles = $this->assignableRoles(auth()->user());
         $userRoles = $user->roles->pluck('name')->toArray();
         $user->loadMissing('zoneable');
 
@@ -166,7 +220,8 @@ class UserController extends Controller
 
     public function assignRoles(User $user)
     {
-        $roles = Role::orderBy('name')->get();
+        $this->ensureCanManage($user);
+        $roles = $this->assignableRoles(auth()->user());
         $userRoles = $user->roles->pluck('name')->toArray();
         $user->loadMissing('zoneable');
 
@@ -178,6 +233,7 @@ class UserController extends Controller
 
     public function updateRoles(UpdateUserRolesRequest $request, User $user)
     {
+        $this->ensureCanManage($user);
         $validated = $request->validated();
         $this->users->syncRolesAndZone($user, $validated['roles'] ?? [], $validated);
 
@@ -188,6 +244,7 @@ class UserController extends Controller
 
     public function update(UpdateUserRequest $request, User $user)
     {
+        $this->ensureCanManage($user);
         $unlockLogin = $request->boolean('unlock_login');
 
         $this->users->update(
@@ -211,6 +268,8 @@ class UserController extends Controller
 
     public function deactivate(DeactivateUserRequest $request, User $user)
     {
+        $this->ensureCanManage($user);
+
         if (! $user->is_active) {
             return redirect()
                 ->route('admin.users.inactive')
@@ -226,6 +285,8 @@ class UserController extends Controller
 
     public function activate(ActivateUserRequest $request, User $user)
     {
+        $this->ensureCanManage($user);
+
         if ($user->is_active) {
             return redirect()
                 ->route('admin.users.index')
@@ -241,6 +302,8 @@ class UserController extends Controller
 
     public function destroy(User $user)
     {
+        $this->ensureCanManage($user);
+
         if ($user->id === auth()->id()) {
             return back()->withErrors(['error' => __('messages.cannot_delete_self')]);
         }
@@ -251,6 +314,33 @@ class UserController extends Controller
         return redirect()
             ->route($wasActive ? 'admin.users.index' : 'admin.users.inactive')
             ->with('success', __('messages.user_deleted'));
+    }
+
+    protected function ensureCanManage(User $user): void
+    {
+        abort_unless(StaffAdminScope::canManage(auth()->user(), $user), 403);
+    }
+
+    /**
+     * @return Collection<int, Role>
+     */
+    protected function assignableRoles(?User $actor): Collection
+    {
+        $query = Role::query()->orderBy('name');
+
+        $assignable = StaffAdminScope::assignableRoleNames($actor);
+
+        if ($assignable !== null) {
+            return $query->whereIn('name', $assignable)->get();
+        }
+
+        $roles = $query->get();
+
+        if (! $actor?->hasRole('super_admin')) {
+            $roles = $roles->reject(fn (Role $role) => $role->name === 'super_admin')->values();
+        }
+
+        return $roles->reject(fn (Role $role) => $role->name === 'applicant')->values();
     }
 
     private function resolveIsActiveForCreate(Request $request): bool

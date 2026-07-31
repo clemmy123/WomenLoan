@@ -4,32 +4,46 @@ namespace App\Services;
 
 use App\Models\Concerns\HasDisplayName;
 use App\Models\User;
+use App\Support\StaffAdminScope;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Collection;
 
 class UserProvisioningService
 {
-    public function paginated(
-        ?string $search = null,
-        ?string $role = null,
-        ?string $status = null,
-        int $perPage = 15
-    ): LengthAwarePaginator {
-        return $this->staffUsersQuery($search, $role, $status)
+    /**
+     * @param  array{
+     *     search?: ?string,
+     *     role?: ?string,
+     *     status?: ?string,
+     *     region_id?: int|string|null,
+     *     district_id?: int|string|null,
+     *     council_id?: int|string|null,
+     *     ward_id?: int|string|null
+     * }  $filters
+     */
+    public function paginated(array $filters = [], int $perPage = 15): LengthAwarePaginator
+    {
+        return $this->staffUsersQuery($filters)
             ->paginate($perPage)
             ->withQueryString();
     }
 
     /**
+     * @param  array{
+     *     search?: ?string,
+     *     role?: ?string,
+     *     status?: ?string,
+     *     region_id?: int|string|null,
+     *     district_id?: int|string|null,
+     *     council_id?: int|string|null,
+     *     ward_id?: int|string|null
+     * }  $filters
      * @return Collection<int, array{check_number: string, name: string, email: string, phone: string, roles: string, status: string}>
      */
-    public function exportRows(
-        ?string $search = null,
-        ?string $role = null,
-        ?string $status = null,
-    ): Collection {
-        return $this->staffUsersQuery($search, $role, $status)
+    public function exportRows(array $filters = []): Collection
+    {
+        return $this->staffUsersQuery($filters)
             ->get()
             ->map(fn (User $user) => [
                 'check_number' => $user->check_number ?: '—',
@@ -46,17 +60,39 @@ class UserProvisioningService
         return 'wdf-users-'.now()->format('Y-m-d-His').'.'.$extension;
     }
 
-    protected function staffUsersQuery(
-        ?string $search = null,
-        ?string $role = null,
-        ?string $status = null,
-    ): Builder {
-        $query = User::query()->with('roles');
+    /**
+     * @param  array{
+     *     search?: ?string,
+     *     role?: ?string,
+     *     status?: ?string,
+     *     region_id?: int|string|null,
+     *     district_id?: int|string|null,
+     *     council_id?: int|string|null,
+     *     ward_id?: int|string|null
+     * }  $filters
+     */
+    protected function staffUsersQuery(array $filters = []): Builder
+    {
+        $search = $filters['search'] ?? null;
+        $role = $filters['role'] ?? null;
+        $status = $filters['status'] ?? null;
+
+        $query = User::query()->with(['roles', 'zoneable']);
 
         // Admin Users list is staff-only (cdo_ward and above). Applicants live under Applicants.
         $query->whereHas(
             'roles',
             fn ($roles) => $roles->where('name', '!=', AdminDashboardService::APPLICANT_ROLE)
+        );
+
+        StaffAdminScope::applyToStaffQuery($query);
+
+        StaffAdminScope::applyListGeoFilter(
+            $query,
+            $this->positiveInt($filters['region_id'] ?? null),
+            $this->positiveInt($filters['district_id'] ?? null),
+            $this->positiveInt($filters['council_id'] ?? null),
+            $this->positiveInt($filters['ward_id'] ?? null),
         );
 
         if (filled($search)) {
@@ -84,6 +120,17 @@ class UserProvisioningService
         }
 
         return $query->orderBy('name')->orderBy('id');
+    }
+
+    protected function positiveInt(mixed $value): ?int
+    {
+        if ($value === null || $value === '' || $value === '0' || $value === 0) {
+            return null;
+        }
+
+        $int = (int) $value;
+
+        return $int > 0 ? $int : null;
     }
 
     public function create(array $validated, bool $isActive = true): User
@@ -206,7 +253,7 @@ class UserProvisioningService
         $geo = app(GeoHierarchyService::class);
 
         return [
-            'regions' => $geo->regions(),
+            'regions' => $geo->regionsForUser(),
         ];
     }
 
@@ -215,13 +262,22 @@ class UserProvisioningService
     {
         $actor = auth()->user();
 
-        if ($actor?->hasRole('super_admin')) {
+        if (! $actor?->hasRole('super_admin')) {
+            $roles = array_values(array_filter(
+                $roles,
+                fn (string $role) => $role !== 'super_admin'
+            ));
+        }
+
+        $assignable = StaffAdminScope::assignableRoleNames($actor);
+
+        if ($assignable === null) {
             return $roles;
         }
 
         return array_values(array_filter(
             $roles,
-            fn (string $role) => $role !== 'super_admin'
+            fn (string $role) => in_array($role, $assignable, true)
         ));
     }
 }

@@ -54,10 +54,10 @@ class DummyDataSeeder extends Seeder
     protected function loadGeography(): void
     {
         $this->region = Region::where('name', 'Dodoma')->firstOrFail();
-        $this->district = District::where('region_id', $this->region->id)->where('name', 'Dodoma Mjini')->firstOrFail();
-        $this->council = Council::where('district_id', $this->district->id)->where('name', 'Dodoma Jiji')->firstOrFail();
-        $this->ward = Ward::where('council_id', $this->council->id)->where('name', 'Tambukareli')->firstOrFail();
-        $this->street = Street::where('ward_id', $this->ward->id)->where('name', 'Uhuru')->firstOrFail();
+        $this->district = District::where('region_id', $this->region->id)->where('name', 'Dodoma')->firstOrFail();
+        $this->council = Council::where('district_id', $this->district->id)->where('name', 'Dodoma City Council')->firstOrFail();
+        $this->ward = Ward::where('council_id', $this->council->id)->where('name', 'Hazina Ward')->firstOrFail();
+        $this->street = Street::where('ward_id', $this->ward->id)->where('name', 'Hazina Mtaa')->firstOrFail();
     }
 
     protected function loadStaff(): void

@@ -27,7 +27,7 @@ class CdoLoanScopeTest extends TestCase
 
     public function test_ward_cdo_sees_only_own_ward_loans(): void
     {
-        $council = Council::where('name', 'Dodoma Jiji')->firstOrFail();
+        $council = Council::where('name', 'Dodoma City Council')->firstOrFail();
         $otherWard = Ward::create([
             'name' => 'Makole Test',
             'code' => 'MKL',
@@ -45,7 +45,7 @@ class CdoLoanScopeTest extends TestCase
 
     public function test_two_ward_cdos_on_same_ward_both_see_ward_loans(): void
     {
-        $ward = Ward::where('name', 'Tambukareli')->firstOrFail();
+        $ward = Ward::where('name', 'Hazina Ward')->firstOrFail();
         $loan = $this->createLoanInWard($ward, 'WL900002', status: 'received');
 
         $secondCdo = User::factory()->create([
@@ -68,7 +68,7 @@ class CdoLoanScopeTest extends TestCase
     public function test_second_ward_cdo_cannot_forward_after_colleague_handled_loan(): void
     {
         $loan = $this->loanByTrack('WL000002');
-        $ward = Ward::where('name', 'Tambukareli')->firstOrFail();
+        $ward = Ward::where('name', 'Hazina Ward')->firstOrFail();
 
         $secondCdo = User::factory()->create([
             'name' => 'Second Ward CDO',
@@ -101,7 +101,7 @@ class CdoLoanScopeTest extends TestCase
     public function test_second_ward_cdo_sees_already_handled_badge_after_colleague_acted(): void
     {
         $loan = $this->loanByTrack('WL000002');
-        $ward = Ward::where('name', 'Tambukareli')->firstOrFail();
+        $ward = Ward::where('name', 'Hazina Ward')->firstOrFail();
 
         $secondCdo = User::factory()->create([
             'name' => 'Second Ward CDO',
@@ -131,7 +131,7 @@ class CdoLoanScopeTest extends TestCase
 
     public function test_ward_cdo_report_filters_only_own_region_and_locks_zone(): void
     {
-        $ward = Ward::where('name', 'Tambukareli')->firstOrFail();
+        $ward = Ward::where('name', 'Hazina Ward')->firstOrFail();
         $ward->loadMissing('council.district.region');
         $ownRegion = $ward->council->district->region;
         $otherRegion = \App\Models\Region::query()->whereKeyNot($ownRegion->id)->first();

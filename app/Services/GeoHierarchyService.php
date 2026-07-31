@@ -91,7 +91,7 @@ class GeoHierarchyService
     {
         $user ??= auth()->user();
 
-        return (bool) $user?->hasRole(['cdo_ward', 'cdo_council', 'cdo_region']);
+        return (bool) $user?->hasAnyRole(\App\Support\StaffZone::GEO_ROLES);
     }
 
     /**
@@ -144,7 +144,7 @@ class GeoHierarchyService
             ];
         }
 
-        if ($user->hasRole('cdo_council') && $user->zoneable instanceof Council) {
+        if ($user->hasAnyRole(['cdo_council', 'tehama_council']) && $user->zoneable instanceof Council) {
             $council = $user->zoneable;
             $council->loadMissing('district.region');
 
@@ -162,7 +162,7 @@ class GeoHierarchyService
             ];
         }
 
-        if ($user->hasRole('cdo_region') && $user->zoneable instanceof Region) {
+        if ($user->hasAnyRole(['cdo_region', 'tehama_region']) && $user->zoneable instanceof Region) {
             $region = $user->zoneable;
 
             return [

@@ -30,6 +30,7 @@ return [
     'filter' => 'Filter',
     'show_filters' => 'Show filters',
     'hide_filters' => 'Hide filters',
+    'apply_filters' => 'Apply Filters',
     'clear' => 'Clear',
     'actions' => 'Actions',
     'attachment' => 'Attachment',

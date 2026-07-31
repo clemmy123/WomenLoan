@@ -3,6 +3,7 @@
 
     $user = $user ?? null;
     $userRoles = $userRoles ?? [];
+    $selectedRole = old('role', old('roles.0', $userRoles[0] ?? ''));
     $nameParts = HasDisplayName::splitFullName((string) old('name', $user?->name ?? ''));
     $firstName = old('first_name', $user?->first_name ?? $nameParts['first_name']);
     $middleName = old('middle_name', $user?->middle_name ?? $nameParts['middle_name']);
@@ -163,21 +164,31 @@
         @endif
     </div>
 
-    <div class="app-card app-card-padded">
-        <h3 class="font-bold text-slate-900 mb-4">{{ __('admin.assign_roles') }}</h3>
-        <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 max-h-64 overflow-y-auto">
+    <div
+        id="staff-role-section"
+        class="app-card app-card-padded {{ $errors->has('role') || $errors->has('roles') ? 'ring-2 ring-red-400' : '' }}"
+        data-staff-role-section
+        @if($errors->has('role') || $errors->has('roles')) data-error-anchor @endif
+    >
+        <h3 class="font-bold text-slate-900 mb-1">{{ __('admin.assign_roles') }} @include('partials.required-mark')</h3>
+        <p class="text-xs text-slate-500 mb-4">{{ __('admin.roles_required') }}</p>
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 max-h-64 overflow-y-auto @error('role') ring-2 ring-red-300 rounded-lg p-1 @enderror">
             @foreach($roles as $role)
             @if($role->name === 'super_admin' && !auth()->user()->hasRole('super_admin'))
                 @continue
             @endif
             <label class="flex items-center gap-2 p-2 rounded-lg hover:bg-slate-50 dark:hover:bg-white/5 cursor-pointer">
-                <input type="checkbox" name="roles[]" value="{{ $role->name }}"
-                    {{ in_array($role->name, old('roles', $userRoles)) ? 'checked' : '' }}
-                    class="rounded border-slate-300 text-indigo-600">
+                <input type="radio" name="role" value="{{ $role->name }}"
+                    {{ (string) $selectedRole === (string) $role->name ? 'checked' : '' }}
+                    required
+                    class="border-slate-300 text-indigo-600 focus:ring-indigo-500">
                 <span class="text-sm">{{ role_label($role->name) }}</span>
             </label>
             @endforeach
         </div>
+        <p class="mt-2 text-xs font-medium text-red-600" data-staff-gap-message hidden></p>
+        @error('role') <p class="mt-2 text-xs font-medium text-red-600">{{ $message }}</p> @enderror
+        @error('roles') <p class="mt-2 text-xs font-medium text-red-600">{{ $message }}</p> @enderror
     </div>
 </div>
 

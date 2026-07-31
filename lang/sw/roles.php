@@ -13,5 +13,7 @@ return [
     'km' => 'Katibu Mkuu',
     'chief' => 'Mhasibu Mkuu',
     'accountant' => 'Mhasibu',
-    'tehama_staff' => 'Tehama Staff',
+    'ministry_admin' => 'Msimamizi wa Wizara',
+    'tehama_region' => 'Afisa Tehama Mkoa',
+    'tehama_council' => 'Afisa Tehama Halmashauri',
 ];
