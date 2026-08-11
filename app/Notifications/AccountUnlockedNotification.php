@@ -22,7 +22,9 @@ class AccountUnlockedNotification extends Notification
             ->greeting(__('auth.unlock_email_greeting', ['name' => $notifiable->name]))
             ->line(__('auth.unlock_email_line_1'))
             ->line(__('auth.unlock_email_line_2'))
-            ->action(__('auth.unlock_email_action'), route('login'))
+            ->action(__('auth.unlock_email_action'), \App\Services\JumuishiUrl::enabled()
+                ? \App\Services\JumuishiUrl::ssoStart('/')
+                : route('login'))
             ->line(__('auth.unlock_email_line_3'));
     }
 }

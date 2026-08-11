@@ -48,6 +48,11 @@ class User extends Authenticatable
         'deactivated_by',
         'must_change_password',
         'temporary_password_expires_at',
+        'global_user_id',
+        'token_version',
+        'jumuishi_sync_status',
+        'jumuishi_synced_at',
+        'jumuishi_sync_error',
     ];
 
     protected $hidden = [
@@ -68,6 +73,8 @@ class User extends Authenticatable
             'temporary_password_expires_at' => 'datetime',
             'dob' => 'date',
             'nida_verified_at' => 'datetime',
+            'jumuishi_synced_at' => 'datetime',
+            'token_version' => 'integer',
         ];
     }
 

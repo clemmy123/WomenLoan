@@ -2,7 +2,6 @@
 
 namespace App\Http\Middleware;
 
-use Carbon\Carbon;
 use Closure;
 use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -15,8 +14,11 @@ class SetLocale
 
         if (in_array($locale, ['en', 'sw'], true)) {
             app()->setLocale($locale);
-            Carbon::setLocale($locale === 'sw' ? 'sw_TZ' : 'en');
         }
+
+        // Do not call Carbon::setLocale() here. On slow disks (OneDrive Desktop)
+        // loading Carbon language packs can exceed max_execution_time during logout
+        // and other short requests (fatal error in Carbon\Traits\Date).
 
         return $next($request);
     }

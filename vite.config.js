@@ -36,6 +36,7 @@ export default defineConfig({
         },
     },
     server: {
+        open: false,
         watch: {
             ignored: ['**/storage/framework/views/**'],
         },

@@ -22,17 +22,27 @@ class LandingStatsTest extends TestCase
         Cache::flush();
     }
 
-    public function test_landing_page_shows_public_stats_from_database(): void
+    public function test_public_landing_stats_api_returns_totals_from_database(): void
     {
         $stats = app(LandingStatsService::class)->totals();
 
-        $response = $this->get(route('home'));
+        $response = $this->getJson(route('api.public.landing-stats'));
 
         $response->assertOk();
+        $response->assertJsonStructure([
+            'stats' => [
+                '*' => ['key', 'label', 'value', 'caption', 'theme'],
+            ],
+            'generated_at',
+        ]);
+
+        $payload = collect($response->json('stats'));
 
         foreach ($stats as $stat) {
-            $response->assertSee(number_format($stat['value']), false);
-            $response->assertSee($stat['label'], false);
+            $row = $payload->firstWhere('key', $stat['key']);
+            $this->assertNotNull($row);
+            $this->assertSame($stat['value'], $row['value']);
+            $this->assertSame($stat['label'], $row['label']);
         }
     }
 

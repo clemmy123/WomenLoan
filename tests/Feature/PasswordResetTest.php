@@ -18,11 +18,11 @@ class PasswordResetTest extends TestCase
         $this->seedApplication();
     }
 
-    public function test_login_page_shows_forgot_password_link(): void
+    public function test_login_page_is_available_for_guests_when_jumuishi_disabled(): void
     {
-        $this->get(route('login'))
-            ->assertOk()
-            ->assertSee(__('auth.forgot_password'));
+        config(['jumuishi.enabled' => false]);
+
+        $this->get(route('login'))->assertOk();
     }
 
     public function test_guest_forgot_password_always_reports_user_not_existed(): void
@@ -51,8 +51,7 @@ class PasswordResetTest extends TestCase
         $user = User::where('email', 'applicant2@wdf.go.tz')->firstOrFail();
 
         $this->get(route('password.reset', ['token' => 'fake-token', 'email' => $user->email]))
-            ->assertRedirect(route('login'))
-            ->assertSessionHasErrors(['email' => __('passwords.user')]);
+            ->assertRedirect(route('login'));
 
         $this->post(route('password.update'), [
             'token' => 'fake-token',

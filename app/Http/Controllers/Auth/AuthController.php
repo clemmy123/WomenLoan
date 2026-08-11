@@ -6,96 +6,66 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Auth\RegisterRequest;
 use App\Models\Concerns\HasDisplayName;
 use App\Models\User;
-use App\Services\LoginLockoutService;
+use App\Services\Auth\CredentialAuthService;
+use App\Services\JumuishiUrl;
 use App\Support\AccessibleHome;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Route;
+use Illuminate\View\View;
 
 class AuthController extends Controller
 {
-    public function __construct(private LoginLockoutService $lockout) {}
+    public function __construct(private CredentialAuthService $credentials) {}
 
-    public function showLogin()
+    public function showLogin(): RedirectResponse|View
     {
+        if (JumuishiUrl::enabled()) {
+            return redirect()->away(JumuishiUrl::ssoStart('/'));
+        }
+
         return view('auth.login');
     }
 
     public function login(Request $request)
     {
+        if (JumuishiUrl::enabled()) {
+            return redirect()->away(JumuishiUrl::ssoStart('/'));
+        }
+
         $credentials = $request->validate([
             'email' => ['required', 'email'],
             'password' => ['required'],
         ]);
 
-        $email = $credentials['email'];
-        $user = $this->lockout->findByEmail($email);
+        $result = $this->credentials->attempt($credentials['email'], $credentials['password']);
 
-        if ($user) {
-            $guard = $this->lockout->guard($user);
-            if ($guard['blocked']) {
-                return back()
-                    ->withErrors(['email' => $guard['message']])
-                    ->onlyInput('email');
-            }
-
-            if (! $user->is_active) {
-                return back()
-                    ->withErrors(['email' => __('auth.inactive')])
-                    ->onlyInput('email');
-            }
-        }
-
-        if ($user && Hash::check($credentials['password'], $user->password)) {
-            if ($user->mustChangePassword() && $user->temporaryPasswordExpired()) {
-                return back()
-                    ->withErrors(['email' => __('auth.temporary_password_expired')])
-                    ->onlyInput('email');
-            }
-
-            Auth::login($user, $request->boolean('remember'));
-            $request->session()->regenerate();
-            $this->lockout->clearOnSuccess($user);
-
-            if ($user->mustChangePassword()) {
-                $user->startTemporaryPasswordWindow();
-            }
-
-            activity('audit')
-                ->causedBy($user)
-                ->performedOn($user)
-                ->event('login')
-                ->log('User logged in');
-
-            if ($user->mustChangePassword()) {
-                return redirect()
-                    ->route('profile.password.required')
-                    ->with('warning', __('auth.temporary_password_must_change', [
-                        'minutes' => (int) config('wdf.temporary_password_minutes', 2),
-                    ]));
-            }
-
-            return $this->redirectAfterLogin($request, $user)
-                ->with('success', __('audit.events.login'));
-        }
-
-        if ($user) {
-            $result = $this->lockout->registerFailure($user);
-
+        if (! $result['ok']) {
             return back()
                 ->withErrors(['email' => $result['message']])
                 ->onlyInput('email');
         }
 
-        return back()
-            ->withErrors(['email' => __('auth.failed')])
-            ->onlyInput('email');
+        /** @var User $user */
+        $user = $result['user'];
+        $this->credentials->establishSession($request, $user, $request->boolean('remember'));
+
+        if ($user->mustChangePassword()) {
+            return redirect()
+                ->route('profile.password.required')
+                ->with('warning', __('auth.temporary_password_must_change', [
+                    'minutes' => (int) config('wdf.temporary_password_minutes', 2),
+                ]));
+        }
+
+        return $this->redirectAfterLogin($request, $user)
+            ->with('success', __('audit.events.login'));
     }
 
-    public function showRegister()
+    public function showRegister(): View
     {
+        // Applicant self-registration (NIDA) stays on WDF even when Jumuishi SSO is on.
         session(['nida_registration_allowed' => true]);
 
         return view('auth.register');
@@ -145,6 +115,18 @@ class AuthController extends Controller
 
         $user->assignRole('applicant');
 
+        if (JumuishiUrl::enabled()) {
+            try {
+                app(\App\Services\Jumuishi\JumuishiCentralUserSync::class)->push($user->fresh(), true);
+            } catch (\Throwable $e) {
+                report($e);
+                $user->forceFill([
+                    'jumuishi_sync_status' => 'failed',
+                    'jumuishi_sync_error' => mb_substr($e->getMessage(), 0, 2000),
+                ])->save();
+            }
+        }
+
         Auth::login($user);
 
         return redirect()->to(AccessibleHome::url($user))
@@ -153,19 +135,31 @@ class AuthController extends Controller
 
     public function logout(Request $request)
     {
-        if (Auth::user()) {
-            activity('audit')
-                ->causedBy(Auth::user())
-                ->performedOn(Auth::user())
-                ->event('logout')
-                ->log('User logged out');
+        $userId = Auth::id();
+
+        // End the session first so logout never waits on audit/DB/Carbon work.
+        Auth::logout();
+
+        try {
+            $request->session()->invalidate();
+            $request->session()->regenerateToken();
+        } catch (\Throwable $e) {
+            report($e);
         }
 
-        Auth::logout();
-        $request->session()->invalidate();
-        $request->session()->regenerateToken();
+        if ($userId) {
+            try {
+                logger()->info('User logged out', ['user_id' => $userId]);
+            } catch (\Throwable) {
+                // ignore logging failures during logout
+            }
+        }
 
-        return redirect()->route('login');
+        if (JumuishiUrl::enabled()) {
+            return redirect()->away(JumuishiUrl::centralLogout());
+        }
+
+        return redirect()->route('home');
     }
 
     /**

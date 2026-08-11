@@ -25,12 +25,32 @@ return Application::configure(basePath: dirname(__DIR__))
             \Illuminate\Http\Middleware\AddLinkHeadersForPreloadedAssets::class,
         ]);
 
+        $middleware->redirectGuestsTo(function (Request $request) {
+            if ($request->expectsJson()) {
+                return null;
+            }
+
+            if (\App\Services\JumuishiUrl::enabled()) {
+                return \App\Services\JumuishiUrl::ssoStart(
+                    \App\Services\JumuishiUrl::returnToFromRequest($request)
+                );
+            }
+
+            return route('login');
+        });
+
+        $middleware->validateCsrfTokens(except: [
+            'api/jumuishi/users/provision',
+            'api/jumuishi/users/sync',
+        ]);
+
         $middleware->alias([
             'role' => RoleMiddleware::class,
             'permission' => PermissionMiddleware::class,
             'role_or_permission' => RoleOrPermissionMiddleware::class,
             'password.changed' => \App\Http\Middleware\EnsurePasswordIsChanged::class,
             'nida.registration' => \App\Http\Middleware\EnsureNidaRegistrationSession::class,
+            'jumuishi.platform' => \App\Http\Middleware\VerifyJumuishiPlatformSecret::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {

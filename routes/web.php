@@ -23,6 +23,8 @@ use App\Http\Controllers\UserController;
 use App\Http\Controllers\WardController;
 use App\Http\Controllers\NidaController;
 use App\Http\Controllers\WorkflowController;
+use App\Http\Controllers\Auth\JumuishiSsoConsumeController;
+use App\Services\JumuishiUrl;
 use App\Services\LandingStatsService;
 use App\Support\AccessibleHome;
 use Illuminate\Support\Facades\Route;
@@ -51,14 +53,63 @@ Route::middleware(['guest', 'nida.registration', 'throttle:10,1'])->prefix('api/
 });
 
 Route::get('/', function (LandingStatsService $landingStats) {
-    if (! auth()->check()) {
-        return view('home', [
-            'landingStats' => $landingStats->totals(),
-        ]);
+    if (auth()->check()) {
+        return redirect()->to(AccessibleHome::url(auth()->user()));
     }
 
-    return redirect()->to(AccessibleHome::url(auth()->user()));
+    if (JumuishiUrl::enabled()) {
+        return redirect()->away(JumuishiUrl::base());
+    }
+
+    return view('home', [
+        'landingStats' => $landingStats->totals(),
+    ]);
 })->name('home');
+
+Route::middleware('throttle:60,1')->group(function () {
+    Route::options('/api/public/landing-stats', [\App\Http\Controllers\Api\LandingStatsController::class, 'options']);
+    Route::get('/api/public/landing-stats', \App\Http\Controllers\Api\LandingStatsController::class)
+        ->name('api.public.landing-stats');
+});
+
+/*
+|--------------------------------------------------------------------------
+| Jumuishi platform → module endpoints
+|--------------------------------------------------------------------------
+*/
+Route::prefix('api/jumuishi')->group(function () {
+    Route::get('/health', \App\Http\Controllers\Api\Jumuishi\HealthController::class)
+        ->middleware('throttle:60,1')
+        ->name('api.jumuishi.health');
+
+    Route::get('/queue-health', \App\Http\Controllers\Api\Jumuishi\QueueHealthController::class)
+        ->middleware('throttle:60,1')
+        ->name('api.jumuishi.queue-health');
+
+    Route::middleware(['jumuishi.platform', 'throttle:60,1'])->group(function () {
+        Route::post('/users/provision', \App\Http\Controllers\Api\Jumuishi\UserProvisionController::class)
+            ->name('api.jumuishi.users.provision');
+        Route::post('/users/sync', \App\Http\Controllers\Api\Jumuishi\UserSyncController::class)
+            ->name('api.jumuishi.users.sync');
+    });
+});
+
+Route::get('/jumuishi/sso/consume', JumuishiSsoConsumeController::class)
+    ->middleware('throttle:30,1')
+    ->name('jumuishi.sso.consume');
+
+// Legacy Jamii Vite shell SSO — keep off.
+if ((bool) config('services.jamii.sso_enabled')) {
+    Route::middleware('throttle:20,1')->group(function () {
+        Route::options('/api/jamii/auth/login', [\App\Http\Controllers\Api\JamiiAuthController::class, 'options']);
+        Route::post('/api/jamii/auth/login', [\App\Http\Controllers\Api\JamiiAuthController::class, 'login'])
+            ->name('api.jamii.auth.login');
+    });
+
+    Route::get('/auth/sso/consume', [\App\Http\Controllers\Auth\JamiiSsoController::class, 'consume'])
+        ->middleware('throttle:30,1')
+        ->name('auth.sso.consume');
+}
 
 Route::middleware(['auth', 'password.changed'])->group(function () {
     Route::get('/secure-files/{path}', [SecureFileController::class, 'show'])

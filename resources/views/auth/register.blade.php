@@ -21,14 +21,14 @@
     @endif
 >
     <div class="auth-split-form-header">
-        <h2 class="auth-split-form-title">{{ __('auth.register_title') }}</h2>
-        @if ($nidaEnabled)
-            <p class="auth-split-form-subtitle" x-show="['nin','question'].includes(step)" x-cloak>
+        <p class="jj-auth-intro">
+            @if ($nidaEnabled)
                 {{ __('nida.register_subtitle_nida') }}
-            </p>
-        @else
-            <p class="auth-split-form-subtitle">{{ __('auth.register_subtitle') }}</p>
-        @endif
+            @else
+                {{ __('auth.register_subtitle') }}
+            @endif
+        </p>
+        <h2 class="auth-split-form-title">{{ __('auth.register_title') }}</h2>
     </div>
 
     @include('partials.auth-flash-messages')
