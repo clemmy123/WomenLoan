@@ -50,7 +50,7 @@ return [
         'shell_url' => rtrim((string) env('JAMII_SHELL_URL', 'http://127.0.0.1:5175'), '/'),
         'cors_origins' => env(
             'JAMII_CORS_ORIGINS',
-            'http://127.0.0.1:5173,http://127.0.0.1:5175,http://localhost:5173,http://localhost:5175'
+            'http://127.0.0.1:8000,http://localhost:8000,http://127.0.0.1:5173,http://127.0.0.1:5175,http://localhost:5173,http://localhost:5175'
         ),
         'sso_ticket_ttl' => (int) env('JAMII_SSO_TICKET_TTL', 60),
     ],
