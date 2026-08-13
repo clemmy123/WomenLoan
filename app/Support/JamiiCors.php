@@ -2,6 +2,7 @@
 
 namespace App\Support;
 
+use App\Services\JumuishiUrl;
 use Illuminate\Http\Request;
 
 class JamiiCors
@@ -35,9 +36,8 @@ class JamiiCors
             return false;
         }
 
-        $shell = rtrim((string) config('services.jamii.shell_url'), '/');
         $allowedBases = array_unique(array_filter(array_merge(
-            [$shell],
+            [self::centralBase()],
             self::allowedOrigins()
         )));
 
@@ -53,17 +53,26 @@ class JamiiCors
 
     public static function defaultNext(): string
     {
-        return rtrim((string) config('services.jamii.shell_url'), '/').'/gateway';
+        return self::centralBase();
     }
 
     public static function shellLoginUrl(array $query = []): string
     {
-        $url = rtrim((string) config('services.jamii.shell_url'), '/').'/login';
+        $url = self::centralBase().'/login';
 
         if ($query !== []) {
             $url .= '?'.http_build_query($query);
         }
 
         return $url;
+    }
+
+    private static function centralBase(): string
+    {
+        if (JumuishiUrl::enabled() && JumuishiUrl::base() !== '') {
+            return JumuishiUrl::base();
+        }
+
+        return rtrim((string) config('services.jamii.shell_url'), '/');
     }
 }

@@ -47,11 +47,31 @@ return [
     'jamii' => [
         // Keep false until new Jamii SSO instructions are applied.
         'sso_enabled' => (bool) env('JAMII_SSO_ENABLED', false),
-        'shell_url' => rtrim((string) env('JAMII_SHELL_URL', 'http://127.0.0.1:5175'), '/'),
-        'cors_origins' => env(
-            'JAMII_CORS_ORIGINS',
-            'http://127.0.0.1:8000,http://localhost:8000,http://127.0.0.1:5173,http://127.0.0.1:5175,http://localhost:5173,http://localhost:5175'
-        ),
+        // Prefer JUMUISHI_URL so live/local central host is not hardcoded separately.
+        'shell_url' => rtrim((string) env(
+            'JAMII_SHELL_URL',
+            env('JUMUISHI_URL', 'http://127.0.0.1:8000')
+        ), '/'),
+        'cors_origins' => (static function (): string {
+            $jumuishi = rtrim((string) env('JUMUISHI_URL', ''), '/');
+            $configured = trim((string) env('JAMII_CORS_ORIGINS', ''));
+            $origins = $configured !== ''
+                ? array_filter(array_map('trim', explode(',', $configured)))
+                : [
+                    'http://127.0.0.1:8000',
+                    'http://localhost:8000',
+                    'http://127.0.0.1:5173',
+                    'http://127.0.0.1:5175',
+                    'http://localhost:5173',
+                    'http://localhost:5175',
+                ];
+
+            if ($jumuishi !== '') {
+                array_unshift($origins, $jumuishi);
+            }
+
+            return implode(',', array_values(array_unique($origins)));
+        })(),
         'sso_ticket_ttl' => (int) env('JAMII_SSO_TICKET_TTL', 60),
     ],
 

@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Services\LandingStatsService;
+use App\Support\JamiiCors;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
@@ -40,16 +41,6 @@ class LandingStatsController extends Controller
 
     protected function allowedOrigin(Request $request): string
     {
-        $origin = (string) $request->headers->get('Origin', '');
-        $allowed = array_filter(array_map(
-            'trim',
-            explode(',', (string) config('services.jamii.cors_origins', 'http://127.0.0.1:8000,http://localhost:8000,http://127.0.0.1:5173,http://127.0.0.1:5175,http://localhost:5173,http://localhost:5175'))
-        ));
-
-        if ($origin !== '' && in_array($origin, $allowed, true)) {
-            return $origin;
-        }
-
-        return $allowed[0] ?? '*';
+        return JamiiCors::allowOrigin($request);
     }
 }

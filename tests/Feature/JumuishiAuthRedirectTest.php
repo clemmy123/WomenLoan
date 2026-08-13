@@ -27,7 +27,7 @@ class JumuishiAuthRedirectTest extends TestCase
     public function test_guest_home_redirects_to_jumuishi(): void
     {
         $this->get('/')
-            ->assertRedirect('http://127.0.0.1:8000');
+            ->assertRedirect('http://127.0.0.1:8000/sso/start/women-loans?return_to=%2F');
     }
 
     public function test_login_redirects_to_jumuishi_sso_start(): void
@@ -48,10 +48,10 @@ class JumuishiAuthRedirectTest extends TestCase
         $this->assertGuest();
     }
 
-    public function test_register_redirects_to_jumuishi(): void
+    public function test_applicant_register_stays_on_wdf(): void
     {
         $this->get(route('register'))
-            ->assertRedirect('http://127.0.0.1:8000');
+            ->assertOk();
     }
 
     public function test_forgot_password_redirects_to_jumuishi(): void

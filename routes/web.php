@@ -58,7 +58,7 @@ Route::get('/', function (LandingStatsService $landingStats) {
     }
 
     if (JumuishiUrl::enabled()) {
-        return redirect()->away(JumuishiUrl::base());
+        return redirect()->away(JumuishiUrl::ssoStart('/'));
     }
 
     return view('home', [
