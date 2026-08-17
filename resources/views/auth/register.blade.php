@@ -2,13 +2,45 @@
 
 @section('auth_title', __('nav.register'))
 
+@push('head')
+<style>
+    /* Register-only: hide Alpine dump before CSS/JS ready */
+    [x-cloak]{display:none!important}
+    .app-a11y-panel[x-cloak]{display:none!important}
+    .nida-wizard:not([data-ready]) .nida-steps,
+    .nida-wizard:not([data-ready]) .nida-demo-badge,
+    .nida-wizard:not([data-ready]) .nida-error,
+    .nida-wizard:not([data-ready]) .nida-panel{display:none!important}
+    .nida-wizard:not([data-ready]) .nida-panel[data-panel="nin"]{display:block!important}
+    .nida-wizard:not([data-ready]) .nida-panel[data-panel="account"]{display:none!important}
+    /* Register-only shell fallback if Vite CSS is stale */
+    .jj-auth-page{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:1.25rem;background:linear-gradient(180deg,#eef5f8 0%,#f7fafb 55%,#fff 100%);box-sizing:border-box}
+    .jj-auth-frame{width:min(960px,100%);margin:0 auto}
+    .jj-auth-shell{display:grid;grid-template-columns:.95fr 1.05fr;min-height:540px;border-radius:22px;overflow:hidden;background:#fff;border:1px solid rgba(15,23,42,.08);box-shadow:0 22px 50px rgba(10,37,64,.12)}
+    .jj-auth-left{display:grid;grid-template-rows:minmax(0,1fr) minmax(0,1fr)}
+    .jj-auth-logo-pane{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:.75rem;padding:1.15rem 1.1rem 1rem;background:linear-gradient(165deg,#f0f9f9 0%,#e8f4fb 55%,#f7fafb 100%)}
+    .jj-auth-logo-wrap{width:min(148px,48%);aspect-ratio:1;border-radius:50%;overflow:hidden;background:#fff}
+    .jj-auth-logo{width:100%;height:100%;object-fit:cover;object-position:center 42%;transform:scale(1.28)}
+    .jj-auth-motto{margin:0;display:flex;flex-wrap:wrap;align-items:center;justify-content:center;gap:.45rem;padding:.4rem .75rem;border-radius:999px;font-size:.84rem;font-weight:800;color:#061833;text-align:center;background:rgba(255,255,255,.82);border:1px solid rgba(11,47,107,.12)}
+    .jj-auth-scroll{display:flex;flex-direction:column;gap:.55rem;padding:1.2rem;color:#fff;background:linear-gradient(160deg,#071a3a 0%,#0b2f6b 42%,#1a56b0 78%,#2f6fd1 100%)}
+    .jj-auth-scroll-title{margin:0;font-size:1.2rem;line-height:1.3;font-weight:700}
+    .jj-auth-scroll-body{margin:0;max-width:36ch;color:rgba(236,246,255,.9);font-size:.86rem;line-height:1.5}
+    .jj-auth-right{display:flex;flex-direction:column;padding:1.15rem 1.45rem 1rem;background:#fff;max-height:min(92vh,920px);overflow-y:auto}
+    .jj-auth-card-toolbar{display:flex;align-items:center;justify-content:space-between;gap:.75rem;margin-bottom:.85rem}
+    .jj-auth-toolbar-actions{display:inline-flex;align-items:center;gap:.45rem}
+    .jj-auth-copy{margin:1rem 0 0;text-align:center;font-size:.72rem;color:#8aa0b5}
+    .jj-auth-page .auth-form-wrap,.jj-auth-page .auth-split-form-wrap{width:100%;max-width:none;margin:0;padding:0}
+    @media (max-width:820px){.jj-auth-shell{grid-template-columns:1fr;min-height:0}.jj-auth-right{max-height:none}}
+</style>
+@endpush
+
 @section('content')
 @php
     $nidaEnabled = (bool) config('services.nida.enabled');
 @endphp
 
 <div
-    class="auth-split-form-wrap auth-form-wrap"
+    class="auth-split-form-wrap auth-form-wrap @if($nidaEnabled) nida-wizard @endif"
     @if ($nidaEnabled)
         x-data="nidaRegisterWizard({
             startUrl: @js(route('nida.api.start')),
@@ -18,6 +50,8 @@
                 wrongAnswer: @js(__('nida.challenge_failed')),
             },
         })"
+        x-init="$el.setAttribute('data-ready', '1')"
+        :data-step="step"
     @endif
 >
     <div class="auth-split-form-header">
@@ -59,7 +93,7 @@
         <p class="nida-error" x-show="error" x-text="error" x-cloak role="alert"></p>
 
         {{-- Step 1: NIN --}}
-        <div class="auth-split-form" x-show="step === 'nin'" x-cloak>
+        <div class="auth-split-form nida-panel" data-panel="nin" x-show="step === 'nin'">
             <div class="auth-split-field">
                 <label class="auth-split-label" for="nida_nin">{{ __('applicants.nin') }} @include('partials.required-mark')</label>
                 <p class="nida-hint">{{ __('nida.nin_hint') }}</p>
@@ -83,7 +117,7 @@
         </div>
 
         {{-- Step 2: Question --}}
-        <div class="auth-split-form" x-show="step === 'question'" x-cloak>
+        <div class="auth-split-form nida-panel" data-panel="question" x-show="step === 'question'" x-cloak>
             <p class="nida-progress" x-text="'{{ __('nida.question_progress', ['current' => '__C__', 'required' => '__R__']) }}'.replace('__C__', correctCount).replace('__R__', requiredCorrect)"></p>
             <div class="nida-question-card">
                 <p class="nida-question-code" x-text="rqCode"></p>
@@ -100,7 +134,7 @@
         </div>
 
         {{-- Step 3: Identity preview --}}
-        <div x-show="step === 'preview'" x-cloak>
+        <div class="nida-panel" data-panel="preview" x-show="step === 'preview'" x-cloak>
             <div class="nida-identity-card" x-show="identity">
                 <div class="nida-identity-header">
                     <div class="nida-identity-photo-wrap">
@@ -155,7 +189,8 @@
     <form
         method="POST"
         action="{{ route('register') }}"
-        class="auth-split-form"
+        class="auth-split-form nida-panel"
+        data-panel="account"
         @if ($nidaEnabled)
             x-show="step === 'account'"
             x-cloak
