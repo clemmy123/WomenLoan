@@ -7,30 +7,46 @@
     /* Register-only: hide Alpine dump before CSS/JS ready */
     [x-cloak]{display:none!important}
     .app-a11y-panel[x-cloak]{display:none!important}
-    .nida-wizard:not([data-ready]) .nida-steps,
-    .nida-wizard:not([data-ready]) .nida-demo-badge,
     .nida-wizard:not([data-ready]) .nida-error,
     .nida-wizard:not([data-ready]) .nida-panel{display:none!important}
     .nida-wizard:not([data-ready]) .nida-panel[data-panel="nin"]{display:block!important}
     .nida-wizard:not([data-ready]) .nida-panel[data-panel="account"]{display:none!important}
-    /* Register-only shell fallback if Vite CSS is stale */
-    .jj-auth-page{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:1.25rem;background:linear-gradient(180deg,#eef5f8 0%,#f7fafb 55%,#fff 100%);box-sizing:border-box}
-    .jj-auth-frame{width:min(960px,100%);margin:0 auto}
-    .jj-auth-shell{display:grid;grid-template-columns:.95fr 1.05fr;min-height:540px;border-radius:22px;overflow:hidden;background:#fff;border:1px solid rgba(15,23,42,.08);box-shadow:0 22px 50px rgba(10,37,64,.12)}
-    .jj-auth-left{display:grid;grid-template-rows:minmax(0,1fr) minmax(0,1fr)}
-    .jj-auth-logo-pane{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:.75rem;padding:1.15rem 1.1rem 1rem;background:linear-gradient(165deg,#f0f9f9 0%,#e8f4fb 55%,#f7fafb 100%)}
-    .jj-auth-logo-wrap{width:min(148px,48%);aspect-ratio:1;border-radius:50%;overflow:hidden;background:#fff}
-    .jj-auth-logo{width:100%;height:100%;object-fit:cover;object-position:center 42%;transform:scale(1.28)}
-    .jj-auth-motto{margin:0;display:flex;flex-wrap:wrap;align-items:center;justify-content:center;gap:.45rem;padding:.4rem .75rem;border-radius:999px;font-size:.84rem;font-weight:800;color:#061833;text-align:center;background:rgba(255,255,255,.82);border:1px solid rgba(11,47,107,.12)}
-    .jj-auth-scroll{display:flex;flex-direction:column;gap:.55rem;padding:1.2rem;color:#fff;background:linear-gradient(160deg,#071a3a 0%,#0b2f6b 42%,#1a56b0 78%,#2f6fd1 100%)}
-    .jj-auth-scroll-title{margin:0;font-size:1.2rem;line-height:1.3;font-weight:700}
-    .jj-auth-scroll-body{margin:0;max-width:36ch;color:rgba(236,246,255,.9);font-size:.86rem;line-height:1.5}
-    .jj-auth-right{display:flex;flex-direction:column;padding:1.15rem 1.45rem 1rem;background:#fff;max-height:min(92vh,920px);overflow-y:auto}
-    .jj-auth-card-toolbar{display:flex;align-items:center;justify-content:space-between;gap:.75rem;margin-bottom:.85rem}
+    /* Register-only shell — form only, no left panel */
+    .jj-auth-page{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:1.5rem 1.25rem;background:radial-gradient(ellipse 80% 60% at 20% 10%,rgba(26,86,176,.08),transparent 55%),radial-gradient(ellipse 70% 50% at 90% 90%,rgba(13,148,136,.07),transparent 50%),linear-gradient(180deg,#f4f8fb 0%,#fafcfd 45%,#fff 100%);box-sizing:border-box}
+    .jj-auth-frame{width:min(520px,100%);margin:0 auto}
+    .jj-auth-shell,.jj-auth-shell--form-only{display:block;border-radius:28px;overflow:hidden;background:#fff;border:1px solid rgba(15,23,42,.06);box-shadow:0 8px 30px rgba(10,37,64,.06),0 28px 60px rgba(10,37,64,.08)}
+    .jj-auth-right{display:flex;flex-direction:column;padding:1.35rem 1.55rem 1.15rem;background:#fff}
+    .jj-auth-card-toolbar{display:flex;align-items:center;justify-content:space-between;gap:.75rem;margin-bottom:1rem}
     .jj-auth-toolbar-actions{display:inline-flex;align-items:center;gap:.45rem}
-    .jj-auth-copy{margin:1rem 0 0;text-align:center;font-size:.72rem;color:#8aa0b5}
+    .jj-auth-copy{margin:1.15rem 0 0;text-align:center;font-size:.72rem;color:#94a3b8}
     .jj-auth-page .auth-form-wrap,.jj-auth-page .auth-split-form-wrap{width:100%;max-width:none;margin:0;padding:0}
-    @media (max-width:820px){.jj-auth-shell{grid-template-columns:1fr;min-height:0}.jj-auth-right{max-height:none}}
+    .jj-auth-page .auth-split-form-header{margin-bottom:1.15rem}
+    .jj-auth-page .auth-split-form-title{margin:0 0 .45rem;font-size:1.55rem;line-height:1.2;font-weight:800;letter-spacing:-.02em;color:#0b2f6b}
+    .jj-auth-page .jj-auth-intro{margin:0;max-width:42ch;font-size:.92rem;line-height:1.55;color:#64748b;font-weight:500}
+    .jj-auth-page .nida-panel[data-panel="nin"] .auth-split-field{padding:1rem 1.05rem;border-radius:16px;background:#f8fafc;border:1px solid rgba(15,23,42,.06)}
+    .jj-auth-page .nida-panel[data-panel="nin"] .nida-hint{margin:.35rem 0 .65rem;color:#64748b}
+    .jj-auth-page .nida-panel[data-panel="nin"] .auth-split-submit{margin-top:1rem}
+    .jj-auth-page .nida-panel[data-panel="preview"] .nida-preview-footer{display:flex;align-items:center;justify-content:space-between;gap:.85rem;margin-top:.85rem}
+    .jj-auth-page .nida-panel[data-panel="preview"] .nida-preview-hint{margin:0;flex:1;min-width:0;font-size:.8rem;line-height:1.45;color:#64748b;font-weight:500}
+    .jj-auth-page .nida-panel[data-panel="preview"] .nida-preview-footer .auth-split-submit{margin:0;width:auto;flex:0 0 auto;padding:.55rem 1rem;font-size:.82rem;border-radius:12px;white-space:nowrap}
+    @media (max-width:420px){
+        .jj-auth-page .nida-panel[data-panel="preview"] .nida-preview-footer{flex-direction:column;align-items:stretch}
+        .jj-auth-page .nida-panel[data-panel="preview"] .nida-preview-footer .auth-split-submit{width:100%;white-space:normal}
+    }
+    .jj-auth-page .nida-panel[data-panel="preview"] .nida-identity-card{gap:.7rem;margin:0;padding:.8rem;border-radius:1rem}
+    .jj-auth-page .nida-panel[data-panel="preview"] .nida-identity-header{display:flex;flex-direction:column;align-items:center;gap:.65rem;text-align:center;padding-bottom:.7rem}
+    .jj-auth-page .nida-panel[data-panel="preview"] .nida-verified-pill{display:block;padding:0;border-radius:0;background:transparent!important;color:#0b2f6b;font-size:.82rem;font-weight:700;letter-spacing:.01em}
+    .jj-auth-page .nida-panel[data-panel="preview"] .nida-identity-photo-wrap{display:flex;justify-content:center}
+    .jj-auth-page .nida-panel[data-panel="preview"] .nida-identity-photo{width:96px;height:120px;border-radius:.65rem;object-fit:cover}
+    .jj-auth-page .nida-panel[data-panel="preview"] .nida-identity-grid{gap:.4rem .5rem}
+    .jj-auth-page .nida-panel[data-panel="preview"] .nida-identity-field{padding:.35rem .45rem}
+    .jj-auth-page .nida-panel[data-panel="preview"] .nida-identity-grid dt{font-size:.58rem}
+    .jj-auth-page .nida-panel[data-panel="preview"] .nida-identity-grid dd{margin:.12rem 0 0;font-size:.78rem}
+    .jj-auth-page.is-preview-step{padding:.75rem 1rem;align-items:flex-start}
+    .jj-auth-page.is-preview-step .jj-auth-right{padding:1rem 1.15rem .85rem}
+    .jj-auth-page.is-preview-step .jj-auth-card-toolbar{margin-bottom:.65rem}
+    .jj-auth-page.is-preview-step .jj-auth-copy{display:none}
+    .jj-auth-page .nida-demo-answers{margin:0.85rem 0 0;text-align:center;font-size:.8rem;color:#64748b}
 </style>
 @endpush
 
@@ -50,50 +66,21 @@
                 wrongAnswer: @js(__('nida.challenge_failed')),
             },
         })"
-        x-init="$el.setAttribute('data-ready', '1')"
+        x-init="$el.setAttribute('data-ready', '1'); $watch('step', (value) => document.body.classList.toggle('is-preview-step', value === 'preview'))"
         :data-step="step"
     @endif
 >
-    <div class="auth-split-form-header">
-        <p class="jj-auth-intro">
-            @if ($nidaEnabled)
-                {{ __('nida.register_subtitle_nida') }}
-            @else
-                {{ __('auth.register_subtitle') }}
-            @endif
-        </p>
-        <h2 class="auth-split-form-title">{{ __('auth.register_title') }}</h2>
-    </div>
-
     @include('partials.auth-flash-messages')
 
     @if ($nidaEnabled)
-        {{-- Step indicator — only while verifying --}}
-        <ol class="nida-steps" aria-label="Registration steps" x-show="['nin','question'].includes(step)" x-cloak>
-            <li class="nida-step" :class="{ 'is-active': step === 'nin', 'is-done': step === 'question' }">
-                <span class="nida-step-num">1</span>
-                <span class="nida-step-label">{{ __('nida.step_nin') }}</span>
-            </li>
-            <li class="nida-step" :class="{ 'is-active': step === 'question' }">
-                <span class="nida-step-num">2</span>
-                <span class="nida-step-label">{{ __('nida.step_questions') }}</span>
-            </li>
-            <li class="nida-step">
-                <span class="nida-step-num">3</span>
-                <span class="nida-step-label">{{ __('nida.step_preview') }}</span>
-            </li>
-            <li class="nida-step">
-                <span class="nida-step-num">4</span>
-                <span class="nida-step-label">{{ __('nida.step_account') }}</span>
-            </li>
-        </ol>
-
-        <p class="nida-demo-badge" x-show="['nin','question'].includes(step)" x-cloak>{{ __('nida.demo_badge') }}</p>
-
         <p class="nida-error" x-show="error" x-text="error" x-cloak role="alert"></p>
 
-        {{-- Step 1: NIN --}}
+        {{-- Step 1: NIN only --}}
         <div class="auth-split-form nida-panel" data-panel="nin" x-show="step === 'nin'">
+            <div class="auth-split-form-header">
+                <h2 class="auth-split-form-title">{{ __('auth.register_title') }}</h2>
+                <p class="jj-auth-intro">{{ __('nida.register_subtitle_nida') }}</p>
+            </div>
             <div class="auth-split-field">
                 <label class="auth-split-label" for="nida_nin">{{ __('applicants.nin') }} @include('partials.required-mark')</label>
                 <p class="nida-hint">{{ __('nida.nin_hint') }}</p>
@@ -116,9 +103,12 @@
             </button>
         </div>
 
-        {{-- Step 2: Question --}}
+        {{-- Step 2: Security question only --}}
         <div class="auth-split-form nida-panel" data-panel="question" x-show="step === 'question'" x-cloak>
-            <p class="nida-progress" x-text="'{{ __('nida.question_progress', ['current' => '__C__', 'required' => '__R__']) }}'.replace('__C__', correctCount).replace('__R__', requiredCorrect)"></p>
+            <div class="auth-split-form-header">
+                <h2 class="auth-split-form-title">{{ __('nida.step_questions') }}</h2>
+                <p class="jj-auth-intro">{{ __('nida.question_step_intro') }}</p>
+            </div>
             <div class="nida-question-card">
                 <p class="nida-question-code" x-text="rqCode"></p>
                 <p class="nida-question-text" x-text="question"></p>
@@ -126,24 +116,25 @@
             <div class="auth-split-field">
                 <label class="auth-split-label" for="nida_answer">{{ __('nida.answer_label') }} @include('partials.required-mark')</label>
                 <input id="nida_answer" type="text" class="auth-split-input" x-model="answer" @keydown.enter.prevent="submitAnswer()" autocomplete="off">
-                <p class="nida-hint">{{ __('nida.demo_answers_hint') }}</p>
             </div>
             <button type="button" class="auth-split-submit" @click="submitAnswer()" :disabled="loading || !answer.trim()">
                 <span x-text="loading ? @js(__('common.loading')) : @js(__('nida.submit_answer'))"></span>
             </button>
+            @if ((string) config('services.nida.driver', 'fake') === 'fake')
+                <p class="nida-hint nida-demo-answers">{{ __('nida.demo_answers_hint') }}</p>
+            @endif
         </div>
 
-        {{-- Step 3: Identity preview --}}
+        {{-- Step 3: Profile review only --}}
         <div class="nida-panel" data-panel="preview" x-show="step === 'preview'" x-cloak>
             <div class="nida-identity-card" x-show="identity">
                 <div class="nida-identity-header">
+                    <span class="nida-verified-pill">{{ __('nida.verified_badge') }}</span>
                     <div class="nida-identity-photo-wrap">
                         <template x-if="photoSrc()">
-                            <img :src="photoSrc()" alt="" class="nida-identity-photo" width="112" height="140">
+                            <img :src="photoSrc()" alt="" class="nida-identity-photo" width="96" height="120">
                         </template>
                     </div>
-                    <span class="nida-verified-pill">{{ __('nida.verified_badge') }}</span>
-                    <p class="nida-identity-fullname" x-text="identity?.full_name"></p>
                 </div>
                 <dl class="nida-identity-grid">
                     <div class="nida-identity-field">
@@ -162,10 +153,6 @@
                         <dt>{{ __('applicants.sex') }}</dt>
                         <dd x-text="identity?.sex"></dd>
                     </div>
-                    <div class="nida-identity-field nida-identity-field--full">
-                        <dt>{{ __('applicants.nin') }}</dt>
-                        <dd class="nida-mono" x-text="identity?.nin"></dd>
-                    </div>
                     <div class="nida-identity-field">
                         <dt>{{ __('applicants.dob') }}</dt>
                         <dd x-text="identity?.dob"></dd>
@@ -175,14 +162,25 @@
                         <dd x-text="identity?.age"></dd>
                     </div>
                     <div class="nida-identity-field nida-identity-field--full">
+                        <dt>{{ __('applicants.nin') }}</dt>
+                        <dd class="nida-mono" x-text="identity?.nin"></dd>
+                    </div>
+                    <div class="nida-identity-field nida-identity-field--full">
                         <dt>{{ __('applicants.nationality') }}</dt>
                         <dd x-text="identity?.nationality"></dd>
                     </div>
                 </dl>
             </div>
-            <button type="button" class="auth-split-submit" @click="continueToAccount()">
-                <span>{{ __('nida.continue_account') }}</span>
-            </button>
+            <div class="nida-preview-footer">
+                <p class="nida-preview-hint">{{ __('nida.preview_continue_hint') }}</p>
+                <button type="button" class="auth-split-submit" @click="continueToAccount()">
+                    <span>{{ __('nida.continue_account') }}</span>
+                    <svg class="auth-split-submit-icon" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                        <path d="M5 12h14" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                        <path d="M13 6l6 6-6 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                </button>
+            </div>
         </div>
     @endif
 
@@ -199,19 +197,20 @@
         @csrf
 
         @if ($nidaEnabled)
+            <div class="auth-split-form-header">
+                <h2 class="auth-split-form-title">{{ __('nida.step_account') }}</h2>
+                <p class="jj-auth-intro">{{ __('nida.account_step_intro') }}</p>
+            </div>
+
             <input type="hidden" name="nin" :value="identity?.nin || ''">
             <input type="hidden" name="first_name" :value="identity?.first_name || ''">
             <input type="hidden" name="middle_name" :value="identity?.middle_name || ''">
             <input type="hidden" name="last_name" :value="identity?.last_name || ''">
-
-            <div class="nida-account-summary" x-show="identity">
-                <img :src="photoSrc()" alt="" class="nida-account-thumb" width="48" height="60" x-show="photoSrc()">
-                <div>
-                    <p class="nida-account-name" x-text="identity?.full_name"></p>
-                    <p class="nida-mono nida-account-nin" x-text="identity?.nin"></p>
-                </div>
-            </div>
         @else
+            <div class="auth-split-form-header">
+                <h2 class="auth-split-form-title">{{ __('auth.register_title') }}</h2>
+                <p class="jj-auth-intro">{{ __('auth.register_subtitle') }}</p>
+            </div>
             <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
                 <div class="auth-split-field">
                     <label class="auth-split-label" for="first_name">{{ __('applicants.first_name') }} @include('partials.required-mark')</label>
