@@ -2,7 +2,7 @@
 
 return [
     'title' => 'Kwa Mwezi',
-    'subtitle' => 'Chagua mwezi wa mwaka huu ili uone hesabu kamili za waliopewa na madeni kwa mwezi huo.',
+    'subtitle' => 'Chagua mwezi wowote kutoka Januari hadi Desemba wa mwaka huu, kisha tumia vichujio ili kuona matokeo.',
     'filters' => 'Vichujio vya Ripoti',
     'show_filters' => 'Onyesha Vichujio',
     'hide_filters' => 'Ficha Vichujio',
@@ -51,4 +51,9 @@ return [
     'export_excel' => 'Pakua Excel',
     'export_pdf' => 'Pakua PDF',
     'generated_at' => 'Imetengenezwa',
+    'chart_jan_dec' => 'Januari – Desemba',
+    'chart_jan_dec_help' => 'Utoaji na deni lililobaki kwa kila mwezi wa mwaka uliochaguliwa.',
+    'chart_disbursed' => 'Kiasi kilichotolewa',
+    'chart_outstanding' => 'Deni lililobaki',
+    'chart_count' => 'Mikopo',
 ];

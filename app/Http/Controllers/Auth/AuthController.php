@@ -21,7 +21,7 @@ class AuthController extends Controller
 
     public function showLogin(): RedirectResponse|View
     {
-        if (JumuishiUrl::enabled()) {
+        if (JumuishiUrl::ssoEnabled()) {
             return redirect()->away(JumuishiUrl::ssoStart('/'));
         }
 
@@ -30,7 +30,7 @@ class AuthController extends Controller
 
     public function login(Request $request)
     {
-        if (JumuishiUrl::enabled()) {
+        if (JumuishiUrl::ssoEnabled()) {
             return redirect()->away(JumuishiUrl::ssoStart('/'));
         }
 
@@ -155,7 +155,7 @@ class AuthController extends Controller
             }
         }
 
-        if (JumuishiUrl::enabled()) {
+        if (JumuishiUrl::ssoEnabled()) {
             return redirect()->away(JumuishiUrl::centralLogout());
         }
 

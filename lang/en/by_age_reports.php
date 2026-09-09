@@ -44,4 +44,9 @@ return [
     'export_excel' => 'Export Excel',
     'export_pdf' => 'Export PDF',
     'generated_at' => 'Generated',
+    'chart_all_ages' => 'All age groups',
+    'chart_all_ages_help' => 'Disbursement and outstanding debt by age bucket for the selected filters.',
+    'chart_disbursed' => 'Amount disbursed',
+    'chart_outstanding' => 'Outstanding debt',
+    'chart_count' => 'People',
 ];

@@ -5,6 +5,7 @@ namespace App\Services;
 use App\Models\Loan;
 use App\Models\LoanPayment;
 use App\Models\Scopes\ApprovalLevelScope;
+use App\Services\Concerns\BuildsByReportChartPayload;
 use Carbon\Carbon;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Database\Eloquent\Builder;
@@ -13,6 +14,8 @@ use Illuminate\Support\Facades\Auth;
 
 class ByMonthlyReportService
 {
+    use BuildsByReportChartPayload;
+
     public const MONTHS = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12];
 
     public const SORTS = [
@@ -47,12 +50,6 @@ class ByMonthlyReportService
             $month = null;
         }
 
-        // Only months that belong to the locked calendar year (Jan … current month).
-        $allowedMonths = array_keys($this->monthOptions());
-        if ($month !== null && ! in_array($month, $allowedMonths, true)) {
-            $month = null;
-        }
-
         return $this->geo->clampGeoFilters([
             'year' => $year,
             'month' => $month,
@@ -66,16 +63,13 @@ class ByMonthlyReportService
     }
 
     /**
-     * Months of the locked calendar year, from January through the current month.
+     * All twelve months of the locked calendar year (January through December).
      *
      * @return array<int, string>
      */
     public function monthOptions(?Carbon $asOf = null): array
     {
-        $asOf ??= now();
-        $lastMonth = (int) $asOf->month;
-
-        return collect(range(1, $lastMonth))
+        return collect(self::MONTHS)
             ->mapWithKeys(fn (int $month) => [$month => __('by_monthly_reports.month_'.$month)])
             ->all();
     }
@@ -145,6 +139,65 @@ class ByMonthlyReportService
     public function exportFilename(string $extension): string
     {
         return 'wdf-by-monthly-report-'.now()->format('Y-m-d-His').'.'.$extension;
+    }
+
+    public function chartPayload(array $filters): array
+    {
+        $rows = $this->allRows($filters);
+        $summary = $this->summary($filters);
+
+        return array_merge(
+            \App\Support\ByReportChartPayload::build($rows, $summary),
+            ['by_monthly' => $this->monthlyChartData($filters)],
+        );
+    }
+
+    /** @return array{labels: list<string>, disbursed: list<float>, outstanding: list<float>, count: list<int>, vertical: bool} */
+    public function monthlyChartData(array $filters): array
+    {
+        $chartFilters = $filters;
+        $chartFilters['month'] = null;
+
+        $loans = $this->baseQuery($chartFilters)->get();
+        $totals = [];
+
+        foreach (self::MONTHS as $month) {
+            $totals[__('by_monthly_reports.month_'.$month)] = \App\Support\ReportBreakdownChart::emptyRow();
+        }
+
+        foreach ($loans as $loan) {
+            $date = $loan->date_issued ?? $loan->updated_at;
+            if (! $date) {
+                continue;
+            }
+
+            $month = (int) $date->month;
+            $label = __('by_monthly_reports.month_'.$month);
+            $payment = $this->paymentLedger($loan);
+
+            if (! isset($totals[$label])) {
+                $totals[$label] = \App\Support\ReportBreakdownChart::emptyRow();
+            }
+
+            \App\Support\ReportBreakdownChart::accumulate(
+                $totals,
+                $label,
+                $this->actualDisbursedAmount($loan),
+                $this->outstandingAmount($loan, $payment),
+            );
+        }
+
+        $chart = \App\Support\ReportBreakdownChart::fromTotals(
+            $totals,
+            __('by_monthly_reports.chart_disbursed'),
+            __('by_monthly_reports.chart_outstanding'),
+            __('by_monthly_reports.chart_count'),
+            sortByDisbursed: false,
+        );
+
+        $chart['vertical'] = true;
+
+        return $chart;
     }
 
     protected function baseQuery(array $filters): Builder

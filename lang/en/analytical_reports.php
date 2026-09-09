@@ -24,7 +24,7 @@ return [
     'period_monthly' => 'Monthly',
     'period_quarterly' => 'Quarterly',
     'period_semi_annual' => 'Half Year',
-    'period_annually' => 'Annually',
+    'period_annually' => 'Yearly',
     'period_q1' => 'Jan – March',
     'period_q2' => 'April – June',
     'period_q3' => 'July – Sept',

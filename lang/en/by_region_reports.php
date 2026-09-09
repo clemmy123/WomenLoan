@@ -41,4 +41,9 @@ return [
     'export_excel' => 'Export Excel',
     'export_pdf' => 'Export PDF',
     'generated_at' => 'Generated',
+    'chart_all_regions' => 'All regions',
+    'chart_all_regions_help' => 'Disbursement and outstanding debt by region for the selected period.',
+    'chart_disbursed' => 'Amount disbursed',
+    'chart_outstanding' => 'Outstanding debt',
+    'chart_count' => 'Loans',
 ];

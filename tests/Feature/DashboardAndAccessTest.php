@@ -2,8 +2,9 @@
 
 namespace Tests\Feature;
 
-use Illuminate\Foundation\Testing\RefreshDatabase;
+use App\Models\DraftLoan;
 use App\Services\DashboardStatsService;
+use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
 class DashboardAndAccessTest extends TestCase
@@ -128,6 +129,21 @@ class DashboardAndAccessTest extends TestCase
         $response->assertDontSee(__('loans.guarantor_information'), false);
         $response->assertDontSee(__('loans.supporting_documents'), false);
         $response->assertDontSee(__('loans.approval_history'), false);
+    }
+
+    public function test_permanent_secretary_label_follows_locale(): void
+    {
+        app()->setLocale('en');
+        $this->assertSame('Permanent Secretary Review', __('loans.workflow_steps.6'));
+        $this->assertSame('Permanent Secretary', role_label('km'));
+        $this->assertSame('Permanent Secretary', \App\Support\WorkflowSteps::labelForStep(8));
+        $this->assertStringNotContainsString('Katibu Mkuu', __('loans.workflow_steps.6'));
+        $this->assertStringNotContainsString('Katibu Mkuu', role_label('km'));
+
+        app()->setLocale('sw');
+        $this->assertSame('Ukaguzi wa Katibu Mkuu', __('loans.workflow_steps.6'));
+        $this->assertSame('Katibu Mkuu', role_label('km'));
+        $this->assertSame('Katibu Mkuu', \App\Support\WorkflowSteps::labelForStep(8));
     }
 
     public function test_katibu_mkuu_sees_group_member_names_on_group_loan(): void
@@ -281,5 +297,68 @@ class DashboardAndAccessTest extends TestCase
             ->get(route('loans.track', ['track_id' => 'WL000005']))
             ->assertOk()
             ->assertSee('WL000005');
+    }
+
+    public function test_track_shows_search_form_without_track_id(): void
+    {
+        $this->actingAsRole('applicant9@wdf.go.tz')
+            ->get(route('loans.track'))
+            ->assertOk()
+            ->assertSee(__('loans.track_search_button'), false);
+    }
+
+    public function test_track_draft_by_track_id(): void
+    {
+        $user = \App\Models\User::where('email', 'applicant9@wdf.go.tz')->firstOrFail();
+
+        DraftLoan::updateOrCreate(
+            ['user_id' => $user->id, 'track_id' => 'WL000019'],
+            ['form_data' => ['step' => 3, 'requested_amount' => 750000]],
+        );
+
+        $this->actingAs($user)
+            ->get(route('loans.track', ['track_id' => 'WL000019']))
+            ->assertOk()
+            ->assertSee('WL000019')
+            ->assertSee(__('loans.draft_status'), false)
+            ->assertSee(__('loans.resume'), false);
+    }
+
+    public function test_applicant_cannot_track_another_users_draft(): void
+    {
+        $owner = \App\Models\User::where('email', 'applicant9@wdf.go.tz')->firstOrFail();
+        $other = \App\Models\User::where('email', 'applicant2@wdf.go.tz')->firstOrFail();
+
+        DraftLoan::updateOrCreate(
+            ['user_id' => $owner->id, 'track_id' => 'WL000019'],
+            ['form_data' => ['step' => 2]],
+        );
+
+        $this->actingAs($other)
+            ->get(route('loans.track', ['track_id' => 'WL000019']))
+            ->assertForbidden();
+    }
+
+    public function test_staff_cannot_track_another_users_draft(): void
+    {
+        $owner = \App\Models\User::where('email', 'applicant9@wdf.go.tz')->firstOrFail();
+
+        DraftLoan::updateOrCreate(
+            ['user_id' => $owner->id, 'track_id' => 'WL000019'],
+            ['form_data' => ['step' => 2, 'requested_amount' => 750000]],
+        );
+
+        $this->actingAsRole('ward.cdo@wdf.go.tz')
+            ->get(route('loans.track', ['track_id' => 'WL000019']))
+            ->assertForbidden();
+    }
+
+    public function test_track_not_found_for_invalid_id(): void
+    {
+        $this->actingAsRole('applicant9@wdf.go.tz')
+            ->from(route('loans.track'))
+            ->get(route('loans.track', ['track_id' => 'WL999999']))
+            ->assertRedirect(route('loans.track'))
+            ->assertSessionHasErrors('track_id');
     }
 }

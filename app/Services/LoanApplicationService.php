@@ -11,6 +11,7 @@ use App\Models\LoanGroup;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Storage;
 
 class LoanApplicationService
 {
@@ -42,6 +43,7 @@ class LoanApplicationService
         }
 
         return DB::transaction(function () use ($request, $user, $trackId, $applicant) {
+            $draftFormData = $this->drafts->findFormData($trackId, $user->id);
             $loanGroupId = $request->loan_type === 'group'
                 ? $this->resolveGroupIdForUser($user, $request->loan_group_id)
                 : null;
@@ -69,18 +71,18 @@ class LoanApplicationService
                 'street_id' => $request->street_id,
                 'business_name' => $request->business_name,
                 'business_phone' => $request->business_phone,
-                'business_email' => $request->business_email,
+                'business_email' => $this->nullableEmail($request->business_email),
                 'business_sector' => $request->business_sector,
                 'business_type' => $request->business_type,
                 'tin_number' => $request->tin_number,
-                'business_proposal_document' => $request->file('business_proposal_document')?->store('proposals', 'public'),
-                'business_registration_attachment' => $request->file('business_registration_attachment')?->store('registrations', 'public'),
-                'proof_address_attachment' => $request->file('proof_address_attachment')?->store('proof-of-address', 'public'),
-                'application_letter' => $request->file('application_letter')?->store('application-letters', 'public'),
-                'bank_statement' => $request->file('bank_statement')?->store('bank-statements', 'public'),
-                'group_constitution' => $request->file('group_constitution')?->store('group-documents', 'public'),
-                'group_muhtasari' => $request->file('group_muhtasari')?->store('group-documents', 'public'),
-                'group_certificate' => $request->file('group_certificate')?->store('group-documents', 'public'),
+                'business_proposal_document' => $this->storedPublicFile($request, 'business_proposal_document', 'proposals', $draftFormData),
+                'business_registration_attachment' => $this->storedPublicFile($request, 'business_registration_attachment', 'registrations', $draftFormData),
+                'proof_address_attachment' => $this->storedPublicFile($request, 'proof_address_attachment', 'proof-of-address', $draftFormData),
+                'application_letter' => $this->storedPublicFile($request, 'application_letter', 'application-letters', $draftFormData),
+                'bank_statement' => $this->storedPublicFile($request, 'bank_statement', 'bank-statements', $draftFormData),
+                'group_constitution' => $this->storedPublicFile($request, 'group_constitution', 'group-documents', $draftFormData),
+                'group_muhtasari' => $this->storedPublicFile($request, 'group_muhtasari', 'group-documents', $draftFormData),
+                'group_certificate' => $this->storedPublicFile($request, 'group_certificate', 'group-documents', $draftFormData),
             ]);
 
             if ($request->filled('guarantor_first_name') && $request->filled('guarantor_last_name')) {
@@ -92,6 +94,8 @@ class LoanApplicationService
                 if ($request->hasFile('guarantor_letter')) {
                     $guarantorData['guarantor_letter'] = $request->file('guarantor_letter')
                         ->store('guarantor-letters', 'public');
+                } elseif ($draftGuarantorLetter = $this->draftDocumentPath($draftFormData, 'guarantor_letter')) {
+                    $guarantorData['guarantor_letter'] = $this->moveDraftDocumentTo($draftGuarantorLetter, 'guarantor-letters');
                 }
 
                 $loan->guarantors()->create($guarantorData);
@@ -185,50 +189,42 @@ class LoanApplicationService
                 'street_id' => $this->resolvedRequestId($request->street_id, $existingBusiness?->street_id),
                 'business_name' => $request->business_name,
                 'business_phone' => $request->business_phone,
-                'business_email' => $request->business_email,
+                'business_email' => $this->nullableEmail($request->business_email),
                 'business_sector' => $request->business_sector,
                 'business_type' => $request->business_type,
                 'tin_number' => $request->tin_number,
             ];
 
             if ($request->hasFile('business_proposal_document')) {
-                $businessData['business_proposal_document'] = $request->file('business_proposal_document')
-                    ->store('proposals', 'public');
+                $businessData['business_proposal_document'] = $this->storedPublicFile($request, 'business_proposal_document', 'proposals');
             }
 
             if ($request->hasFile('business_registration_attachment')) {
-                $businessData['business_registration_attachment'] = $request->file('business_registration_attachment')
-                    ->store('registrations', 'public');
+                $businessData['business_registration_attachment'] = $this->storedPublicFile($request, 'business_registration_attachment', 'registrations');
             }
 
             if ($request->hasFile('proof_address_attachment')) {
-                $businessData['proof_address_attachment'] = $request->file('proof_address_attachment')
-                    ->store('proof-of-address', 'public');
+                $businessData['proof_address_attachment'] = $this->storedPublicFile($request, 'proof_address_attachment', 'proof-of-address');
             }
 
             if ($request->hasFile('application_letter')) {
-                $businessData['application_letter'] = $request->file('application_letter')
-                    ->store('application-letters', 'public');
+                $businessData['application_letter'] = $this->storedPublicFile($request, 'application_letter', 'application-letters');
             }
 
             if ($request->hasFile('bank_statement')) {
-                $businessData['bank_statement'] = $request->file('bank_statement')
-                    ->store('bank-statements', 'public');
+                $businessData['bank_statement'] = $this->storedPublicFile($request, 'bank_statement', 'bank-statements');
             }
 
             if ($request->hasFile('group_constitution')) {
-                $businessData['group_constitution'] = $request->file('group_constitution')
-                    ->store('group-documents', 'public');
+                $businessData['group_constitution'] = $this->storedPublicFile($request, 'group_constitution', 'group-documents');
             }
 
             if ($request->hasFile('group_muhtasari')) {
-                $businessData['group_muhtasari'] = $request->file('group_muhtasari')
-                    ->store('group-documents', 'public');
+                $businessData['group_muhtasari'] = $this->storedPublicFile($request, 'group_muhtasari', 'group-documents');
             }
 
             if ($request->hasFile('group_certificate')) {
-                $businessData['group_certificate'] = $request->file('group_certificate')
-                    ->store('group-documents', 'public');
+                $businessData['group_certificate'] = $this->storedPublicFile($request, 'group_certificate', 'group-documents');
             }
 
             $loan->businessDetails()->updateOrCreate(
@@ -287,9 +283,61 @@ class LoanApplicationService
 
     private function resolveGuarantorRelationship(Request $request): string
     {
+        if ($request->input('loan_type') === 'group') {
+            return 'Guarantor';
+        }
+
         $relationship = trim((string) $request->input('guarantor_relationship', ''));
 
         return $relationship !== '' ? $relationship : 'Other';
+    }
+
+    private function nullableEmail(?string $email): ?string
+    {
+        $email = trim((string) $email);
+
+        return $email !== '' ? $email : null;
+    }
+
+    private function storedPublicFile(Request $request, string $field, string $directory, ?array $draftFormData = null): ?string
+    {
+        if ($request->hasFile($field)) {
+            return $request->file($field)->store($directory, 'public');
+        }
+
+        $draftPath = $this->draftDocumentPath($draftFormData, $field);
+
+        if ($draftPath !== null) {
+            return $this->moveDraftDocumentTo($draftPath, $directory);
+        }
+
+        return null;
+    }
+
+    private function draftDocumentPath(?array $draftFormData, string $field): ?string
+    {
+        if ($draftFormData === null) {
+            return null;
+        }
+
+        $path = $draftFormData[$field] ?? null;
+
+        if (! is_string($path) || $path === '' || ! Storage::disk('public')->exists($path)) {
+            return null;
+        }
+
+        return $path;
+    }
+
+    private function moveDraftDocumentTo(string $draftPath, string $directory): string
+    {
+        $target = trim($directory, '/').'/'.basename($draftPath);
+
+        if ($draftPath !== $target) {
+            Storage::disk('public')->move($draftPath, $target);
+        }
+
+        return $target;
     }
 
     private function guarantorIdentityFromRequest(Request $request): array

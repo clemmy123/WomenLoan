@@ -42,6 +42,24 @@ class ByTypeReportTest extends TestCase
         $response->assertSee(__('by_type_reports.detail_table'), false);
         $response->assertSee(__('by_type_reports.col_name'), false);
         $response->assertSee(__('by_type_reports.col_phone'), false);
+        $response->assertSee('byTypeAllTypesChart', false);
+    }
+
+    public function test_by_type_chart_lists_all_loan_types(): void
+    {
+        $this->actingAsRole('ministry@wdf.go.tz');
+
+        $filters = app(ByTypeReportService::class)->normalizeFilters([
+            'fiscal_year' => 'all',
+            'period' => 'annually',
+            'loan_type' => 'individual',
+        ]);
+
+        $typeChart = app(ByTypeReportService::class)->typeChartData($filters);
+
+        $this->assertCount(2, $typeChart['labels']);
+        $this->assertContains(__('loans.types.individual'), $typeChart['labels']);
+        $this->assertContains(__('loans.types.group'), $typeChart['labels']);
     }
 
     public function test_by_type_filter_limits_to_selected_type(): void

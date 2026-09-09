@@ -20,6 +20,8 @@ return [
     'document_uploaded' => 'Uploaded',
     'document_uploaded_as' => 'Uploaded: :name',
     'document_required' => 'Please upload this document to continue.',
+    'tin_incomplete' => 'Enter the full TIN in format 111-111-111.',
+    'nin_incomplete' => 'Enter the full NIN in format 19000000-00000-00000-02.',
     'file_too_large' => 'File must not exceed :max.',
     'no_file' => 'No file uploaded',
     'back' => 'Back',

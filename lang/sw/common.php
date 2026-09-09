@@ -20,6 +20,8 @@ return [
     'document_uploaded' => 'Imepakiwa',
     'document_uploaded_as' => 'Imepakiwa: :name',
     'document_required' => 'Tafadhali pakia hati hii ili kuendelea.',
+    'tin_incomplete' => 'Jaza TIN kamili kwa muundo 111-111-111.',
+    'nin_incomplete' => 'Jaza NIN kamili kwa muundo 19000000-00000-00000-02.',
     'file_too_large' => 'Faili isizidi :max.',
     'no_file' => 'Hakuna faili iliyopakiwa',
     'back' => 'Rudi',

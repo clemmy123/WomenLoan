@@ -4,18 +4,21 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests\WorkflowActionRequest;
 use App\Models\Loan;
+use App\Services\LoanTrackService;
 use App\Services\LoanWorkflowService;
 use App\Services\WorkflowAuthorizationService;
 use App\Support\AccessibleHome;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Validation\ValidationException;
 
 class WorkflowController extends Controller
 {
     public function __construct(
         private LoanWorkflowService $workflow,
         private WorkflowAuthorizationService $authorization,
+        private LoanTrackService $trackService,
     ) {}
 
     public function action(WorkflowActionRequest $request, string $loan): RedirectResponse
@@ -39,11 +42,43 @@ class WorkflowController extends Controller
 
     public function track(Request $request)
     {
-        $request->validate(['track_id' => 'required|string']);
+        $user = Auth::user();
+        $trackIdInput = $request->query('track_id');
 
-        $loan = Loan::where('loan_track_id', $request->track_id)->firstOrFail();
+        if (! $trackIdInput) {
+            return view('loan_applications.track', [
+                'loan' => null,
+                'draft' => null,
+                'trackId' => null,
+                'canViewFullDetails' => false,
+                'canResumeDraft' => false,
+            ]);
+        }
 
-        return view('loan_applications.track', compact('loan'));
+        $request->validate(['track_id' => 'required|string|max:32']);
+
+        $resolved = $this->trackService->resolve($user, $trackIdInput);
+
+        if ($resolved === null) {
+            throw ValidationException::withMessages([
+                'track_id' => __('loans.track_not_found'),
+            ]);
+        }
+
+        $loan = $resolved['loan'];
+        $draft = $resolved['draft'];
+        $trackId = $resolved['trackId'];
+
+        $canViewFullDetails = $loan && $this->trackService->canViewFullLoanDetails($user, $loan);
+        $canResumeDraft = $draft && $this->trackService->canResumeDraft($user, $draft);
+
+        return view('loan_applications.track', compact(
+            'loan',
+            'draft',
+            'trackId',
+            'canViewFullDetails',
+            'canResumeDraft',
+        ));
     }
 
     protected function redirectAfterWorkflow($user, Loan $loan): RedirectResponse

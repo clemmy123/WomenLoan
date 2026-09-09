@@ -14,6 +14,7 @@ import './amount-inputs';
 import './track-id-copy';
 import './pages/loan-wizard';
 import './pages/nida-register';
+import './pages/applicant-onboarding-wizard';
 import './pages/admin-user-form';
 import './pages/reports-filters';
 import Alpine from 'alpinejs';

@@ -30,7 +30,7 @@ return Application::configure(basePath: dirname(__DIR__))
                 return null;
             }
 
-            if (\App\Services\JumuishiUrl::enabled()) {
+            if (\App\Services\JumuishiUrl::ssoEnabled()) {
                 return \App\Services\JumuishiUrl::ssoStart(
                     \App\Services\JumuishiUrl::returnToFromRequest($request)
                 );

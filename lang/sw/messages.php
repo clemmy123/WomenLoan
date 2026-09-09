@@ -3,6 +3,7 @@
 return [
     'register_success' => 'Akaunti imeundwa. Karibu kwenye dashibodi yako.',
     'user_created' => 'Mtumiaji ameundwa.',
+    'jumuishi_sync_failed' => 'Mtumiaji amehifadhiwa lokal lakini sync ya kuingia kupitia Jumuishi imeshindwa. Hawawezi kuingia hadi sync ifanikiwe. :detail',
     'user_updated' => 'Mtumiaji amesasishwa.',
     'user_updated_and_unlocked' => 'Mtumiaji amesasishwa. Kufunga kuingia kumeondolewa na barua pepe ya kufungua imetumwa.',
     'user_roles_updated' => 'Majukumu ya mtumiaji yamesasishwa.',
@@ -33,6 +34,7 @@ return [
     'validation_check_step' => 'Tafadhali angalia Hatua :step (:title) — :field haijajazwa au si sahihi.',
     'complete_applicant_profile' => 'Tafadhali kamilisha taarifa zako za mwombaji kwanza.',
     'applicant_created' => 'Mwombaji amesajiliwa.',
+    'profile_complete_continue_apply' => 'Wasifu wako umehifadhiwa. Endelea kuomba mkopo hapa chini.',
     'applicant_updated' => 'Wasifu wa mwombaji umesasishwa.',
     'applicant_deleted' => 'Mwombaji amefutwa.',
     'applicant_already_in_group' => ':name tayari ameshajisajili kwenye kundi lingine.',

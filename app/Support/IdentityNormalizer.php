@@ -4,6 +4,38 @@ namespace App\Support;
 
 class IdentityNormalizer
 {
+    public static function normalizeTin(mixed $value): string
+    {
+        return preg_replace('/\D+/', '', (string) $value) ?? '';
+    }
+
+    public static function formatTin(mixed $value): string
+    {
+        $digits = substr(self::normalizeTin($value), 0, 9);
+
+        if ($digits === '') {
+            return '';
+        }
+
+        $parts = [
+            substr($digits, 0, 3),
+            substr($digits, 3, 3),
+            substr($digits, 6, 3),
+        ];
+
+        $formatted = [];
+
+        foreach ($parts as $chunk) {
+            if ($chunk === '') {
+                break;
+            }
+
+            $formatted[] = $chunk;
+        }
+
+        return implode('-', $formatted);
+    }
+
     public static function normalizeNin(mixed $value): string
     {
         return preg_replace('/\D+/', '', (string) $value) ?? '';

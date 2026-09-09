@@ -32,7 +32,7 @@ class ByRegionReportTest extends TestCase
     {
         $response = $this->actingAsRole('ministry@wdf.go.tz')
             ->get(route('reports.by-region.index', [
-                'fiscal_year' => '2025/2026',
+                'fiscal_year' => 'all',
                 'period' => 'annually',
             ]));
 
@@ -44,6 +44,41 @@ class ByRegionReportTest extends TestCase
         $response->assertSee(__('by_region_reports.col_phone'), false);
         $response->assertSee(__('reports.period_daily'), false);
         $response->assertSee(__('reports.period_quarterly'), false);
+        $response->assertSee('byReportFinancialChart', false);
+        $response->assertSee('byReportTopDisbursedChart', false);
+        $response->assertSee('byRegionAllRegionsChart', false);
+    }
+
+    public function test_by_region_chart_lists_all_regions(): void
+    {
+        $service = app(ByRegionReportService::class);
+        $filters = $service->normalizeFilters([
+            'fiscal_year' => 'all',
+            'period' => 'annually',
+        ]);
+
+        $regionChart = $service->regionChartData($filters);
+        $regionCount = Region::query()->count();
+
+        $this->assertCount($regionCount, $regionChart['labels']);
+        $this->assertSame($regionCount, count($regionChart['disbursed']));
+        $this->assertGreaterThan(1, $regionCount);
+    }
+
+    public function test_by_region_chart_payload_matches_summary(): void
+    {
+        $service = app(ByRegionReportService::class);
+        $filters = $service->normalizeFilters([
+            'fiscal_year' => 'all',
+            'period' => 'annually',
+        ]);
+
+        $summary = $service->summary($filters);
+        $charts = $service->chartPayload($filters);
+
+        $this->assertSame($summary['individual_count'], $charts['loan_type']['data'][0]);
+        $this->assertSame($summary['group_count'], $charts['loan_type']['data'][1]);
+        $this->assertGreaterThan(0, $charts['top_disbursed']['labels']);
     }
 
     public function test_ministry_can_export_by_region_excel_and_pdf(): void

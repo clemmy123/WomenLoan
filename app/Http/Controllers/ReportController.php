@@ -11,6 +11,7 @@ use App\Exports\ByMonthlyExport;
 use App\Exports\ByRegionExport;
 use App\Exports\BySectorExport;
 use App\Exports\ByTypeExport;
+use App\Exports\GeneralReportExport;
 use App\Exports\ReportsExport;
 use App\Services\AnalyticalDebtReportService;
 use App\Services\AnalyticalReportService;
@@ -21,6 +22,7 @@ use App\Services\ByMonthlyReportService;
 use App\Services\ByRegionReportService;
 use App\Services\BySectorReportService;
 use App\Services\ByTypeReportService;
+use App\Services\GeneralReportService;
 use App\Services\GeoHierarchyService;
 use App\Services\ReportService;
 use Barryvdh\DomPDF\Facade\Pdf;
@@ -41,6 +43,7 @@ class ReportController extends Controller
         private ByBankReportService $byBankReports,
         private ByMonthlyReportService $byMonthlyReports,
         private ByAgeReportService $byAgeReports,
+        private GeneralReportService $generalReports,
     ) {}
 
     public function index(Request $request)
@@ -89,6 +92,9 @@ class ReportController extends Controller
         $rows = $filtersApplied
             ? $this->applicationReports->paginatedRows($filters)
             : null;
+        $charts = $filtersApplied
+            ? $this->applicationReports->chartPayload($filters)
+            : null;
 
         return view('reports.applications.index', compact(
             'filters',
@@ -96,7 +102,65 @@ class ReportController extends Controller
             'rows',
             'statuses',
             'fiscalYearOptions',
+            'charts',
         ));
+    }
+
+    public function registeredWomen(Request $request)
+    {
+        $this->authorize('view general reports');
+
+        $filtersApplied = $request->hasAny(['loan_type', 'applied', 'period']);
+        $filters = $this->generalReports->normalizeFilters($request->all());
+        $viewMode = $this->generalReports->viewMode($filters);
+
+        $summary = null;
+        $rows = null;
+        $charts = null;
+
+        if ($filtersApplied) {
+            $summary = $this->generalReports->summary($filters);
+            $rows = $this->generalReports->paginatedRows($filters);
+            $charts = $this->generalReports->chartPayload($filters);
+        }
+
+        return view('reports.general.women.index', compact(
+            'filters',
+            'filtersApplied',
+            'summary',
+            'rows',
+            'viewMode',
+            'charts',
+        ));
+    }
+
+    public function exportRegisteredWomenExcel(Request $request): BinaryFileResponse
+    {
+        $this->authorize('view general reports');
+
+        $data = $this->registeredWomenExportData($request);
+
+        return Excel::download(
+            new GeneralReportExport(
+                $data['summary'],
+                $data['rows'],
+                $data['filters'],
+                $data['viewMode'],
+                $data['typeLabel'],
+            ),
+            $this->generalReports->exportFilename('xlsx')
+        );
+    }
+
+    public function exportRegisteredWomenPdf(Request $request)
+    {
+        $this->authorize('view general reports');
+
+        $data = $this->registeredWomenExportData($request);
+
+        return Pdf::loadView('reports.general.women.export-pdf', $data)
+            ->setPaper('a4', 'landscape')
+            ->download($this->generalReports->exportFilename('pdf'));
     }
 
     public function byRegion(Request $request)
@@ -123,10 +187,12 @@ class ReportController extends Controller
 
         $summary = null;
         $rows = null;
+        $charts = null;
 
         if ($filtersApplied) {
             $summary = $this->byRegionReports->summary($filters);
             $rows = $this->byRegionReports->paginatedRows($filters);
+            $charts = $this->byRegionReports->chartPayload($filters);
         }
 
         return view('reports.by-region.index', compact(
@@ -138,6 +204,7 @@ class ReportController extends Controller
             'regions',
             'sortOptions',
             'geoBounds',
+            'charts',
         ));
     }
 
@@ -180,10 +247,12 @@ class ReportController extends Controller
 
         $summary = null;
         $rows = null;
+        $charts = null;
 
         if ($filtersApplied) {
             $summary = $this->byTypeReports->summary($filters);
             $rows = $this->byTypeReports->paginatedRows($filters);
+            $charts = $this->byTypeReports->chartPayload($filters);
         }
 
         return view('reports.by-type.index', compact(
@@ -193,6 +262,7 @@ class ReportController extends Controller
             'rows',
             'fiscalYearOptions',
             'sortOptions',
+            'charts',
         ));
     }
 
@@ -236,10 +306,12 @@ class ReportController extends Controller
 
         $summary = null;
         $rows = null;
+        $charts = null;
 
         if ($filtersApplied) {
             $summary = $this->bySectorReports->summary($filters);
             $rows = $this->bySectorReports->paginatedRows($filters);
+            $charts = $this->bySectorReports->chartPayload($filters);
         }
 
         return view('reports.by-sector.index', compact(
@@ -250,6 +322,7 @@ class ReportController extends Controller
             'sectors',
             'fiscalYearOptions',
             'sortOptions',
+            'charts',
         ));
     }
 
@@ -293,10 +366,12 @@ class ReportController extends Controller
 
         $summary = null;
         $rows = null;
+        $charts = null;
 
         if ($filtersApplied) {
             $summary = $this->byBankReports->summary($filters);
             $rows = $this->byBankReports->paginatedRows($filters);
+            $charts = $this->byBankReports->chartPayload($filters);
         }
 
         return view('reports.by-bank.index', compact(
@@ -307,6 +382,7 @@ class ReportController extends Controller
             'fiscalYearOptions',
             'sortOptions',
             'banks',
+            'charts',
         ));
     }
 
@@ -349,10 +425,12 @@ class ReportController extends Controller
 
         $summary = null;
         $rows = null;
+        $charts = null;
 
         if ($filtersApplied) {
             $summary = $this->byMonthlyReports->summary($filters);
             $rows = $this->byMonthlyReports->paginatedRows($filters);
+            $charts = $this->byMonthlyReports->chartPayload($filters);
         }
 
         return view('reports.by-monthly.index', compact(
@@ -362,6 +440,7 @@ class ReportController extends Controller
             'rows',
             'monthOptions',
             'reportYear',
+            'charts',
         ));
     }
 
@@ -408,10 +487,12 @@ class ReportController extends Controller
 
         $summary = null;
         $rows = null;
+        $charts = null;
 
         if ($filtersApplied) {
             $summary = $this->byAgeReports->summary($filters);
             $rows = $this->byAgeReports->paginatedRows($filters);
+            $charts = $this->byAgeReports->chartPayload($filters);
         }
 
         return view('reports.by-age.index', compact(
@@ -422,6 +503,7 @@ class ReportController extends Controller
             'regions',
             'sortOptions',
             'geoBounds',
+            'charts',
         ));
     }
 
@@ -824,6 +906,24 @@ class ReportController extends Controller
             'summary' => $this->byAgeReports->summary($filters),
             'rows' => $this->byAgeReports->allRows($filters),
             'regionLabel' => $regionLabel,
+        ];
+    }
+
+    protected function registeredWomenExportData(Request $request): array
+    {
+        $filters = $this->generalReports->normalizeFilters($request->all());
+        $typeLabel = null;
+
+        if (! empty($filters['loan_type'])) {
+            $typeLabel = loan_type_label($filters['loan_type']);
+        }
+
+        return [
+            'filters' => $filters,
+            'summary' => $this->generalReports->summary($filters),
+            'rows' => $this->generalReports->allRows($filters),
+            'viewMode' => $this->generalReports->viewMode($filters),
+            'typeLabel' => $typeLabel,
         ];
     }
 }

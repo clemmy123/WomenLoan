@@ -188,13 +188,21 @@ class UserController extends Controller
 
     public function store(StoreUserRequest $request)
     {
-        $this->users->create(
+        $user = $this->users->create(
             $request->validated(),
             $this->resolveIsActiveForCreate($request)
         );
 
-        return redirect()->route('admin.users.index')
+        $redirect = redirect()->route('admin.users.index')
             ->with('success', __('messages.user_created'));
+
+        if ($user->jumuishi_sync_status === 'failed') {
+            $redirect->with('warning', __('messages.jumuishi_sync_failed', [
+                'detail' => $user->jumuishi_sync_error,
+            ]));
+        }
+
+        return $redirect;
     }
 
     public function show(User $user)

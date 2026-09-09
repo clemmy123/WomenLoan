@@ -76,7 +76,7 @@ class DashboardStatsService
 
     protected function cacheKeyPrefix(string $prefix): string
     {
-        return "{$prefix}.v4.".Auth::id().'.'.$this->currentFiscalYearKey();
+        return "{$prefix}.v5.".Auth::id().'.'.$this->currentFiscalYearKey().'.'.app()->getLocale();
     }
 
     public function forUser(): array

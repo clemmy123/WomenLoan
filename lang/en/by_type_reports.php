@@ -43,4 +43,9 @@ return [
     'export_excel' => 'Export Excel',
     'export_pdf' => 'Export PDF',
     'generated_at' => 'Generated',
+    'chart_all_types' => 'All loan types',
+    'chart_all_types_help' => 'Disbursement and outstanding debt by individual and group loans for the selected period.',
+    'chart_disbursed' => 'Amount disbursed',
+    'chart_outstanding' => 'Outstanding debt',
+    'chart_count' => 'Loans',
 ];

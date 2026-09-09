@@ -12,7 +12,7 @@ class PasswordResetController extends Controller
 {
     public function showLinkRequestForm(): RedirectResponse|View
     {
-        if (JumuishiUrl::enabled()) {
+        if (JumuishiUrl::ssoEnabled()) {
             return redirect()->away(JumuishiUrl::forgotPassword());
         }
 
@@ -27,7 +27,7 @@ class PasswordResetController extends Controller
      */
     public function sendResetLinkEmail(Request $request): RedirectResponse
     {
-        if (JumuishiUrl::enabled()) {
+        if (JumuishiUrl::ssoEnabled()) {
             return redirect()->away(JumuishiUrl::forgotPassword());
         }
 
@@ -42,7 +42,7 @@ class PasswordResetController extends Controller
 
     public function showResetForm(Request $request, string $token): RedirectResponse
     {
-        if (JumuishiUrl::enabled()) {
+        if (JumuishiUrl::ssoEnabled()) {
             return redirect()->away(JumuishiUrl::forgotPassword());
         }
 
@@ -53,7 +53,7 @@ class PasswordResetController extends Controller
 
     public function reset(Request $request): RedirectResponse
     {
-        if (JumuishiUrl::enabled()) {
+        if (JumuishiUrl::ssoEnabled()) {
             return redirect()->away(JumuishiUrl::forgotPassword());
         }
 

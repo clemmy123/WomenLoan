@@ -47,13 +47,30 @@ class ByMonthlyReportTest extends TestCase
         $response->assertSee(__('by_monthly_reports.all_months'), false);
         $response->assertSee(__('by_monthly_reports.month_1'), false);
         $response->assertSee(__('by_monthly_reports.month_7'), false);
-        $response->assertDontSee(__('by_monthly_reports.month_12'), false);
+        $response->assertSee(__('by_monthly_reports.month_12'), false);
         $response->assertSee(__('by_monthly_reports.detail_table'), false);
         $response->assertSee(__('by_monthly_reports.loan_count'), false);
         $response->assertDontSee(__('by_monthly_reports.disbursed_list'), false);
         $response->assertDontSee(__('by_monthly_reports.debts_list'), false);
         $response->assertDontSee('name="date_from"', false);
         $response->assertDontSee('name="sort"', false);
+        $response->assertSee('byMonthlyJanDecChart', false);
+    }
+
+    public function test_by_monthly_chart_lists_all_twelve_months(): void
+    {
+        $this->actingAsRole('ministry@wdf.go.tz');
+
+        $filters = app(ByMonthlyReportService::class)->normalizeFilters([
+            'month' => 7,
+        ]);
+
+        $monthlyChart = app(ByMonthlyReportService::class)->monthlyChartData($filters);
+
+        $this->assertCount(12, $monthlyChart['labels']);
+        $this->assertSame(__('by_monthly_reports.month_1'), $monthlyChart['labels'][0]);
+        $this->assertSame(__('by_monthly_reports.month_12'), $monthlyChart['labels'][11]);
+        $this->assertTrue($monthlyChart['vertical']);
     }
 
     public function test_year_is_locked_to_current_calendar_year(): void
@@ -69,7 +86,7 @@ class ByMonthlyReportTest extends TestCase
         $this->assertSame(7, $filters['month']);
     }
 
-    public function test_future_months_are_rejected_for_current_year(): void
+    public function test_future_months_are_allowed_for_current_year(): void
     {
         $this->actingAsRole('ministry@wdf.go.tz');
 
@@ -77,7 +94,7 @@ class ByMonthlyReportTest extends TestCase
             'month' => '12',
         ]);
 
-        $this->assertNull($filters['month']);
+        $this->assertSame(12, $filters['month']);
         $this->assertSame(2026, $filters['year']);
     }
 

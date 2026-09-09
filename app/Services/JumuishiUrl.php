@@ -12,6 +12,20 @@ class JumuishiUrl
         return (bool) config('jumuishi.enabled');
     }
 
+    public static function ssoEnabled(): bool
+    {
+        return self::enabled() && (bool) config('jumuishi.sso_enabled');
+    }
+
+    public static function guestAuthRedirect(?string $returnTo = null): string
+    {
+        if (self::ssoEnabled()) {
+            return self::ssoStart($returnTo);
+        }
+
+        return route('login');
+    }
+
     public static function base(): string
     {
         return rtrim((string) config('jumuishi.url'), '/');

@@ -30,6 +30,7 @@ class NavPermissions
             'viewDashboard' => $user->can('view dashboard'),
             'trackLoan' => $user->can('view loan by track id'),
             'isApplicant' => $user->hasRole('applicant'),
+            'needsProfileCompletion' => $user->hasRole('applicant') && ! $user->hasCompletedProfile(),
             'createLoan' => $user->can('create loan application')
                 && $user->hasCompletedProfile()
                 && ! $user->hasLoanApplication(),
@@ -55,6 +56,8 @@ class NavPermissions
             ...$reportFlags,
             'viewTotalLoansReports' => collect($byReportFlags)->contains(true),
             'viewReportsSection' => collect($reportFlags)->contains(true),
+            'viewGeneralReports' => $user->can('view general reports'),
+            'viewGeneralReportsSection' => $user->can('view general reports'),
             'manageUsers' => $user->can('manage users'),
             // Region/Council ICT manage users in-scope only — no roles/permissions or audit trails.
             'manageRoles' => $user->can('manage roles')

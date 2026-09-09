@@ -75,7 +75,7 @@ class LoanEditTest extends TestCase
             'business_email' => 'updated@test.com',
             'business_sector' => 'Trade',
             'business_type' => 'Retail',
-            'tin_number' => '12345678901',
+            'tin_number' => '123-456-789',
             'requested_amount' => 4200000,
             'bank_name' => 'NMB Bank Plc (National Microfinance Bank)',
             'bank_number' => '9876543210',

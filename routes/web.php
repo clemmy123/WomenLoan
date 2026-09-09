@@ -57,7 +57,7 @@ Route::get('/', function (LandingStatsService $landingStats) {
         return redirect()->to(AccessibleHome::url(auth()->user()));
     }
 
-    if (JumuishiUrl::enabled()) {
+    if (JumuishiUrl::ssoEnabled()) {
         return redirect()->away(JumuishiUrl::ssoStart('/'));
     }
 
@@ -120,6 +120,10 @@ Route::middleware(['auth', 'password.changed'])->group(function () {
         ->middleware('can:view dashboard')
         ->name('dashboard');
 
+    Route::get('/profile', [\App\Http\Controllers\ProfileController::class, 'show'])
+        ->middleware('can:view own profile')
+        ->name('profile.show');
+
     Route::get('/profile/password', [ProfilePasswordController::class, 'edit'])->name('profile.password.edit');
     Route::put('/profile/password', [ProfilePasswordController::class, 'update'])->name('profile.password.update');
     Route::get('/profile/password/required', [ProfilePasswordController::class, 'editRequired'])->name('profile.password.required');
@@ -180,6 +184,15 @@ Route::middleware(['auth', 'password.changed'])->group(function () {
     Route::get('/reports', [ReportController::class, 'index'])
         ->middleware('can:view reports overview')
         ->name('reports.index');
+    Route::get('/reports/general/women', [ReportController::class, 'registeredWomen'])
+        ->middleware('can:view general reports')
+        ->name('reports.general.women.index');
+    Route::get('/reports/general/women/export/excel', [ReportController::class, 'exportRegisteredWomenExcel'])
+        ->middleware('can:view general reports')
+        ->name('reports.general.women.export.excel');
+    Route::get('/reports/general/women/export/pdf', [ReportController::class, 'exportRegisteredWomenPdf'])
+        ->middleware('can:view general reports')
+        ->name('reports.general.women.export.pdf');
     Route::get('/reports/applications', [ReportController::class, 'applications'])
         ->middleware('can:view application reports')
         ->name('reports.applications.index');

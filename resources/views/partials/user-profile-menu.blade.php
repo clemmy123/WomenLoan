@@ -4,6 +4,9 @@
 
     if ($user->applicant) {
         $profileUrl = route('applicants.show', $user->applicant);
+    } elseif ($user->can('view own profile')) {
+        $profileUrl = route('profile.show');
+        $profileLabel = __('nav.my_profile');
     } elseif ($nav['registerApplicant'] ?? false) {
         $profileUrl = route('applicants.create');
         $profileLabel = __('nav.register_applicant');

@@ -5,6 +5,7 @@ namespace App\Services;
 use App\Models\Loan;
 use App\Models\LoanPayment;
 use App\Models\Scopes\ApprovalLevelScope;
+use App\Services\Concerns\BuildsByReportChartPayload;
 use App\Support\FiscalYear;
 use Carbon\Carbon;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
@@ -14,6 +15,8 @@ use Illuminate\Support\Facades\Auth;
 
 class ByRegionReportService
 {
+    use BuildsByReportChartPayload;
+
     public const PERIODS = [
         'daily',
         'weekly',
@@ -162,6 +165,88 @@ class ByRegionReportService
     public function exportFilename(string $extension): string
     {
         return 'wdf-by-region-report-'.now()->format('Y-m-d-His').'.'.$extension;
+    }
+
+    /**
+     * @return array{
+     *     financial: array{labels: list<string>, data: list<float>},
+     *     loan_type: array{labels: list<string>, data: list<int>},
+     *     top_disbursed: array{labels: list<string>, data: list<float>},
+     *     by_region: array{
+     *         labels: list<string>,
+     *         disbursed: list<float>,
+     *         outstanding: list<float>,
+     *         count: list<int>
+     *     }
+     * }
+     */
+    public function chartPayload(array $filters): array
+    {
+        $rows = $this->allRows($filters);
+        $summary = $this->summary($filters);
+
+        return array_merge(
+            \App\Support\ByReportChartPayload::build($rows, $summary),
+            ['by_region' => $this->regionChartData($filters)],
+        );
+    }
+
+    /**
+     * Totals per region for the selected period (ignores region drill-down filters).
+     *
+     * @return array{labels: list<string>, disbursed: list<float>, outstanding: list<float>, count: list<int>}
+     */
+    public function regionChartData(array $filters): array
+    {
+        $chartFilters = $filters;
+        $chartFilters['region_id'] = null;
+        $chartFilters['district_id'] = null;
+        $chartFilters['council_id'] = null;
+        $chartFilters['ward_id'] = null;
+        $chartFilters['street_id'] = null;
+
+        $loans = $this->baseQuery($chartFilters)->get();
+
+        $totals = [];
+
+        foreach ($loans as $loan) {
+            $regionName = $loan->businessDetails?->region?->name ?? __('reports.unknown_region');
+            $payment = $this->paymentLedger($loan);
+
+            if (! isset($totals[$regionName])) {
+                $totals[$regionName] = [
+                    'disbursed' => 0.0,
+                    'outstanding' => 0.0,
+                    'count' => 0,
+                ];
+            }
+
+            $totals[$regionName]['disbursed'] += $this->actualDisbursedAmount($loan);
+            $totals[$regionName]['outstanding'] += $this->outstandingAmount($loan, $payment);
+            $totals[$regionName]['count']++;
+        }
+
+        foreach ($this->regions() as $region) {
+            if (! isset($totals[$region->name])) {
+                $totals[$region->name] = [
+                    'disbursed' => 0.0,
+                    'outstanding' => 0.0,
+                    'count' => 0,
+                ];
+            }
+        }
+
+        uasort($totals, fn (array $a, array $b) => $b['disbursed'] <=> $a['disbursed']);
+
+        return [
+            'labels' => array_keys($totals),
+            'disbursed' => array_map(fn (array $row) => round($row['disbursed'], 2), $totals),
+            'outstanding' => array_map(fn (array $row) => round($row['outstanding'], 2), $totals),
+            'count' => array_map(fn (array $row) => (int) $row['count'], $totals),
+            'legend_disbursed' => __('by_region_reports.chart_disbursed'),
+            'legend_outstanding' => __('by_region_reports.chart_outstanding'),
+            'legend_count' => __('by_region_reports.chart_count'),
+        ];
     }
 
     protected function baseQuery(array $filters): Builder

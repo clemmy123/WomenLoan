@@ -48,6 +48,12 @@ class WorkflowSteps
 
     public static function labelForStep(int $step): string
     {
+        $key = 'workflow.steps.'.$step;
+
+        if (\Illuminate\Support\Facades\Lang::has($key)) {
+            return __($key);
+        }
+
         return self::LABELS[$step] ?? "Step {$step}";
     }
 
@@ -66,8 +72,8 @@ class WorkflowSteps
         $labels = [];
         $shortLabels = [];
 
-        foreach (self::LABELS as $num => $name) {
-            $labels[] = "Step {$num}: {$name}";
+        foreach (array_keys(self::LABELS) as $num) {
+            $labels[] = __('dashboard.step').' '.$num.': '.self::labelForStep($num);
             $shortLabels[] = self::shortLabelForStep($num);
         }
 

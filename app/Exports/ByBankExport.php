@@ -39,7 +39,7 @@ class ByBankExport implements FromArray, WithTitle
                 __('by_bank_reports.col_disbursed'),
                 __('by_bank_reports.col_outstanding'),
                 __('by_bank_reports.col_paid'),
-                __('by_bank_reports.col_phone'),
+                __('by_bank_reports.col_account'),
             ],
         ];
 
@@ -52,7 +52,7 @@ class ByBankExport implements FromArray, WithTitle
                 $row['disbursed'],
                 $row['outstanding'],
                 $row['paid'],
-                $row['phone'],
+                $row['bank_number'],
             ];
         }
 

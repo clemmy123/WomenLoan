@@ -52,7 +52,7 @@ class LoanSubmissionTest extends TestCase
             'business_email' => 'shop@test.com',
             'business_sector' => 'Trade',
             'business_type' => 'Retail',
-            'tin_number' => '12345678901',
+            'tin_number' => '123-456-789',
             'business_proposal_document' => UploadedFile::fake()->create('proposal.pdf', 100, 'application/pdf'),
             'business_registration_attachment' => UploadedFile::fake()->create('registration.pdf', 100, 'application/pdf'),
             'proof_address_attachment' => UploadedFile::fake()->create('proof-address.pdf', 100, 'application/pdf'),
@@ -112,7 +112,7 @@ class LoanSubmissionTest extends TestCase
             'business_email' => 'shop@test.com',
             'business_sector' => 'Trade',
             'business_type' => 'Retail',
-            'tin_number' => '12345678901',
+            'tin_number' => '123-456-789',
             'business_proposal_document' => UploadedFile::fake()->create('proposal.pdf', 100, 'application/pdf'),
             'business_registration_attachment' => UploadedFile::fake()->create('registration.pdf', 100, 'application/pdf'),
             'proof_address_attachment' => UploadedFile::fake()->create('proof-address.pdf', 100, 'application/pdf'),
@@ -154,7 +154,7 @@ class LoanSubmissionTest extends TestCase
             'business_email' => 'shop@test.com',
             'business_sector' => 'Trade',
             'business_type' => 'Retail',
-            'tin_number' => '12345678901',
+            'tin_number' => '123-456-789',
             'business_proposal_document' => UploadedFile::fake()->create('proposal.pdf', 100, 'application/pdf'),
             'business_registration_attachment' => UploadedFile::fake()->create('registration.pdf', 100, 'application/pdf'),
             'proof_address_attachment' => UploadedFile::fake()->create('proof-address.pdf', 100, 'application/pdf'),
@@ -231,7 +231,7 @@ class LoanSubmissionTest extends TestCase
             'business_email' => 'group@test.com',
             'business_sector' => 'Trade',
             'business_type' => 'Retail',
-            'tin_number' => '12345678901',
+            'tin_number' => '123-456-789',
             'business_proposal_document' => UploadedFile::fake()->create('proposal.pdf', 100, 'application/pdf'),
             'business_registration_attachment' => UploadedFile::fake()->create('registration.pdf', 100, 'application/pdf'),
             'proof_address_attachment' => UploadedFile::fake()->create('proof-address.pdf', 100, 'application/pdf'),
@@ -263,6 +263,7 @@ class LoanSubmissionTest extends TestCase
         $this->assertNotNull($loan->businessDetails->group_certificate);
         $this->assertNotNull($loan->businessDetails->application_letter);
         $this->assertNotNull($loan->businessDetails->bank_statement);
+        $this->assertSame('Guarantor', Gurantor::where('loan_id', $loan->id)->value('relationship'));
     }
 
     public function test_loan_submission_requires_all_documents(): void
@@ -283,7 +284,7 @@ class LoanSubmissionTest extends TestCase
                 'business_email' => 'shop@test.com',
                 'business_sector' => 'Trade',
                 'business_type' => 'Retail',
-                'tin_number' => '12345678901',
+                'tin_number' => '123-456-789',
                 'business_proposal_document' => UploadedFile::fake()->create('proposal.pdf', 100, 'application/pdf'),
                 'application_letter' => UploadedFile::fake()->create('letter.pdf', 100, 'application/pdf'),
                 'bank_statement' => UploadedFile::fake()->create('statement.pdf', 100, 'application/pdf'),
@@ -299,7 +300,55 @@ class LoanSubmissionTest extends TestCase
                 ...$this->guarantorFields(),
                 'guarantor_letter' => UploadedFile::fake()->create('guarantor-letter.pdf', 100, 'application/pdf'),
             ])
-            ->assertSessionHasErrors('business_registration_attachment');
+            ->assertSessionHasErrors('proof_address_attachment');
+    }
+
+    public function test_loan_submission_allows_optional_business_license(): void
+    {
+        $user = $this->applicantWithoutLoan();
+
+        $response = $this->actingAs($user)
+            ->post(route('loan-applications.store'), [
+                'track_id' => 'WL000303B',
+                'loan_type' => 'individual',
+                'region_id' => 1,
+                'district_id' => 1,
+                'council_id' => 1,
+                'ward_id' => 1,
+                'street_id' => 1,
+                'business_name' => 'Test Shop',
+                'business_phone' => '0712345678',
+                'business_sector' => 'Trade',
+                'business_type' => 'Retail',
+                'tin_number' => '123-456-790',
+                'business_proposal_document' => UploadedFile::fake()->create('proposal.pdf', 100, 'application/pdf'),
+                'proof_address_attachment' => UploadedFile::fake()->create('address.pdf', 100, 'application/pdf'),
+                'application_letter' => UploadedFile::fake()->create('letter.pdf', 100, 'application/pdf'),
+                'bank_statement' => UploadedFile::fake()->create('statement.pdf', 100, 'application/pdf'),
+                'has_disability' => '0',
+                'is_widowed' => '0',
+                'requested_amount' => 500000,
+                'bank_name' => 'CRDB Bank',
+                'bank_number' => '1234567890',
+                'declaration' => '1',
+                'guarantor_first_name' => 'Jane',
+                'guarantor_last_name' => 'Guarantor',
+                'guarantor_phone' => '0755123456',
+                'guarantor_nin' => '19850101123450000003',
+                'guarantor_relationship' => 'Spouse',
+                ...$this->guarantorFields(),
+                'guarantor_letter' => UploadedFile::fake()->create('guarantor-letter.pdf', 100, 'application/pdf'),
+            ]);
+
+        $response->assertRedirect(route('loan-applications.index'));
+        $response->assertSessionHas('success');
+        $response->assertSessionDoesntHaveErrors('business_registration_attachment');
+
+        $loan = Loan::withoutGlobalScope(ApprovalLevelScope::class)
+            ->where('loan_track_id', 'WL000303B')
+            ->firstOrFail();
+
+        $this->assertNull($loan->businessDetails->business_registration_attachment);
     }
 
     public function test_loan_submission_rejects_documents_larger_than_one_megabyte(): void
@@ -320,7 +369,7 @@ class LoanSubmissionTest extends TestCase
                 'business_email' => 'shop@test.com',
                 'business_sector' => 'Trade',
                 'business_type' => 'Retail',
-                'tin_number' => '12345678901',
+                'tin_number' => '123-456-789',
                 'business_proposal_document' => UploadedFile::fake()->create('proposal.pdf', 1025, 'application/pdf'),
                 'business_registration_attachment' => UploadedFile::fake()->create('registration.pdf', 100, 'application/pdf'),
             'proof_address_attachment' => UploadedFile::fake()->create('proof-address.pdf', 100, 'application/pdf'),
@@ -403,7 +452,7 @@ class LoanSubmissionTest extends TestCase
                 'business_email' => 'shop@test.com',
                 'business_sector' => 'Trade',
                 'business_type' => 'Retail',
-                'tin_number' => '99887766554',
+                'tin_number' => '998-877-665',
                 'business_proposal_document' => UploadedFile::fake()->create('proposal.pdf', 100, 'application/pdf'),
                 'business_registration_attachment' => UploadedFile::fake()->create('registration.pdf', 100, 'application/pdf'),
                 'proof_address_attachment' => UploadedFile::fake()->create('proof-address.pdf', 100, 'application/pdf'),
@@ -423,7 +472,10 @@ class LoanSubmissionTest extends TestCase
                 'guarantor_letter' => UploadedFile::fake()->create('guarantor-letter.pdf', 100, 'application/pdf'),
             ]);
 
-        $response->assertRedirect(route('loan-applications.create').'?wizard_step=2');
+        $response->assertRedirect(route('loan-applications.create', [
+            'resume_track_id' => 'WL000306',
+            'wizard_step' => 6,
+        ]));
         $response->assertSessionHasErrors('guarantor_phone');
         $response->assertSessionDoesntHaveErrors('error');
 
@@ -431,5 +483,52 @@ class LoanSubmissionTest extends TestCase
             ->get($response->headers->get('Location'))
             ->assertOk()
             ->assertDontSee(__('messages.unexpected_error'), false);
+    }
+
+    public function test_missing_business_type_returns_validation_error_at_review_step(): void
+    {
+        $user = $this->applicantWithoutLoan();
+        $trackId = 'WL000307';
+
+        $response = $this->actingAs($user)->from(route('loan-applications.create', [
+            'resume_track_id' => $trackId,
+            'wizard_step' => 6,
+        ]))->post(route('loan-applications.store'), [
+            'track_id' => $trackId,
+            'step' => 6,
+            'loan_type' => 'individual',
+            'region_id' => 1,
+            'district_id' => 1,
+            'council_id' => 1,
+            'ward_id' => 1,
+            'street_id' => 1,
+            'business_name' => 'Test Shop',
+            'business_phone' => '0712345678',
+            'business_email' => 'shop@test.com',
+            'business_sector' => 'Trade',
+            'tin_number' => '998-877-666',
+            'business_proposal_document' => UploadedFile::fake()->create('proposal.pdf', 100, 'application/pdf'),
+            'proof_address_attachment' => UploadedFile::fake()->create('proof-address.pdf', 100, 'application/pdf'),
+            'application_letter' => UploadedFile::fake()->create('letter.pdf', 100, 'application/pdf'),
+            'bank_statement' => UploadedFile::fake()->create('statement.pdf', 100, 'application/pdf'),
+            'has_disability' => '0',
+            'is_widowed' => '0',
+            'requested_amount' => 500000,
+            'declaration' => '1',
+            'guarantor_first_name' => 'Jane',
+            'guarantor_last_name' => 'Guarantor',
+            'guarantor_phone' => '0755123456',
+            'guarantor_nin' => '19850101123450000007',
+            'guarantor_relationship' => 'Spouse',
+            ...$this->guarantorFields(),
+            'guarantor_letter' => UploadedFile::fake()->create('guarantor-letter.pdf', 100, 'application/pdf'),
+        ]);
+
+        $response->assertRedirect(route('loan-applications.create', [
+            'resume_track_id' => $trackId,
+            'wizard_step' => 6,
+        ]));
+        $response->assertSessionHasErrors('business_type');
+        $response->assertSessionDoesntHaveErrors('error');
     }
 }

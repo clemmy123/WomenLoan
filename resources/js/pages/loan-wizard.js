@@ -83,10 +83,25 @@ document.addEventListener('alpine:init', () => {
             loading: false,
             guarantorLoading: false,
             error: null,
+            draftSaveUrl: config.draftSaveUrl ?? '',
+            draftSaveTimer: null,
+            draftSaving: false,
 
             get stepText() {
                 return stepLabel(this.i18n.step ?? 'Step :step / :total', this.step, this.totalSteps);
             },
+
+            get canAdvanceStep() {
+                void this.formValidityTick;
+
+                if (this.step >= this.totalSteps) {
+                    return false;
+                }
+
+                return this.isStepComplete(this.step);
+            },
+
+            formValidityTick: 0,
 
             get filteredBusinessTypes() {
                 const sector = this.businessCatalog.find(
@@ -147,12 +162,124 @@ document.addEventListener('alpine:init', () => {
 
                 queueMicrotask(() => this.refreshBusinessSelects());
 
+                const form = this.$root.querySelector('form');
+
+                if (form) {
+                    const bumpValidity = () => {
+                        this.refreshStepValidity();
+                        this.autoSaveDraft();
+                    };
+
+                    form.addEventListener('input', bumpValidity, { passive: true });
+                    form.addEventListener('change', bumpValidity, { passive: true });
+                }
+
+                this.$watch('step', () => this.refreshStepValidity());
+                this.$watch('loanType', () => this.refreshStepValidity());
+                this.$watch('declarationAccepted', () => this.refreshStepValidity());
+                this.$watch('selectedBusinessSector', () => this.refreshStepValidity());
+                this.$watch('selectedBusinessType', () => this.refreshStepValidity());
+                this.$watch('selectedRegion', () => this.refreshStepValidity());
+                this.$watch('selectedDistrict', () => this.refreshStepValidity());
+                this.$watch('selectedCouncil', () => this.refreshStepValidity());
+                this.$watch('selectedWard', () => this.refreshStepValidity());
+                this.$watch('selectedStreet', () => this.refreshStepValidity());
+                this.$watch('guarantorRegion', () => this.refreshStepValidity());
+                this.$watch('guarantorDistrict', () => this.refreshStepValidity());
+                this.$watch('guarantorCouncil', () => this.refreshStepValidity());
+                this.$watch('guarantorWard', () => this.refreshStepValidity());
+                this.$watch('guarantorStreet', () => this.refreshStepValidity());
+
                 if (this.step === this.totalSteps) {
                     this.refreshPreview();
                 }
 
                 if (this.step > 1) {
                     queueMicrotask(() => this.scrollToActiveStep({ behavior: 'auto' }));
+                }
+
+                this.syncWizardUrl();
+            },
+
+            autoSaveDraft() {
+                if (this.editing || !this.draftSaveUrl) {
+                    return;
+                }
+
+                clearTimeout(this.draftSaveTimer);
+                this.draftSaveTimer = window.setTimeout(() => {
+                    this.persistDraft();
+                }, 900);
+            },
+
+            syncWizardUrl() {
+                if (this.editing) {
+                    return;
+                }
+
+                const form = this.$root.querySelector('form');
+                const trackInput = form?.querySelector('input[name="track_id"]');
+                const trackId = trackInput?.value;
+
+                if (!trackId) {
+                    return;
+                }
+
+                const url = new URL(window.location.href);
+                url.searchParams.set('resume_track_id', trackId);
+                url.searchParams.set('wizard_step', String(this.step));
+                window.history.replaceState({}, '', url);
+            },
+
+            async persistDraft() {
+                if (this.editing || !this.draftSaveUrl) {
+                    return;
+                }
+
+                const form = this.$root.querySelector('form');
+
+                if (!form) {
+                    return;
+                }
+
+                this.syncFormFieldsForSubmit(form);
+                window.syncAmountFields?.(form);
+                window.syncPhoneFields?.(form);
+
+                const formData = new FormData(form);
+                formData.set('step', String(this.step));
+
+                const csrf = document.querySelector('meta[name="csrf-token"]')?.content;
+
+                this.draftSaving = true;
+
+                try {
+                    const response = await fetch(this.draftSaveUrl, {
+                        method: 'POST',
+                        body: formData,
+                        headers: {
+                            Accept: 'application/json',
+                            ...(csrf ? { 'X-CSRF-TOKEN': csrf } : {}),
+                        },
+                        credentials: 'same-origin',
+                    });
+
+                    if (!response.ok) {
+                        return;
+                    }
+
+                    const payload = await response.json();
+                    const trackInput = form.querySelector('input[name="track_id"]');
+
+                    if (trackInput && payload?.track_id) {
+                        trackInput.value = payload.track_id;
+                    }
+
+                    this.syncWizardUrl();
+                } catch (e) {
+                    console.error(e);
+                } finally {
+                    this.draftSaving = false;
                 }
             },
 
@@ -181,6 +308,7 @@ document.addEventListener('alpine:init', () => {
                     this.error = this.i18n.load_failed ?? 'Failed to load data';
                 } finally {
                     this[loadingKey] = false;
+                    this.refreshStepValidity();
 
                     const scrollPosition = captureScrollPosition();
 
@@ -351,11 +479,186 @@ document.addEventListener('alpine:init', () => {
                 );
             },
 
-            validateStep(step) {
+            refreshStepValidity() {
+                this.formValidityTick += 1;
+            },
+
+            getStepPanel(step) {
+                const form = this.$root.querySelector('form');
+
+                return form?.querySelector(`[data-wizard-step="${step}"]`) ?? null;
+            },
+
+            isFieldMandatory(field) {
+                return Boolean(field.required || field.dataset.docRequired === 'true');
+            },
+
+            isOptionalFieldEmpty(field) {
+                if (field.type === 'checkbox') {
+                    return !field.checked;
+                }
+
+                if (field.type === 'file') {
+                    return !field.files?.[0] && field.dataset.hasExisting !== 'true';
+                }
+
+                return String(field.value ?? '').trim() === '';
+            },
+
+            mandatoryDocumentsForStep(step) {
+                if (this.editing) {
+                    return [];
+                }
+
+                if (step === 1) {
+                    const docs = [
+                        'business_proposal_document',
+                        'proof_address_attachment',
+                        'application_letter',
+                        'bank_statement',
+                    ];
+
+                    if (this.loanType === 'group') {
+                        docs.push('group_constitution', 'group_muhtasari', 'group_certificate');
+                    }
+
+                    return docs;
+                }
+
+                if (step === 2) {
+                    return ['guarantor_letter'];
+                }
+
+                return [];
+            },
+
+            mandatoryDocumentsComplete(step) {
+                return this.mandatoryDocumentsForStep(step).every((name) => this.documentAttached(name));
+            },
+
+            validateMandatoryDocuments(step, options = {}) {
+                const { silent = false } = options;
+                const form = this.$root.querySelector('form');
+
+                if (!form) {
+                    return true;
+                }
+
+                const missing = this.mandatoryDocumentsForStep(step).filter((name) => !this.documentAttached(name));
+
+                if (missing.length === 0) {
+                    return true;
+                }
+
+                const message = this.i18n.document_required ?? 'Please upload this document to continue.';
+
+                for (const name of missing) {
+                    const field = form.querySelector(`[name="${name}"]`);
+
+                    if (!field) {
+                        continue;
+                    }
+
+                    const card = field.closest('.doc-attachment-card--upload');
+
+                    if (!silent) {
+                        field.setCustomValidity(message);
+                        card?.classList.add('doc-attachment-card--error');
+                    }
+                }
+
+                if (!silent) {
+                    const firstMissing = form.querySelector(`[name="${missing[0]}"]`);
+
+                    if (firstMissing?.reportValidity) {
+                        firstMissing.reportValidity();
+                    }
+                }
+
+                return false;
+            },
+
+            isStepComplete(step) {
+                const form = this.$root.querySelector('form');
+
+                if (form) {
+                    this.syncFormFieldsForSubmit(form);
+                }
+
+                const panel = this.getStepPanel(step);
+
+                if (panel) {
+                    window.syncPhoneFields?.(panel);
+                    window.syncAmountFields?.(panel);
+                }
+
+                if (step === 1) {
+                    const tin = this.formValue('tin_number');
+
+                    if (
+                        !this.selectedRegion
+                        || !this.selectedDistrict
+                        || !this.selectedCouncil
+                        || !this.selectedWard
+                        || !this.selectedStreet
+                        || !this.formValue('business_sector')
+                        || !this.formValue('business_type')
+                        || !this.formValue('business_name')
+                        || !this.formValue('business_phone')
+                        || !window.isTinComplete?.(tin)
+                        || !this.mandatoryDocumentsComplete(1)
+                    ) {
+                        return false;
+                    }
+
+                    return true;
+                }
+
+                if (step === 2) {
+                    const nin = this.formValue('guarantor_nin');
+
+                    if (
+                        !this.formValue('guarantor_first_name')
+                        || !this.formValue('guarantor_last_name')
+                        || !this.formValue('guarantor_phone')
+                        || !this.formValue('guarantor_sex')
+                        || !window.isNinComplete?.(nin)
+                        || !this.guarantorRegion
+                        || !this.guarantorDistrict
+                        || !this.guarantorCouncil
+                        || !this.guarantorWard
+                        || !this.guarantorStreet
+                        || !this.mandatoryDocumentsComplete(2)
+                    ) {
+                        return false;
+                    }
+
+                    return true;
+                }
+
+                if (step === 3) {
+                    return Boolean(this.formValue('requested_amount'));
+                }
+
+                if (step === 4) {
+                    return true;
+                }
+
+                if (step === 5) {
+                    return this.declarationAccepted;
+                }
+
+                return true;
+            },
+
+            validateStep(step, options = {}) {
+                const { silent = false, mandatoryOnly = false } = options;
                 const form = this.$root.querySelector('form');
                 if (!form) {
                     return true;
                 }
+
+                this.syncFormFieldsForSubmit(form);
 
                 const panel = form.querySelector(`[data-wizard-step="${step}"]`);
                 if (!panel) {
@@ -369,6 +672,12 @@ document.addEventListener('alpine:init', () => {
                 const fields = panel.querySelectorAll('input, select, textarea');
 
                 for (const field of fields) {
+                    const isMandatory = this.isFieldMandatory(field);
+
+                    if (field.disabled && isMandatory) {
+                        field.disabled = false;
+                    }
+
                     if (field.disabled) {
                         continue;
                     }
@@ -381,28 +690,52 @@ document.addEventListener('alpine:init', () => {
                         }
                     }
 
+                    if (mandatoryOnly && !isMandatory) {
+                        continue;
+                    }
+
+                    if (!isMandatory && this.isOptionalFieldEmpty(field)) {
+                        field.setCustomValidity('');
+
+                        continue;
+                    }
+
+                    if (field.matches('[data-tin-input], [data-nin-input]')) {
+                        if (!window.validateIdentityInput?.(field, { silent })) {
+                            return false;
+                        }
+
+                        continue;
+                    }
+
                     if (field.type === 'file') {
                         const card = field.closest('.doc-attachment-card--upload');
                         const file = field.files?.[0];
                         const hasExisting = field.dataset.hasExisting === 'true';
-                        const mustUpload = field.required || field.dataset.docRequired === 'true';
+                        const mustUpload = isMandatory;
 
                         card?.classList.remove('doc-attachment-card--error');
 
                         if (mustUpload && !file && !hasExisting) {
                             const message = this.i18n.document_required ?? 'Please upload this document to continue.';
-                            field.setCustomValidity(message);
-                            field.reportValidity();
-                            card?.classList.add('doc-attachment-card--error');
+
+                            if (!silent) {
+                                field.setCustomValidity(message);
+                                field.reportValidity();
+                                card?.classList.add('doc-attachment-card--error');
+                            }
 
                             return false;
                         }
 
                         if (file && file.size > maxBytes) {
                             const message = this.i18n.file_too_large ?? 'File must not exceed 1MB.';
-                            field.setCustomValidity(message);
-                            field.reportValidity();
-                            card?.classList.add('doc-attachment-card--error');
+
+                            if (!silent) {
+                                field.setCustomValidity(message);
+                                field.reportValidity();
+                                card?.classList.add('doc-attachment-card--error');
+                            }
 
                             return false;
                         }
@@ -411,10 +744,16 @@ document.addEventListener('alpine:init', () => {
                     }
 
                     if (!field.checkValidity()) {
-                        field.reportValidity();
+                        if (!silent) {
+                            field.reportValidity();
+                        }
 
                         return false;
                     }
+                }
+
+                if (step === 1 || step === 2) {
+                    return this.validateMandatoryDocuments(step, { silent });
                 }
 
                 return true;
@@ -427,6 +766,8 @@ document.addEventListener('alpine:init', () => {
                 }
 
                 this.syncFormFieldsForSubmit(form);
+                window.syncAmountFields?.(form);
+                window.syncPhoneFields?.(form);
 
                 form.querySelectorAll('[data-loan-scope="group"] input, [data-loan-scope="group"] select, [data-loan-scope="group"] textarea').forEach((field) => {
                     field.disabled = this.loanType !== 'group';
@@ -439,6 +780,33 @@ document.addEventListener('alpine:init', () => {
             },
 
             syncFormFieldsForSubmit(form) {
+                const catalogFields = {
+                    business_sector: this.selectedBusinessSector,
+                    business_type: this.selectedBusinessType,
+                };
+
+                Object.entries(catalogFields).forEach(([name, value]) => {
+                    const field = form.querySelector(`[name="${name}"]`);
+
+                    if (!field) {
+                        return;
+                    }
+
+                    if (value !== '' && value != null) {
+                        field.value = String(value);
+                    }
+
+                    if (name === 'business_type' && this.selectedBusinessSector) {
+                        field.disabled = false;
+                    }
+
+                    if (name === 'business_sector') {
+                        field.disabled = false;
+                    }
+
+                    window.AppSelect?.refreshAppSelect(field);
+                });
+
                 const geoFields = {
                     region_id: this.selectedRegion,
                     district_id: this.selectedDistrict,
@@ -471,20 +839,51 @@ document.addEventListener('alpine:init', () => {
                 const { behavior = 'smooth' } = options;
 
                 this.$nextTick(() => {
-                    const panel = this.$root.querySelector(`[data-wizard-step="${this.step}"]`);
-                    const heading = panel?.querySelector('h3');
-                    const target = heading ?? panel;
+                    const panel = this.getStepPanel(this.step);
+                    const heading = panel?.querySelector('.wizard-step-heading');
 
-                    if (!target) {
+                    if (!heading) {
                         return;
                     }
 
-                    const top = target.getBoundingClientRect().top + window.scrollY - 12;
-
-                    window.scrollTo({
-                        top: Math.max(0, top),
+                    heading.scrollIntoView({
                         behavior,
+                        block: 'start',
                     });
+                });
+            },
+
+            scrollToFirstFieldError() {
+                this.$nextTick(() => {
+                    const panel = this.getStepPanel(this.step);
+
+                    if (!panel) {
+                        return;
+                    }
+
+                    const firstInvalid = panel.querySelector('.app-identity-invalid')
+                        ?? panel.querySelector('.doc-attachment-card--error input[type="file"]')
+                        ?? this.mandatoryDocumentsForStep(this.step)
+                            .map((name) => panel.querySelector(`[name="${name}"]`))
+                            .find((field) => field && !this.documentAttached(field.name))
+                        ?? panel.querySelector(':invalid');
+
+                    if (!firstInvalid) {
+                        return;
+                    }
+
+                    const focusTarget = firstInvalid.matches('input, select, textarea')
+                        ? firstInvalid
+                        : firstInvalid.querySelector('input, select, textarea') ?? firstInvalid;
+
+                    focusTarget.scrollIntoView({
+                        behavior: 'smooth',
+                        block: 'center',
+                    });
+
+                    if (typeof focusTarget.focus === 'function') {
+                        focusTarget.focus({ preventScroll: true });
+                    }
                 });
             },
 
@@ -497,18 +896,25 @@ document.addEventListener('alpine:init', () => {
                 this.scrollToActiveStep();
             },
 
-            nextStep() {
-                if (!this.validateStep(this.step)) {
+            async nextStep() {
+                if (!this.canAdvanceStep) {
+                    this.validateStep(this.step, { mandatoryOnly: true });
+                    this.scrollToFirstFieldError();
+
                     return;
                 }
 
                 if (this.step < this.totalSteps) {
+                    await this.persistDraft();
                     this.step++;
+                    this.syncWizardUrl();
                     this.scrollToActiveStep();
 
                     if (this.step === this.totalSteps) {
                         this.refreshPreview();
                     }
+
+                    await this.persistDraft();
                 }
             },
 
@@ -624,7 +1030,9 @@ document.addEventListener('alpine:init', () => {
                     guarantor_last_name: this.formValue('guarantor_last_name'),
                     guarantor_phone: this.formValue('guarantor_phone'),
                     guarantor_nin: this.formValue('guarantor_nin'),
-                    guarantor_relationship: this.selectLabel('guarantor_relationship'),
+                    guarantor_relationship: this.loanType === 'group'
+                        ? (this.i18n.guarantor ?? 'Guarantor')
+                        : this.selectLabel('guarantor_relationship'),
                     guarantor_occupation: this.formValue('guarantor_occupation'),
                     guarantor_sex: this.selectLabel('guarantor_sex'),
                     guarantor_location: this.joinLocation([
@@ -644,7 +1052,7 @@ document.addEventListener('alpine:init', () => {
                         : (this.i18n.no ?? 'No'),
                     documents: [
                         { label: this.i18n.business_proposal ?? 'Business Proposal', attached: this.documentAttached('business_proposal_document') },
-                        { label: this.i18n.business_registration ?? 'Business Registration', attached: this.documentAttached('business_registration_attachment') },
+                        { label: this.i18n.business_license ?? this.i18n.business_registration ?? 'Business License', attached: this.documentAttached('business_registration_attachment') },
                         { label: this.i18n.proof_address ?? 'Proof of Address', attached: this.documentAttached('proof_address_attachment') },
                         { label: this.i18n.application_letter ?? 'Application Letter', attached: this.documentAttached('application_letter') },
                         { label: this.i18n.bank_statement ?? 'Bank Statement', attached: this.documentAttached('bank_statement') },
@@ -663,9 +1071,11 @@ document.addEventListener('alpine:init', () => {
 
             validateAllSteps() {
                 for (let current = 1; current <= 5; current += 1) {
-                    if (!this.validateStep(current)) {
+                    if (!this.isStepComplete(current)) {
+                        this.validateStep(current, { mandatoryOnly: true });
                         this.step = current;
                         this.scrollToActiveStep();
+                        this.scrollToFirstFieldError();
 
                         return false;
                     }
@@ -686,6 +1096,8 @@ document.addEventListener('alpine:init', () => {
 
                 if (form) {
                     this.syncFormFieldsForSubmit(form);
+                    window.syncAmountFields?.(form);
+                    window.syncPhoneFields?.(form);
                 }
 
                 if (!this.validateAllSteps()) {
@@ -707,6 +1119,8 @@ document.addEventListener('alpine:init', () => {
                 }
 
                 this.syncFormFieldsForSubmit(form);
+                window.syncAmountFields?.(form);
+                window.syncPhoneFields?.(form);
 
                 let actionInput = form.querySelector('input[name="form_action"]');
 

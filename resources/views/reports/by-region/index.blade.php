@@ -138,6 +138,8 @@
             ],
         ])
 
+        @include('partials.by-region-charts')
+
         <div class="app-card overflow-hidden">
             <div class="app-card-header">
                 <h2 class="font-bold text-slate-900 dark:text-white">{{ __('by_region_reports.detail_table') }}</h2>

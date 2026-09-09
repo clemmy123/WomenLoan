@@ -5,6 +5,7 @@ namespace App\Services;
 use App\Models\Loan;
 use App\Models\LoanPayment;
 use App\Models\Scopes\ApprovalLevelScope;
+use App\Services\Concerns\BuildsByReportChartPayload;
 use App\Support\FiscalYear;
 use Carbon\Carbon;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
@@ -14,6 +15,8 @@ use Illuminate\Support\Facades\Auth;
 
 class ByBankReportService
 {
+    use BuildsByReportChartPayload;
+
     public const PERIODS = [
         'daily',
         'weekly',
@@ -168,6 +171,53 @@ class ByBankReportService
         return 'wdf-by-bank-report-'.now()->format('Y-m-d-His').'.'.$extension;
     }
 
+    public function chartPayload(array $filters): array
+    {
+        $rows = $this->allRows($filters);
+        $summary = $this->summary($filters);
+
+        return array_merge(
+            \App\Support\ByReportChartPayload::build($rows, $summary),
+            ['by_bank' => $this->bankChartData($filters)],
+        );
+    }
+
+    /** @return array{labels: list<string>, disbursed: list<float>, outstanding: list<float>, count: list<int>} */
+    public function bankChartData(array $filters): array
+    {
+        $chartFilters = $filters;
+        $chartFilters['bank_name'] = null;
+
+        $loans = $this->baseQuery($chartFilters)->get();
+        $totals = [];
+
+        foreach ($this->banks() as $bankName) {
+            $totals[$bankName] = \App\Support\ReportBreakdownChart::emptyRow();
+        }
+
+        foreach ($loans as $loan) {
+            $bankName = $loan->bank_name ?: __('common.na');
+            if (! isset($totals[$bankName])) {
+                $totals[$bankName] = \App\Support\ReportBreakdownChart::emptyRow();
+            }
+
+            $payment = $this->paymentLedger($loan);
+            \App\Support\ReportBreakdownChart::accumulate(
+                $totals,
+                $bankName,
+                $this->actualDisbursedAmount($loan),
+                $this->outstandingAmount($loan, $payment),
+            );
+        }
+
+        return \App\Support\ReportBreakdownChart::fromTotals(
+            $totals,
+            __('by_bank_reports.chart_disbursed'),
+            __('by_bank_reports.chart_outstanding'),
+            __('by_bank_reports.chart_count'),
+        );
+    }
+
     protected function baseQuery(array $filters): Builder
     {
         $query = $this->scopedLoanQuery()
@@ -266,9 +316,7 @@ class ByBankReportService
                 : ($loan->applicant?->full_name ?? __('common.na')),
             'loan_type' => $loan->loan_type,
             'loan_type_label' => loan_type_label($loan->loan_type),
-            'phone' => $isGroup
-                ? ($loan->group?->phone ?: __('common.na'))
-                : ($loan->applicant?->phone ?: __('common.na')),
+            'bank_number' => $loan->bank_number ?: __('common.na'),
             'bank' => $loan->bank_name ?: __('common.na'),
             'region' => $loan->businessDetails?->region?->name ?? __('reports.unknown_region'),
             'disbursed' => $this->actualDisbursedAmount($loan),

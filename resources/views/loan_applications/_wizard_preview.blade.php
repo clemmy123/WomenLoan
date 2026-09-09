@@ -24,7 +24,7 @@
         <dl class="wizard-preview-list">
             <div class="wizard-preview-item"><dt>{{ __('loans.business_name') }}</dt><dd x-text="preview.business_name || '{{ $previewNa }}'"></dd></div>
             <div class="wizard-preview-item"><dt>{{ __('loans.business_phone') }}</dt><dd x-text="preview.business_phone || '{{ $previewNa }}'"></dd></div>
-            <div class="wizard-preview-item"><dt>{{ __('loans.business_email') }}</dt><dd x-text="preview.business_email || '{{ $previewNa }}'"></dd></div>
+            <div class="wizard-preview-item"><dt>{{ __('loans.business_email') }} ({{ __('common.optional') }})</dt><dd x-text="preview.business_email || '{{ $previewNa }}'"></dd></div>
             <div class="wizard-preview-item"><dt>{{ __('loans.business_sector') }}</dt><dd x-text="preview.business_sector || '{{ $previewNa }}'"></dd></div>
             <div class="wizard-preview-item"><dt>{{ __('loans.business_type') }}</dt><dd x-text="preview.business_type || '{{ $previewNa }}'"></dd></div>
             <div class="wizard-preview-item"><dt>{{ __('loans.tin_number') }}</dt><dd class="wizard-preview-mono" x-text="preview.tin_number || '{{ $previewNa }}'"></dd></div>

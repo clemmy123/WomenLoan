@@ -41,4 +41,9 @@ return [
     'export_excel' => 'Pakua Excel',
     'export_pdf' => 'Pakua PDF',
     'generated_at' => 'Imetengenezwa',
+    'chart_all_regions' => 'Mikoa yote',
+    'chart_all_regions_help' => 'Utoaji na deni lililobaki kwa kila mkoa katika kipindi kilichochaguliwa.',
+    'chart_disbursed' => 'Kiasi kilichotolewa',
+    'chart_outstanding' => 'Deni lililobaki',
+    'chart_count' => 'Mikopo',
 ];

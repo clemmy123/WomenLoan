@@ -17,8 +17,32 @@
         ? \App\Support\SecureFileUrl::forPath($applicant->photo_path)
         : null;
     $ageYears = $dobValue ? \App\Support\AgeCalculator::years(\Carbon\Carbon::parse($dobValue)) : null;
+    $selfServiceOnboarding = $selfServiceOnboarding ?? false;
 @endphp
 
+@if($selfServiceOnboarding)
+    @if($lockNidaFields)
+        <input type="hidden" name="nin" value="{{ $applicant->nin }}">
+        <input type="hidden" name="first_name" value="{{ $applicant->first_name }}">
+        <input type="hidden" name="middle_name" value="{{ $applicant->middle_name }}">
+        <input type="hidden" name="last_name" value="{{ $applicant->last_name }}">
+        <input type="hidden" name="dob" value="{{ $dobValue }}">
+        <input type="hidden" name="nationality" value="{{ $applicant->nationality ?: 'Tanzanian' }}">
+        <input type="hidden" name="sex" value="Female">
+        <input type="hidden" name="phone" value="{{ old('phone', $applicant?->phone ?? '') }}">
+        <input type="hidden" name="email" value="{{ old('email', $applicant?->email ?? '') }}">
+    @else
+        <input type="hidden" name="first_name" value="{{ old('first_name', $applicant?->first_name ?? '') }}">
+        <input type="hidden" name="middle_name" value="{{ old('middle_name', $applicant?->middle_name ?? '') }}">
+        <input type="hidden" name="last_name" value="{{ old('last_name', $applicant?->last_name ?? '') }}">
+        <input type="hidden" name="nin" value="{{ old('nin', $applicant?->nin ?? '') }}">
+        <input type="hidden" name="dob" value="{{ $dobValue }}">
+        <input type="hidden" name="phone" value="{{ old('phone', $applicant?->phone ?? '') }}">
+        <input type="hidden" name="email" value="{{ old('email', $applicant?->email ?? '') }}">
+        <input type="hidden" name="sex" value="{{ old('sex', $applicant?->sex ?? 'Female') }}">
+        <input type="hidden" name="nationality" value="{{ old('nationality', $applicant?->nationality ?? 'Tanzanian') }}">
+    @endif
+@else
 <div class="bg-white p-6 rounded-xl border border-gray-200 space-y-6">
     <h2 class="text-sm font-semibold tracking-wide uppercase text-indigo-600 border-b border-gray-100 pb-2">{{ __('applicants.section_identification') }}</h2>
 
@@ -179,8 +203,9 @@
         </div>
     @endif
 </div>
+@endif
 
-@if(! $lockNidaFields)
+@if(! $selfServiceOnboarding && ! $lockNidaFields)
 <div class="bg-white p-6 rounded-xl border border-gray-200 space-y-6">
     <h2 class="text-sm font-semibold tracking-wide uppercase text-indigo-600 border-b border-gray-100 pb-2">{{ __('applicants.section_demographics') }}</h2>
 
@@ -202,9 +227,89 @@
 </div>
 @endif
 
+@if($selfServiceOnboarding)
+<div x-show="step === 1" x-cloak>
+@endif
 <div class="bg-white p-6 rounded-xl border border-gray-200 space-y-6">
     <h2 class="text-sm font-semibold tracking-wide uppercase text-indigo-600 border-b border-gray-100 pb-2">{{ __('applicants.section_loan_preference') }}</h2>
 
+    @if($selfServiceOnboarding)
+        <p class="text-sm text-slate-600">{{ __('applicants.onboarding_loan_type_hint') }}</p>
+        <style>
+            .loan-type-picker { display: grid; grid-template-columns: 1fr; gap: 1rem; }
+            @media (min-width: 640px) { .loan-type-picker { grid-template-columns: 1fr 1fr; } }
+            .loan-type-card {
+                position: relative;
+                display: flex;
+                cursor: pointer;
+                border-radius: 1rem;
+                border: 2px solid #e2e8f0;
+                padding: 1rem 1.1rem;
+                background: #fff;
+                transition: border-color .22s ease, box-shadow .22s ease, transform .22s ease;
+                overflow: hidden;
+            }
+            .loan-type-card::before {
+                content: '';
+                position: absolute;
+                inset: 0;
+                opacity: 0;
+                transition: opacity .22s ease;
+                pointer-events: none;
+            }
+            .loan-type-card:hover {
+                border-color: #93c5fd;
+                box-shadow: 0 4px 14px rgba(37, 99, 235, 0.08);
+            }
+            .loan-type-card__body { position: relative; z-index: 1; }
+            .loan-type-card__title { font-weight: 600; color: #0f172a; }
+            .loan-type-card__hint { margin-top: .25rem; font-size: .875rem; color: #64748b; }
+            .loan-type-card--individual:has(:checked) {
+                border-color: #3b82f6;
+                box-shadow: 0 8px 24px rgba(37, 99, 235, 0.14);
+                transform: translateY(-1px);
+            }
+            .loan-type-card--individual:has(:checked)::before {
+                opacity: 1;
+                background: linear-gradient(135deg, rgba(37, 99, 235, 0.14) 0%, rgba(56, 189, 248, 0.1) 42%, rgba(255, 255, 255, 0) 72%);
+            }
+            .loan-type-card--individual:has(:checked) .loan-type-card__title { color: #1e3a8a; }
+            .loan-type-card--group:hover {
+                border-color: #93c5fd;
+                box-shadow: 0 4px 14px rgba(37, 99, 235, 0.08);
+            }
+            .loan-type-card--group:has(:checked) {
+                border-color: #3b82f6;
+                box-shadow: 0 8px 24px rgba(37, 99, 235, 0.14);
+                transform: translateY(-1px);
+            }
+            .loan-type-card--group:has(:checked)::before {
+                opacity: 1;
+                background: linear-gradient(135deg, rgba(37, 99, 235, 0.13) 0%, rgba(56, 189, 248, 0.11) 45%, rgba(186, 230, 253, 0.08) 72%, rgba(255, 255, 255, 0) 100%);
+            }
+            .loan-type-card--group:has(:checked) .loan-type-card__title { color: #1e3a8a; }
+        </style>
+        <div class="loan-type-picker">
+            @foreach(Applicant::LOAN_TYPES as $type)
+                <label class="loan-type-card loan-type-card--{{ $type }}">
+                    <input
+                        type="radio"
+                        name="preferred_loan_type"
+                        value="{{ $type }}"
+                        class="sr-only"
+                        required
+                        x-model="loanType"
+                        @checked($loanTypeValue === $type)
+                    >
+                    <div class="loan-type-card__body">
+                        <p class="loan-type-card__title">{{ __('applicants.loan_types.'.$type) }}</p>
+                        <p class="loan-type-card__hint">{{ __('applicants.loan_type_hints.'.$type) }}</p>
+                    </div>
+                </label>
+            @endforeach
+        </div>
+        @error('preferred_loan_type') <p class="text-xs font-medium text-red-600">{{ $message }}</p> @enderror
+    @else
     <div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
         <div class="sm:col-span-2">
             <label for="preferred_loan_type" class="block text-xs font-semibold text-gray-700 uppercase tracking-wider mb-2">{{ __('applicants.preferred_loan_type') }} @include('partials.required-mark')</label>
@@ -217,15 +322,28 @@
             @error('preferred_loan_type') <p class="mt-1.5 text-xs font-medium text-red-600">{{ $message }}</p> @enderror
         </div>
     </div>
+    @endif
 </div>
+@if($selfServiceOnboarding)
+</div>
+@endif
 
+@if($selfServiceOnboarding)
+<div x-show="step === 2" x-cloak>
+@endif
 <div class="bg-white p-6 rounded-xl border border-gray-200 space-y-6">
     <h2 class="text-sm font-semibold tracking-wide uppercase text-indigo-600 border-b border-gray-100 pb-2">{{ __('applicants.section_personal_status') }}</h2>
 
     <div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
         <div>
             <label for="marital_status" class="block text-xs font-semibold text-gray-700 uppercase tracking-wider mb-2">{{ __('applicants.marital_status') }} @include('partials.required-mark')</label>
-            <select name="marital_status" id="marital_status" required class="app-select @error('marital_status') app-select-error @enderror">
+            <select
+                name="marital_status"
+                id="marital_status"
+                required
+                class="app-select @error('marital_status') app-select-error @enderror"
+                @if($selfServiceOnboarding) x-model="maritalStatus" @endif
+            >
                 <option value="">{{ __('applicants.select_marital_status') }}</option>
                 @foreach(Applicant::MARITAL_STATUSES as $status)
                     <option value="{{ $status }}" @selected($maritalValue === $status)>{{ __('applicants.marital_statuses.'.$status) }}</option>
@@ -239,7 +357,13 @@
 
         <div>
             <label for="has_disability" class="block text-xs font-semibold text-gray-700 uppercase tracking-wider mb-2">{{ __('applicants.has_disability') }} @include('partials.required-mark')</label>
-            <select name="has_disability" id="has_disability" required class="app-select @error('has_disability') app-select-error @enderror">
+            <select
+                name="has_disability"
+                id="has_disability"
+                required
+                class="app-select @error('has_disability') app-select-error @enderror"
+                @if($selfServiceOnboarding) x-model="hasDisability" @endif
+            >
                 <option value="">{{ __('applicants.select_yes_no') }}</option>
                 <option value="1" @selected((string) $disabilityValue === '1')>{{ __('common.yes') }}</option>
                 <option value="0" @selected((string) $disabilityValue === '0')>{{ __('common.no') }}</option>
@@ -248,7 +372,13 @@
         </div>
     </div>
 </div>
+@if($selfServiceOnboarding)
+</div>
+@endif
 
+@if($selfServiceOnboarding)
+<div x-show="step === 3" x-cloak>
+@endif
 <div class="bg-white p-6 rounded-xl border border-gray-200 space-y-6">
     <h2 class="text-sm font-semibold tracking-wide uppercase text-indigo-600 border-b border-gray-100 pb-2">{{ __('applicants.section_residential_address') }}</h2>
 
@@ -305,3 +435,6 @@
         </div>
     </div>
 </div>
+@if($selfServiceOnboarding)
+</div>
+@endif

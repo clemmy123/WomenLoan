@@ -5,6 +5,7 @@ namespace App\Services;
 use App\Models\Loan;
 use App\Models\LoanPayment;
 use App\Models\Scopes\ApprovalLevelScope;
+use App\Services\Concerns\BuildsByReportChartPayload;
 use App\Support\FiscalYear;
 use Carbon\Carbon;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
@@ -14,6 +15,8 @@ use Illuminate\Support\Facades\Auth;
 
 class BySectorReportService
 {
+    use BuildsByReportChartPayload;
+
     public const PERIODS = [
         'daily',
         'weekly',
@@ -163,6 +166,83 @@ class BySectorReportService
     public function exportFilename(string $extension): string
     {
         return 'wdf-by-sector-report-'.now()->format('Y-m-d-His').'.'.$extension;
+    }
+
+    /**
+     * @return array{
+     *     financial: array{labels: list<string>, data: list<float>},
+     *     loan_type: array{labels: list<string>, data: list<int>},
+     *     top_disbursed: array{labels: list<string>, data: list<float>},
+     *     by_sector: array{
+     *         labels: list<string>,
+     *         disbursed: list<float>,
+     *         outstanding: list<float>,
+     *         count: list<int>
+     *     }
+     * }
+     */
+    public function chartPayload(array $filters): array
+    {
+        $rows = $this->allRows($filters);
+        $summary = $this->summary($filters);
+
+        return array_merge(
+            \App\Support\ByReportChartPayload::build($rows, $summary),
+            ['by_sector' => $this->sectorChartData($filters)],
+        );
+    }
+
+    /**
+     * @return array{labels: list<string>, disbursed: list<float>, outstanding: list<float>, count: list<int>}
+     */
+    public function sectorChartData(array $filters): array
+    {
+        $chartFilters = $filters;
+        $chartFilters['business_sector'] = null;
+
+        $loans = $this->baseQuery($chartFilters)->get();
+
+        $totals = [];
+
+        foreach ($loans as $loan) {
+            $sectorName = $loan->businessDetails?->business_sector ?: __('common.na');
+            $payment = $this->paymentLedger($loan);
+
+            if (! isset($totals[$sectorName])) {
+                $totals[$sectorName] = [
+                    'disbursed' => 0.0,
+                    'outstanding' => 0.0,
+                    'count' => 0,
+                ];
+            }
+
+            $totals[$sectorName]['disbursed'] += $this->actualDisbursedAmount($loan);
+            $totals[$sectorName]['outstanding'] += $this->outstandingAmount($loan, $payment);
+            $totals[$sectorName]['count']++;
+        }
+
+        foreach ($this->sectors() as $sector) {
+            $name = $sector->name;
+            if (! isset($totals[$name])) {
+                $totals[$name] = [
+                    'disbursed' => 0.0,
+                    'outstanding' => 0.0,
+                    'count' => 0,
+                ];
+            }
+        }
+
+        uasort($totals, fn (array $a, array $b) => $b['disbursed'] <=> $a['disbursed']);
+
+        return [
+            'labels' => array_keys($totals),
+            'disbursed' => array_map(fn (array $row) => round($row['disbursed'], 2), $totals),
+            'outstanding' => array_map(fn (array $row) => round($row['outstanding'], 2), $totals),
+            'count' => array_map(fn (array $row) => (int) $row['count'], $totals),
+            'legend_disbursed' => __('by_sector_reports.chart_disbursed'),
+            'legend_outstanding' => __('by_sector_reports.chart_outstanding'),
+            'legend_count' => __('by_sector_reports.chart_count'),
+        ];
     }
 
     protected function baseQuery(array $filters): Builder

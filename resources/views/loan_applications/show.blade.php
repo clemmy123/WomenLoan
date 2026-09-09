@@ -281,7 +281,7 @@
                     <h3 class="text-sm font-semibold tracking-wide uppercase text-indigo-600 border-b border-slate-100 dark:border-white/10 pb-2 mb-5">{{ __('loans.supporting_documents') }}</h3>
                     <div class="doc-attachments-grid">
                         @include('partials.detail-field-file', ['label' => __('loans.business_proposal'), 'path' => $business->business_proposal_document])
-                        @include('partials.detail-field-file', ['label' => __('loans.business_registration'), 'path' => $business->business_registration_attachment])
+                        @include('partials.detail-field-file', ['label' => __('loans.business_license'), 'path' => $business->business_registration_attachment])
                         @include('partials.detail-field-file', ['label' => __('loans.proof_address'), 'path' => $business->proof_address_attachment])
                         @if($loan->loan_type === 'individual')
                             @include('partials.detail-field-file', ['label' => __('loans.application_letter'), 'path' => $business->application_letter])
@@ -359,7 +359,7 @@
                             @include('partials.detail-field', ['label' => __('applicants.last_name'), 'value' => $guarantor->last_name ?: $guarantorNameParts['last_name']])
                             @include('partials.detail-field', ['label' => __('loans.guarantor_phone'), 'value' => $guarantor->phone])
                             @include('partials.detail-field', ['label' => __('loans.guarantor_nin'), 'value' => $guarantor->id_number, 'mono' => true])
-                            @include('partials.detail-field', ['label' => __('loans.guarantor_relationship'), 'value' => $guarantor->relationship])
+                            @include('partials.detail-field', ['label' => __('loans.guarantor_relationship'), 'value' => __('loans.guarantor_relationships')[$guarantor->relationship] ?? $guarantor->relationship])
                             @include('partials.detail-field', ['label' => __('loans.guarantor_occupation'), 'value' => $guarantor->occupation])
                             @include('partials.detail-field', [
                                 'label' => __('loans.guarantor_sex'),

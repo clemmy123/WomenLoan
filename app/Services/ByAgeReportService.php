@@ -7,6 +7,7 @@ use App\Models\Loan;
 use App\Models\LoanGroupMember;
 use App\Models\LoanPayment;
 use App\Models\Scopes\ApprovalLevelScope;
+use App\Services\Concerns\BuildsByReportChartPayload;
 use App\Support\AgeCalculator;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Database\Eloquent\Builder;
@@ -16,6 +17,8 @@ use Illuminate\Support\Facades\Auth;
 
 class ByAgeReportService
 {
+    use BuildsByReportChartPayload;
+
     public const SORTS = [
         'newest',
         'oldest',
@@ -125,6 +128,70 @@ class ByAgeReportService
     public function exportFilename(string $extension): string
     {
         return 'wdf-by-age-report-'.now()->format('Y-m-d-His').'.'.$extension;
+    }
+
+    public function chartPayload(array $filters): array
+    {
+        $rows = $this->allRows($filters);
+        $summary = $this->summary($filters);
+
+        return array_merge(
+            \App\Support\ByReportChartPayload::build($rows, $summary),
+            ['by_age' => $this->ageChartData($filters)],
+        );
+    }
+
+    /** @return array{labels: list<string>, disbursed: list<float>, outstanding: list<float>, count: list<int>} */
+    public function ageChartData(array $filters): array
+    {
+        $chartFilters = $filters;
+        $chartFilters['age_min'] = null;
+        $chartFilters['age_max'] = null;
+
+        $people = $this->peopleRows($chartFilters);
+        $bucketLabels = ['18-25', '26-35', '36-45', '46-55', '56+'];
+        $totals = [];
+
+        foreach ($bucketLabels as $label) {
+            $totals[$label] = \App\Support\ReportBreakdownChart::emptyRow();
+        }
+
+        foreach ($people as $person) {
+            $bucket = $this->ageBucketLabel($person['age'] ?? null);
+            if ($bucket === null) {
+                continue;
+            }
+
+            \App\Support\ReportBreakdownChart::accumulate(
+                $totals,
+                $bucket,
+                (float) $person['disbursed'],
+                (float) $person['outstanding'],
+            );
+        }
+
+        return \App\Support\ReportBreakdownChart::fromTotals(
+            $totals,
+            __('by_age_reports.chart_disbursed'),
+            __('by_age_reports.chart_outstanding'),
+            __('by_age_reports.chart_count'),
+            sortByDisbursed: false,
+        );
+    }
+
+    private function ageBucketLabel(?int $age): ?string
+    {
+        if ($age === null) {
+            return null;
+        }
+
+        return match (true) {
+            $age <= 25 => '18-25',
+            $age <= 35 => '26-35',
+            $age <= 45 => '36-45',
+            $age <= 55 => '46-55',
+            default => '56+',
+        };
     }
 
     /**

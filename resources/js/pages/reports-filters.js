@@ -27,6 +27,7 @@ document.addEventListener('alpine:init', () => {
         ageMaxTouched: Boolean(config.revealTimeFilters),
         hasFiscalYear: config.hasFiscalYear !== false,
         hasPeriod: config.hasPeriod !== false,
+        submitOnPeriodChange: Boolean(config.submitOnPeriodChange),
         hasDates: config.hasDates !== false,
         hasSort: config.hasSort !== false,
         hasAge: Boolean(config.hasAge),
@@ -69,7 +70,6 @@ document.addEventListener('alpine:init', () => {
                 await this.loadStreets(this.selectedWard);
             }
 
-            this.$watch('showPeriod', (visible) => visible && this.refreshSelect('period'));
             this.$watch('showDates', (visible) => {
                 if (visible) {
                     this.refreshSelect('date_from');
@@ -215,6 +215,9 @@ document.addEventListener('alpine:init', () => {
         onPeriodChange() {
             this.periodTouched = true;
             this.useCustomDates = '';
+            if (this.submitOnPeriodChange) {
+                this.$nextTick(() => this.$el?.submit?.());
+            }
         },
 
         onDateChange() {
@@ -317,7 +320,6 @@ document.addEventListener('alpine:init', () => {
 
         clearPeriodValue() {
             this.selectedPeriod = 'annually';
-            this.refreshSelect('period');
         },
 
         clearDateFrom() {
@@ -356,14 +358,7 @@ document.addEventListener('alpine:init', () => {
         },
 
         get showPeriod() {
-            if (! this.hasPeriod) {
-                return false;
-            }
-            if (this.hasFiscalYear) {
-                return this.showFiscalYear && (this.fiscalYearTouched || this.revealTimeFilters);
-            }
-
-            return this.primaryTouched || this.revealTimeFilters;
+            return this.hasPeriod;
         },
 
         get showDates() {

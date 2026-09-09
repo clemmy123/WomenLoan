@@ -9,6 +9,7 @@ use App\Rules\TanzanianNin;
 use App\Rules\UniqueNin;
 use App\Rules\UniquePhone;
 use App\Rules\UniqueTin;
+use App\Services\DraftLoanService;
 use App\Support\IdentityNormalizer;
 use App\Support\LoanWizardFieldMap;
 use Illuminate\Contracts\Validation\Validator;
@@ -22,7 +23,9 @@ trait ValidatesLoanApplication
     protected function prepareForValidation(): void
     {
         if ($this->filled('guarantor_first_name') && ! $this->filled('guarantor_relationship')) {
-            $this->merge(['guarantor_relationship' => 'Other']);
+            $this->merge([
+                'guarantor_relationship' => $this->isGroupLoanType() ? 'Guarantor' : 'Other',
+            ]);
         }
 
         $merge = [];
@@ -44,7 +47,26 @@ trait ValidatesLoanApplication
         }
 
         if ($this->has('tin_number')) {
-            $merge['tin_number'] = trim((string) $this->input('tin_number'));
+            $merge['tin_number'] = IdentityNormalizer::formatTin($this->input('tin_number'));
+        }
+
+        if ($this->has('business_email')) {
+            $email = trim((string) $this->input('business_email'));
+            $merge['business_email'] = $email !== '' ? $email : null;
+        }
+
+        foreach (['bank_name', 'bank_number', 'guarantor_middle_name', 'guarantor_occupation'] as $optionalField) {
+            if ($this->has($optionalField) && trim((string) $this->input($optionalField)) === '') {
+                $merge[$optionalField] = null;
+            }
+        }
+
+        if ($this->has('guarantor_relationship') && trim((string) $this->input('guarantor_relationship')) === '' && ! $this->isGroupLoanType()) {
+            $merge['guarantor_relationship'] = null;
+        }
+
+        if ($this->isGroupLoanType()) {
+            $merge['guarantor_relationship'] = 'Guarantor';
         }
 
         if ($merge !== []) {
@@ -110,7 +132,7 @@ trait ValidatesLoanApplication
             'requested_amount' => 'required|numeric',
             'business_name' => 'required',
             'business_phone' => ['required', 'string', new TanzaniaPhone],
-            'business_email' => 'required|email',
+            'business_email' => 'nullable|email',
             'business_proposal_document' => $this->documentRules(
                 $updating,
                 'business_proposal_document',
@@ -118,6 +140,7 @@ trait ValidatesLoanApplication
             'business_registration_attachment' => $this->documentRules(
                 $updating,
                 'business_registration_attachment',
+                requiredOnCreate: fn () => false,
             ),
             'proof_address_attachment' => $this->documentRules(
                 $updating,
@@ -153,12 +176,12 @@ trait ValidatesLoanApplication
             'council_id' => 'nullable|exists:councils,id',
             'ward_id' => 'nullable|exists:wards,id',
             'street_id' => 'nullable|exists:streets,id',
-            'business_sector' => 'nullable|string|max:255',
-            'business_type' => 'nullable|string|max:255',
+            'business_sector' => 'required|string|max:255',
+            'business_type' => 'required|string|max:255',
             'tin_number' => [
                 'required',
                 'string',
-                'max:50',
+                'regex:/^\d{3}-\d{3}-\d{3}$/',
                 new UniqueTin($updating ? $this->route('loan')?->businessDetails?->id : null),
             ],
             'has_disability' => 'required|in:0,1',
@@ -241,6 +264,10 @@ trait ValidatesLoanApplication
                     return ! $loan?->{$relation}?->{$column};
                 }
 
+                if ($this->draftHasDocument($column)) {
+                    return false;
+                }
+
                 return $requiredOnCreate();
             }),
             'nullable',
@@ -254,11 +281,42 @@ trait ValidatesLoanApplication
     {
         $firstField = collect($validator->errors()->keys())->first();
         $step = LoanWizardFieldMap::stepForField($firstField);
-        $url = $this->getRedirectUrl();
-        $separator = str_contains($url, '?') ? '&' : '?';
+        $isFinalCreateSubmit = ! $this->route('loan') && $this->input('form_action') !== 'save_draft';
+
+        if ($isFinalCreateSubmit) {
+            $step = 6;
+        }
+
+        $trackId = $this->input('track_id');
+
+        if ($isFinalCreateSubmit && filled($trackId)) {
+            $url = route('loan-applications.create', [
+                'resume_track_id' => $trackId,
+                'wizard_step' => $step,
+            ]);
+        } else {
+            $url = $this->getRedirectUrl();
+            $separator = str_contains($url, '?') ? '&' : '?';
+            $url = $url.$separator.'wizard_step='.$step;
+        }
 
         throw (new ValidationException($validator))
             ->errorBag($this->errorBag)
-            ->redirectTo($url.$separator.'wizard_step='.$step);
+            ->redirectTo($url);
+    }
+
+    private function draftHasDocument(string $column): bool
+    {
+        $trackId = $this->input('track_id');
+        $userId = $this->user()?->id;
+
+        if (! filled($trackId) || $userId === null) {
+            return false;
+        }
+
+        $formData = app(DraftLoanService::class)->findFormData((string) $trackId, $userId);
+        $path = $formData[$column] ?? null;
+
+        return is_string($path) && $path !== '';
     }
 }

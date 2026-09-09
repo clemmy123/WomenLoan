@@ -47,6 +47,22 @@ class ByAgeReportTest extends TestCase
         $response->assertDontSee('name="fiscal_year"', false);
         $response->assertSee('name="sort"', false);
         $response->assertSee('name="district_id"', false);
+        $response->assertSee('byAgeBucketsChart', false);
+    }
+
+    public function test_by_age_chart_lists_all_age_buckets(): void
+    {
+        $this->actingAsRole('ministry@wdf.go.tz');
+
+        $filters = app(ByAgeReportService::class)->normalizeFilters([
+            'age_min' => 25,
+            'age_max' => 35,
+        ]);
+
+        $ageChart = app(ByAgeReportService::class)->ageChartData($filters);
+        $buckets = ['18-25', '26-35', '36-45', '46-55', '56+'];
+
+        $this->assertSame($buckets, $ageChart['labels']);
     }
 
     public function test_age_filters_are_normalized_and_swapped(): void

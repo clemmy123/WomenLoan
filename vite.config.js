@@ -11,6 +11,9 @@ export default defineConfig({
                 'resources/js/pages/dashboard.js',
                 'resources/js/pages/admin-dashboard.js',
                 'resources/js/pages/reports.js',
+                'resources/js/pages/application-reports.js',
+                'resources/js/pages/general-reports.js',
+                'resources/js/pages/by-list-reports.js',
                 'resources/js/pages/analytical-reports.js',
                 'resources/js/pages/geo-cascade.js',
                 'resources/js/pages/landing.js',
@@ -36,6 +39,7 @@ export default defineConfig({
         },
     },
     server: {
+        host: '127.0.0.1',
         open: false,
         watch: {
             ignored: ['**/storage/framework/views/**'],

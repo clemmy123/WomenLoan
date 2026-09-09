@@ -113,6 +113,56 @@
             <p class="text-sm font-medium text-slate-600 dark:text-zinc-300">{{ __('application_reports.apply_filters_prompt') }}</p>
         </div>
     @else
+        @php
+            $summary = $charts['summary'] ?? [];
+            $appliedCount = (int) ($summary['applied'] ?? 0);
+            $receivedRate = $appliedCount > 0
+                ? (int) min(100, round(((int) ($summary['received'] ?? 0) / $appliedCount) * 100))
+                : 0;
+        @endphp
+
+        @include('partials.repayment-summary-strip', [
+            'title' => __('application_reports.summary_title'),
+            'copy' => __('application_reports.summary_copy', [
+                'count' => number_format($appliedCount),
+            ]),
+            'rate' => $receivedRate,
+            'rateLabel' => __('application_reports.received_rate', ['rate' => $receivedRate]),
+            'metrics' => [
+                [
+                    'label' => __('application_reports.bucket_applied'),
+                    'value' => number_format((int) ($summary['applied'] ?? 0)),
+                ],
+                [
+                    'label' => __('application_reports.bucket_received'),
+                    'value' => number_format((int) ($summary['received'] ?? 0)),
+                    'tone' => 'paid',
+                ],
+                [
+                    'label' => __('application_reports.bucket_processing'),
+                    'value' => number_format((int) ($summary['processing'] ?? 0)),
+                ],
+                [
+                    'label' => __('application_reports.bucket_rejected'),
+                    'value' => number_format((int) ($summary['rejected'] ?? 0)),
+                    'tone' => 'outstanding',
+                ],
+            ],
+        ])
+
+        <div class="grid gap-6 lg:grid-cols-2">
+            <div class="rounded-2xl bg-white dark:dark-surface border border-slate-200 dark:border-white/[0.08] p-6">
+                <h2 class="font-bold text-slate-900 dark:text-white mb-1">{{ __('application_reports.chart_distribution') }}</h2>
+                <p class="text-xs text-slate-500 dark:text-zinc-400 mb-4">{{ __('application_reports.chart_distribution_help') }}</p>
+                <div class="h-64 flex items-center justify-center"><canvas id="applicationStatusChart"></canvas></div>
+            </div>
+            <div class="rounded-2xl bg-white dark:dark-surface border border-slate-200 dark:border-white/[0.08] p-6">
+                <h2 class="font-bold text-slate-900 dark:text-white mb-1">{{ __('application_reports.chart_applied_vs_received') }}</h2>
+                <p class="text-xs text-slate-500 dark:text-zinc-400 mb-4">{{ __('application_reports.chart_applied_vs_received_help') }}</p>
+                <div class="h-64"><canvas id="applicationComparisonChart"></canvas></div>
+            </div>
+        </div>
+
         <div class="app-card overflow-hidden">
             <div class="app-card-header">
                 <h2 class="font-bold text-slate-900 dark:text-white">{{ __('application_reports.detail_table') }}</h2>
@@ -161,6 +211,9 @@
             </div>
             <div class="app-card-footer">{{ $rows->links() }}</div>
         </div>
+
+        <script type="application/json" id="application-reports-chart-data">@json($charts)</script>
+        @vite(['resources/js/pages/application-reports.js'])
     @endif
 </div>
 @endsection

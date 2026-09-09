@@ -161,6 +161,13 @@
             ],
         ])
 
+        @include('partials.by-list-breakdown-charts', [
+            'title' => __('by_monthly_reports.chart_jan_dec'),
+            'help' => __('by_monthly_reports.chart_jan_dec_help'),
+            'canvasId' => 'byMonthlyJanDecChart',
+            'height' => 'h-96 lg:h-[28rem]',
+        ])
+
         <div class="app-card overflow-hidden">
             <div class="app-card-header">
                 <h2 class="font-bold text-slate-900 dark:text-white">{{ __('by_monthly_reports.detail_table') }}</h2>
