@@ -31,6 +31,7 @@ return [
     'draft_saved' => 'Draft saved. You can continue editing later.',
     'password_changed' => 'Your password has been updated successfully.',
     'unexpected_error' => 'Something went wrong while processing your request. Please try again. If the problem continues, contact support.',
+    'consult_admin' => 'There is a problem. Please consult the system administrator.',
     'validation_check_step' => 'Please check Step :step (:title) — :field is missing or invalid.',
     'complete_applicant_profile' => 'Please complete your applicant information first.',
     'applicant_created' => 'Applicant registered successfully.',

@@ -31,6 +31,7 @@ return [
     'draft_saved' => 'Rasimu imehifadhiwa. Unaweza kuendelea kuhariri baadaye.',
     'password_changed' => 'Nenosiri lako limesasishwa.',
     'unexpected_error' => 'Hitilafu imetokea wakati wa kuchakata ombi lako. Tafadhali jaribu tena. Ikiwa tatizo linaendelea, wasiliana na msaada.',
+    'consult_admin' => 'Kuna tatizo. Tafadhali wasiliana na msimamizi wa mfumo.',
     'validation_check_step' => 'Tafadhali angalia Hatua :step (:title) — :field haijajazwa au si sahihi.',
     'complete_applicant_profile' => 'Tafadhali kamilisha taarifa zako za mwombaji kwanza.',
     'applicant_created' => 'Mwombaji amesajiliwa.',
