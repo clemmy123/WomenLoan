@@ -7,6 +7,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Validation\ValidationException;
 use Illuminate\Database\QueryException;
+use Illuminate\Http\Exceptions\HttpResponseException;
 use App\Support\LoanWizardFieldMap;
 use Spatie\Permission\Middleware\PermissionMiddleware;
 use Spatie\Permission\Middleware\RoleMiddleware;
@@ -30,7 +31,7 @@ return Application::configure(basePath: dirname(__DIR__))
                 return null;
             }
 
-            if (\App\Services\JumuishiUrl::enabled()) {
+            if (\App\Services\JumuishiUrl::ssoEnabled()) {
                 return \App\Services\JumuishiUrl::ssoStart(
                     \App\Services\JumuishiUrl::returnToFromRequest($request)
                 );
@@ -55,16 +56,33 @@ return Application::configure(basePath: dirname(__DIR__))
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         $exceptions->render(function (Throwable $e, Request $request) {
-            if (! $request->user()?->hasRole('applicant')) {
-                return null;
-            }
-
-            if ($e instanceof ValidationException) {
+            if ($e instanceof ValidationException || $e instanceof HttpResponseException) {
                 return null;
             }
 
             if ($e instanceof HttpExceptionInterface && $e->getStatusCode() < 500) {
                 return null;
+            }
+
+            $isApplicant = $request->user()?->hasRole('applicant');
+
+            if (! $isApplicant) {
+                if (app()->environment('local') && config('app.debug')) {
+                    return null;
+                }
+
+                Log::error('Request failed', [
+                    'exception' => $e::class,
+                    'message' => $e->getMessage(),
+                    'url' => $request->fullUrl(),
+                    'method' => $request->method(),
+                ]);
+
+                if ($request->expectsJson()) {
+                    return response()->json(['message' => __('messages.consult_admin')], 500);
+                }
+
+                return response()->view('errors.500', [], 500);
             }
 
             Log::error('Applicant request failed', [
@@ -108,10 +126,14 @@ return Application::configure(basePath: dirname(__DIR__))
                 }
             }
 
-            $message = __('messages.unexpected_error');
+            $message = __('messages.consult_admin');
 
             if ($request->expectsJson()) {
                 return response()->json(['message' => $message], 500);
+            }
+
+            if ($request->isMethod('GET')) {
+                return response()->view('errors.500', [], 500);
             }
 
             return redirect()->back()

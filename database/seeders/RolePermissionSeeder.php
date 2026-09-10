@@ -30,6 +30,7 @@ class RolePermissionSeeder extends Seeder
             'view by bank reports',
             'view by monthly reports',
             'view by age reports',
+            'view general reports',
         ];
 
         $rolePermissions = [

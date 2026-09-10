@@ -5,6 +5,19 @@
 @section('content')
 @php
     $fd = fn (string $key, mixed $default = '') => old($key, $formData[$key] ?? $default);
+    $uploadExisting = function (string $field, mixed $editingValue = null) use ($editing, $isDraft, $formData): ?string {
+        if ($editing ?? false) {
+            return is_string($editingValue) && $editingValue !== '' ? $editingValue : null;
+        }
+
+        if (! ($isDraft ?? false)) {
+            return null;
+        }
+
+        $value = $formData[$field] ?? null;
+
+        return is_string($value) && $value !== '' ? $value : null;
+    };
     $wizardSteps = [
         ['icon' => 'business', 'title' => __('loans.wizard_steps.1')],
         ['icon' => 'guarantor', 'title' => __('loans.wizard_steps.2')],
@@ -142,7 +155,7 @@
         @endif
 
         <div data-wizard-step="1" class="app-card app-card-padded wizard-panel" :class="step === 1 ? 'wizard-step-active' : 'wizard-step-inactive'">
-            <h3 class="text-lg font-bold text-slate-900 dark:text-white">{{ __('loans.wizard_steps.1') }}</h3>
+            <h3 class="wizard-step-heading text-lg font-bold text-slate-900 dark:text-white">{{ __('loans.wizard_steps.1') }}</h3>
 
             <div class="wizard-section">
                 <p class="wizard-section-title">{{ __('loans.business_location') }}</p>
@@ -150,7 +163,7 @@
                     <x-wizard-field :label="__('geo.region')" for="region_id" :required="true">
                         <select name="region_id" id="region_id" x-model="selectedRegion"
                             @change="selectedDistrict=''; selectedCouncil=''; selectedWard=''; selectedStreet=''; districts=[]; councils=[]; wards=[]; streets=[]; loadDistricts(selectedRegion);"
-                            :required="step === 1" class="app-select">
+                            required class="app-select">
                             <option value="">-- {{ __('geo.select_region') }} --</option>
                             @foreach($regions as $region)
                                 <option value="{{ $region->id }}" @selected((string) $fd('region_id') === (string) $region->id)>{{ $region->name }}</option>
@@ -161,7 +174,7 @@
                     <x-wizard-field :label="__('geo.district')" for="district_id" :required="true">
                         <select name="district_id" id="district_id" x-model="selectedDistrict"
                             @change="selectedCouncil=''; selectedWard=''; selectedStreet=''; councils=[]; wards=[]; streets=[]; loadCouncils(selectedDistrict);"
-                            :disabled="!districts.length || loading" :required="step === 1" class="app-select">
+                            :disabled="!districts.length || loading" required class="app-select">
                             <option value="">-- {{ __('geo.select_district') }} --</option>
                             <template x-for="district in districts" :key="district.id">
                                 <option :value="String(district.id)" x-text="district.name"></option>
@@ -172,7 +185,7 @@
                     <x-wizard-field :label="__('geo.council')" for="council_id" :required="true">
                         <select name="council_id" id="council_id" x-model="selectedCouncil"
                             @change="selectedWard=''; selectedStreet=''; wards=[]; streets=[]; loadWards(selectedCouncil);"
-                            :disabled="!councils.length || loading" :required="step === 1" class="app-select">
+                            :disabled="!councils.length || loading" required class="app-select">
                             <option value="">-- {{ __('geo.select_council') }} --</option>
                             <template x-for="council in councils" :key="council.id">
                                 <option :value="String(council.id)" x-text="council.name"></option>
@@ -183,7 +196,7 @@
                     <x-wizard-field :label="__('geo.ward')" for="ward_id" :required="true">
                         <select name="ward_id" id="ward_id" x-model="selectedWard"
                             @change="selectedStreet=''; streets=[]; loadStreets(selectedWard);"
-                            :disabled="!wards.length || loading" :required="step === 1" class="app-select">
+                            :disabled="!wards.length || loading" required class="app-select">
                             <option value="">-- {{ __('geo.select_ward') }} --</option>
                             <template x-for="ward in wards" :key="ward.id">
                                 <option :value="String(ward.id)" x-text="ward.name"></option>
@@ -193,7 +206,7 @@
 
                     <x-wizard-field :label="__('geo.street')" for="street_id" :required="true" class="wizard-form-grid-span-2">
                         <select name="street_id" id="street_id" x-model="selectedStreet"
-                            :disabled="!streets.length || loading" :required="step === 1" class="app-select">
+                            :disabled="!streets.length || loading" required class="app-select">
                             <option value="">-- {{ __('geo.select_street') }} --</option>
                             <template x-for="street in streets" :key="street.id">
                                 <option :value="String(street.id)" x-text="street.name"></option>
@@ -207,7 +220,7 @@
                 <p class="wizard-section-title">{{ __('loans.business_details') }}</p>
                 <div class="wizard-form-grid wizard-form-grid-2">
                     <x-wizard-field :label="__('loans.business_name')" for="business_name" :required="true">
-                        <input type="text" name="business_name" id="business_name" value="{{ $fd('business_name') }}" :required="step === 1" class="app-input">
+                        <input type="text" name="business_name" id="business_name" value="{{ $fd('business_name') }}" required class="app-input">
                     </x-wizard-field>
                     <x-wizard-field :label="__('loans.business_phone')" for="business_phone" :required="true">
                         @include('partials.inputs.phone-input', [
@@ -216,8 +229,8 @@
                             'required' => true,
                         ])
                     </x-wizard-field>
-                    <x-wizard-field :label="__('loans.business_email')" for="business_email" :required="true">
-                        <input type="email" name="business_email" id="business_email" value="{{ $fd('business_email', $applicant?->email) }}" :required="step === 1" class="app-input">
+                    <x-wizard-field :label="__('loans.business_email').' ('.__('common.optional').')'" for="business_email">
+                        <input type="email" name="business_email" id="business_email" value="{{ $fd('business_email', $applicant?->email) }}" class="app-input">
                     </x-wizard-field>
                     <x-wizard-field :label="__('loans.business_sector')" for="business_sector" :required="true">
                         <select
@@ -225,7 +238,7 @@
                             id="business_sector"
                             x-model="selectedBusinessSector"
                             @change="onBusinessSectorChange()"
-                            :required="step === 1"
+                            required
                             class="app-select"
                         >
                             <option value="">{{ __('loans.select_business_sector') }}</option>
@@ -239,7 +252,7 @@
                             name="business_type"
                             id="business_type"
                             x-model="selectedBusinessType"
-                            :required="step === 1"
+                            required
                             :disabled="!selectedBusinessSector"
                             class="app-select"
                         >
@@ -250,68 +263,54 @@
                         </select>
                     </x-wizard-field>
                     <x-wizard-field :label="__('loans.tin_number')" for="tin_number" :required="true" class="wizard-form-grid-span-2">
-                        <input type="text" name="tin_number" id="tin_number" value="{{ $fd('tin_number') }}" :required="step === 1" class="app-input">
+                        @include('partials.inputs.tin-input', [
+                            'value' => $fd('tin_number'),
+                            'required' => true,
+                            'class' => 'w-full app-input',
+                        ])
                     </x-wizard-field>
                 </div>
             </div>
 
             <div class="wizard-section">
                 <p class="wizard-section-title">{{ __('loans.supporting_documents') }}</p>
+                <p class="text-sm text-slate-600 dark:text-zinc-400 mb-4">{{ __('loans.supporting_documents_hint') }}</p>
                 <div class="wizard-form-grid doc-attachments-grid">
                     <x-document-upload
                         name="business_proposal_document"
                         :title="__('loans.business_proposal')"
                         :required="!($editing ?? false)"
-                        :existing="($editing ?? false) ? ($editingLoan->businessDetails?->business_proposal_document) : null"
-                    >
-                        <x-slot:inputAttributes>@if(!($editing ?? false)) :required="step === 1" @endif</x-slot:inputAttributes>
-                    </x-document-upload>
-
-                    <x-document-upload
-                        name="business_registration_attachment"
-                        :title="__('loans.business_registration')"
-                        :required="!($editing ?? false)"
-                        :existing="($editing ?? false) ? ($editingLoan->businessDetails?->business_registration_attachment) : null"
-                    >
-                        <x-slot:inputAttributes>@if(!($editing ?? false)) :required="step === 1" @endif</x-slot:inputAttributes>
-                    </x-document-upload>
+                        :existing="$uploadExisting('business_proposal_document', $editingLoan?->businessDetails?->business_proposal_document)"
+                    />
 
                     <x-document-upload
                         name="proof_address_attachment"
                         :title="__('loans.proof_address')"
                         :required="!($editing ?? false)"
-                        :existing="($editing ?? false) ? ($editingLoan->businessDetails?->proof_address_attachment) : null"
-                    >
-                        <x-slot:inputAttributes>@if(!($editing ?? false)) :required="step === 1" @endif</x-slot:inputAttributes>
-                    </x-document-upload>
+                        :existing="$uploadExisting('proof_address_attachment', $editingLoan?->businessDetails?->proof_address_attachment)"
+                    />
 
                     <div data-loan-scope="group" x-show="loanType === 'group'" x-cloak class="wizard-form-grid wizard-form-grid-2 wizard-form-grid-span-2 doc-attachments-grid">
                         <x-document-upload
                             name="group_constitution"
                             :title="__('loans.group_constitution')"
                             :required="!($editing ?? false)"
-                            :existing="($editing ?? false) ? ($editingLoan->businessDetails?->group_constitution) : null"
-                        >
-                            <x-slot:inputAttributes>@if(!($editing ?? false)) :required="step === 1 && loanType === 'group'" @endif</x-slot:inputAttributes>
-                        </x-document-upload>
+                            :existing="$uploadExisting('group_constitution', $editingLoan?->businessDetails?->group_constitution)"
+                        />
 
                         <x-document-upload
                             name="group_muhtasari"
                             :title="__('loans.group_muhtasari')"
                             :required="!($editing ?? false)"
-                            :existing="($editing ?? false) ? ($editingLoan->businessDetails?->group_muhtasari) : null"
-                        >
-                            <x-slot:inputAttributes>@if(!($editing ?? false)) :required="step === 1 && loanType === 'group'" @endif</x-slot:inputAttributes>
-                        </x-document-upload>
+                            :existing="$uploadExisting('group_muhtasari', $editingLoan?->businessDetails?->group_muhtasari)"
+                        />
 
                         <x-document-upload
                             name="group_certificate"
                             :title="__('loans.group_certificate')"
                             :required="!($editing ?? false)"
-                            :existing="($editing ?? false) ? ($editingLoan->businessDetails?->group_certificate) : null"
-                        >
-                            <x-slot:inputAttributes>@if(!($editing ?? false)) :required="step === 1 && loanType === 'group'" @endif</x-slot:inputAttributes>
-                        </x-document-upload>
+                            :existing="$uploadExisting('group_certificate', $editingLoan?->businessDetails?->group_certificate)"
+                        />
                     </div>
 
                     <div data-loan-scope="shared" class="wizard-form-grid wizard-form-grid-2 wizard-form-grid-span-2 doc-attachments-grid">
@@ -319,37 +318,41 @@
                             name="application_letter"
                             :title="__('loans.application_letter')"
                             :required="!($editing ?? false)"
-                            :existing="($editing ?? false) ? ($editingLoan->businessDetails?->application_letter) : null"
-                        >
-                            <x-slot:inputAttributes>@if(!($editing ?? false)) :required="step === 1" @endif</x-slot:inputAttributes>
-                        </x-document-upload>
+                            :existing="$uploadExisting('application_letter', $editingLoan?->businessDetails?->application_letter)"
+                        />
 
                         <x-document-upload
                             name="bank_statement"
                             :title="__('loans.bank_statement')"
                             :required="!($editing ?? false)"
-                            :existing="($editing ?? false) ? ($editingLoan->businessDetails?->bank_statement) : null"
-                        >
-                            <x-slot:inputAttributes>@if(!($editing ?? false)) :required="step === 1" @endif</x-slot:inputAttributes>
-                        </x-document-upload>
+                            :existing="$uploadExisting('bank_statement', $editingLoan?->businessDetails?->bank_statement)"
+                        />
                     </div>
+
+                    <x-document-upload
+                        name="business_registration_attachment"
+                        :title="__('loans.business_license').' ('.__('common.optional').')'"
+                        :required="false"
+                        class="wizard-form-grid-span-2"
+                        :existing="$uploadExisting('business_registration_attachment', $editingLoan?->businessDetails?->business_registration_attachment)"
+                    />
                 </div>
             </div>
         </div>
 
         <div data-wizard-step="2" class="app-card app-card-padded wizard-panel" :class="step === 2 ? 'wizard-step-active' : 'wizard-step-inactive'">
-            <h3 class="text-lg font-bold text-slate-900 dark:text-white">{{ __('loans.wizard_steps.2') }}</h3>
+            <h3 class="wizard-step-heading text-lg font-bold text-slate-900 dark:text-white">{{ __('loans.wizard_steps.2') }}</h3>
             <div class="wizard-form-grid wizard-form-grid-2">
                 <div class="wizard-field wizard-form-grid-span-2">
                     <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
                         <x-wizard-field :label="__('applicants.first_name')" for="guarantor_first_name" :required="true">
-                            <input type="text" name="guarantor_first_name" id="guarantor_first_name" value="{{ $fd('guarantor_first_name') }}" :required="step === 2" class="app-input">
+                            <input type="text" name="guarantor_first_name" id="guarantor_first_name" value="{{ $fd('guarantor_first_name') }}" required class="app-input">
                         </x-wizard-field>
                         <x-wizard-field :label="__('applicants.middle_name')" for="guarantor_middle_name">
                             <input type="text" name="guarantor_middle_name" id="guarantor_middle_name" value="{{ $fd('guarantor_middle_name') }}" class="app-input">
                         </x-wizard-field>
                         <x-wizard-field :label="__('applicants.last_name')" for="guarantor_last_name" :required="true">
-                            <input type="text" name="guarantor_last_name" id="guarantor_last_name" value="{{ $fd('guarantor_last_name') }}" :required="step === 2" class="app-input">
+                            <input type="text" name="guarantor_last_name" id="guarantor_last_name" value="{{ $fd('guarantor_last_name') }}" required class="app-input">
                         </x-wizard-field>
                     </div>
                 </div>
@@ -360,14 +363,25 @@
                         'required' => true,
                     ])
                 </x-wizard-field>
-                <x-wizard-field :label="__('loans.guarantor_relationship')" for="guarantor_relationship">
-                    <select name="guarantor_relationship" id="guarantor_relationship" class="app-select">
-                        <option value="">{{ __('loans.select_relationship') }}</option>
-                        @foreach(__('loans.guarantor_relationships') as $value => $label)
-                            <option value="{{ $value }}" @selected($fd('guarantor_relationship') === $value)>{{ $label }}</option>
-                        @endforeach
-                    </select>
-                </x-wizard-field>
+                <template x-if="loanType === 'group'">
+                    <x-wizard-field :label="__('loans.guarantor_relationship')" for="guarantor_relationship_group">
+                        <input type="hidden" name="guarantor_relationship" value="Guarantor">
+                        <p class="app-input-static text-slate-900 dark:text-white font-medium">{{ __('loans.guarantor') }}</p>
+                    </x-wizard-field>
+                </template>
+                <template x-if="loanType !== 'group'">
+                    <x-wizard-field :label="__('loans.guarantor_relationship')" for="guarantor_relationship">
+                        <select name="guarantor_relationship" id="guarantor_relationship" class="app-select">
+                            <option value="">{{ __('loans.select_relationship') }}</option>
+                            @foreach(__('loans.guarantor_relationships') as $value => $label)
+                                @if($value === 'Guarantor')
+                                    @continue
+                                @endif
+                                <option value="{{ $value }}" @selected($fd('guarantor_relationship') === $value)>{{ $label }}</option>
+                            @endforeach
+                        </select>
+                    </x-wizard-field>
+                </template>
                 <x-wizard-field :label="__('loans.guarantor_occupation')" for="guarantor_occupation">
                     <input type="text" name="guarantor_occupation" id="guarantor_occupation" value="{{ $fd('guarantor_occupation') }}" class="app-input">
                 </x-wizard-field>
@@ -394,7 +408,7 @@
                     <x-wizard-field :label="__('geo.region')" for="guarantor_region_id" :required="true">
                         <select name="guarantor_region_id" id="guarantor_region_id" x-model="guarantorRegion"
                             @change="guarantorDistrict=''; guarantorCouncil=''; guarantorWard=''; guarantorStreet=''; guarantorDistricts=[]; guarantorCouncils=[]; guarantorWards=[]; guarantorStreets=[]; loadGuarantorDistricts(guarantorRegion);"
-                            :required="step === 2" class="app-select">
+                            required class="app-select">
                             <option value="">-- {{ __('geo.select_region') }} --</option>
                             @foreach($regions as $region)
                                 <option value="{{ $region->id }}" @selected((string) $fd('guarantor_region_id') === (string) $region->id)>{{ $region->name }}</option>
@@ -405,7 +419,7 @@
                     <x-wizard-field :label="__('geo.district')" for="guarantor_district_id" :required="true">
                         <select name="guarantor_district_id" id="guarantor_district_id" x-model="guarantorDistrict"
                             @change="guarantorCouncil=''; guarantorWard=''; guarantorStreet=''; guarantorCouncils=[]; guarantorWards=[]; guarantorStreets=[]; loadGuarantorCouncils(guarantorDistrict);"
-                            :disabled="!guarantorDistricts.length || guarantorLoading" :required="step === 2" class="app-select">
+                            :disabled="!guarantorDistricts.length || guarantorLoading" required class="app-select">
                             <option value="">-- {{ __('geo.select_district') }} --</option>
                             <template x-for="district in guarantorDistricts" :key="district.id">
                                 <option :value="String(district.id)" x-text="district.name"></option>
@@ -416,7 +430,7 @@
                     <x-wizard-field :label="__('geo.council')" for="guarantor_council_id" :required="true">
                         <select name="guarantor_council_id" id="guarantor_council_id" x-model="guarantorCouncil"
                             @change="guarantorWard=''; guarantorStreet=''; guarantorWards=[]; guarantorStreets=[]; loadGuarantorWards(guarantorCouncil);"
-                            :disabled="!guarantorCouncils.length || guarantorLoading" :required="step === 2" class="app-select">
+                            :disabled="!guarantorCouncils.length || guarantorLoading" required class="app-select">
                             <option value="">-- {{ __('geo.select_council') }} --</option>
                             <template x-for="council in guarantorCouncils" :key="council.id">
                                 <option :value="String(council.id)" x-text="council.name"></option>
@@ -427,7 +441,7 @@
                     <x-wizard-field :label="__('geo.ward')" for="guarantor_ward_id" :required="true">
                         <select name="guarantor_ward_id" id="guarantor_ward_id" x-model="guarantorWard"
                             @change="guarantorStreet=''; guarantorStreets=[]; loadGuarantorStreets(guarantorWard);"
-                            :disabled="!guarantorWards.length || guarantorLoading" :required="step === 2" class="app-select">
+                            :disabled="!guarantorWards.length || guarantorLoading" required class="app-select">
                             <option value="">-- {{ __('geo.select_ward') }} --</option>
                             <template x-for="ward in guarantorWards" :key="ward.id">
                                 <option :value="String(ward.id)" x-text="ward.name"></option>
@@ -437,7 +451,7 @@
 
                     <x-wizard-field :label="__('geo.street')" for="guarantor_street_id" :required="true" class="wizard-form-grid-span-2">
                         <select name="guarantor_street_id" id="guarantor_street_id" x-model="guarantorStreet"
-                            :disabled="!guarantorStreets.length || guarantorLoading" :required="step === 2" class="app-select">
+                            :disabled="!guarantorStreets.length || guarantorLoading" required class="app-select">
                             <option value="">-- {{ __('geo.select_street') }} --</option>
                             <template x-for="street in guarantorStreets" :key="street.id">
                                 <option :value="String(street.id)" x-text="street.name"></option>
@@ -453,26 +467,26 @@
                     :title="__('loans.guarantor_letter')"
                     class="wizard-form-grid-span-2"
                     :required="!($editing ?? false)"
-                    :existing="($editing ?? false) ? ($formData['guarantor_letter_existing'] ?? null) : null"
+                    :existing="$uploadExisting('guarantor_letter', $formData['guarantor_letter_existing'] ?? null)"
                 >
-                    <x-slot:inputAttributes>@if(!($editing ?? false)) :required="step === 2" @endif</x-slot:inputAttributes>
+                    <x-slot:inputAttributes>@if(!($editing ?? false)) required @endif</x-slot:inputAttributes>
                 </x-document-upload>
             </div>
         </div>
 
         <div data-wizard-step="3" class="app-card app-card-padded wizard-panel" :class="step === 3 ? 'wizard-step-active' : 'wizard-step-inactive'">
-            <h3 class="text-lg font-bold text-slate-900 dark:text-white">{{ __('loans.wizard_steps.3') }}</h3>
+            <h3 class="wizard-step-heading text-lg font-bold text-slate-900 dark:text-white">{{ __('loans.wizard_steps.3') }}</h3>
             <x-wizard-field :label="__('loans.requested_amount')" for="requested_amount" :required="true">
                 @include('partials.inputs.amount-input', [
                     'name' => 'requested_amount',
                     'value' => $fd('requested_amount'),
-                    'inputAttributes' => ':required="step === 3"',
+                    'inputAttributes' => 'required',
                 ])
             </x-wizard-field>
         </div>
 
         <div data-wizard-step="4" class="app-card app-card-padded wizard-panel" :class="step === 4 ? 'wizard-step-active' : 'wizard-step-inactive'">
-            <h3 class="text-lg font-bold text-slate-900 dark:text-white">{{ __('loans.wizard_steps.4') }}</h3>
+            <h3 class="wizard-step-heading text-lg font-bold text-slate-900 dark:text-white">{{ __('loans.wizard_steps.4') }}</h3>
             <div class="wizard-form-grid wizard-form-grid-2">
                 <x-wizard-field :label="__('loans.bank_name')" for="bank_name">
                     @php $selectedBank = $fd('bank_name'); @endphp
@@ -493,7 +507,7 @@
         </div>
 
         <div data-wizard-step="5" class="app-card app-card-padded wizard-panel" :class="step === 5 ? 'wizard-step-active' : 'wizard-step-inactive'">
-            <h3 class="text-lg font-bold text-slate-900 dark:text-white">{{ __('loans.wizard_steps.5') }}</h3>
+            <h3 class="wizard-step-heading text-lg font-bold text-slate-900 dark:text-white">{{ __('loans.wizard_steps.5') }}</h3>
             <label class="flex items-start gap-3 cursor-pointer text-slate-900 dark:text-white">
                 <input
                     type="checkbox"
@@ -509,7 +523,7 @@
         </div>
 
         <div data-wizard-step="6" class="app-card app-card-padded wizard-panel" :class="step === 6 ? 'wizard-step-active' : 'wizard-step-inactive'">
-            <h3 class="text-lg font-bold text-slate-900 dark:text-white mb-4">{{ __('loans.wizard_steps.6') }}</h3>
+            <h3 class="wizard-step-heading text-lg font-bold text-slate-900 dark:text-white mb-4">{{ __('loans.wizard_steps.6') }}</h3>
             @include('loan_applications._wizard_preview')
 
             <div class="mt-8 pt-6 border-t border-slate-200 dark:border-white/10">
@@ -562,9 +576,9 @@
                     x-show="step < totalSteps"
                     x-cloak
                     @click="nextStep()"
-                    :disabled="step === 5 && !declarationAccepted"
-                    class="app-btn app-btn-primary"
-                    :class="{ 'app-btn--faint': step === 5 && !declarationAccepted }"
+                    :disabled="!canAdvanceStep"
+                    class="app-btn app-btn-primary transition-all"
+                    :class="!canAdvanceStep ? 'opacity-40 cursor-not-allowed' : 'cursor-pointer'"
                 >{{ __('common.next') }}</button>
                 <button type="submit" x-ref="finalSubmit" class="hidden" tabindex="-1" aria-hidden="true"></button>
             </div>

@@ -4,10 +4,13 @@ namespace App\Services;
 
 use App\Models\Concerns\HasDisplayName;
 use App\Models\User;
+use App\Services\Jumuishi\JumuishiCentralUserSync;
+use App\Services\JumuishiUrl;
 use App\Support\StaffAdminScope;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Collection;
+use Throwable;
 
 class UserProvisioningService
 {
@@ -156,7 +159,9 @@ class UserProvisioningService
         $user->syncZone($validated);
         $user->syncRoles($this->sanitizeRoles($validated['roles'] ?? []));
 
-        return $user;
+        $this->syncToJumuishi($user->fresh(), syncPassword: true);
+
+        return $user->fresh();
     }
 
     public function update(User $user, array $validated, bool $isActive = true, bool $unlockLogin = false): User
@@ -206,7 +211,12 @@ class UserProvisioningService
             app(LoginLockoutService::class)->unlock($user->fresh(), notify: true);
         }
 
-        return $user;
+        $this->syncToJumuishi(
+            $user->fresh(),
+            syncPassword: ! empty($validated['password'])
+        );
+
+        return $user->fresh();
     }
 
     public function syncRolesOnly(User $user, array $roles): User
@@ -233,6 +243,8 @@ class UserProvisioningService
             'deactivated_by' => $actor->id,
         ])->save();
 
+        $this->syncToJumuishi($user->fresh(), syncPassword: false);
+
         return $user->fresh();
     }
 
@@ -244,6 +256,8 @@ class UserProvisioningService
             'deactivated_at' => null,
             'deactivated_by' => null,
         ])->save();
+
+        $this->syncToJumuishi($user->fresh(), syncPassword: false);
 
         return $user->fresh();
     }
@@ -279,5 +293,25 @@ class UserProvisioningService
             $roles,
             fn (string $role) => in_array($role, $assignable, true)
         ));
+    }
+
+    /**
+     * Push staff identity to Jumuishi so central login + SSO work (WDF local /login redirects to SSO).
+     */
+    protected function syncToJumuishi(User $user, bool $syncPassword = true): void
+    {
+        if (! JumuishiUrl::enabled()) {
+            return;
+        }
+
+        try {
+            app(JumuishiCentralUserSync::class)->push($user, $syncPassword);
+        } catch (Throwable $e) {
+            report($e);
+            $user->forceFill([
+                'jumuishi_sync_status' => 'failed',
+                'jumuishi_sync_error' => mb_substr($e->getMessage(), 0, 2000),
+            ])->save();
+        }
     }
 }

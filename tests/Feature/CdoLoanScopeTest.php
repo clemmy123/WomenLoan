@@ -207,7 +207,7 @@ class CdoLoanScopeTest extends TestCase
             'business_email' => $applicant->email,
             'business_sector' => 'Trade',
             'business_type' => 'Retail',
-            'tin_number' => '900'.substr($trackId, -7),
+            'tin_number' => \App\Support\IdentityNormalizer::formatTin(substr(preg_replace('/\D+/', '', $trackId), -9)),
             'business_proposal_document' => 'proposals/demo-proposal.pdf',
             'business_registration_attachment' => 'registrations/demo-registration.pdf',
             'proof_address_attachment' => 'proof-of-address/demo-proof.pdf',

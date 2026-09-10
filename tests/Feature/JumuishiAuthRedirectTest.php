@@ -16,6 +16,7 @@ class JumuishiAuthRedirectTest extends TestCase
 
         config([
             'jumuishi.enabled' => true,
+            'jumuishi.sso_enabled' => true,
             'jumuishi.url' => 'http://127.0.0.1:8000',
             'jumuishi.module_path' => 'women-loans',
             'jumuishi.sso_start_path' => '/sso/start',
@@ -79,6 +80,31 @@ class JumuishiAuthRedirectTest extends TestCase
 
         $this->post(route('logout'))
             ->assertRedirect('http://127.0.0.1:8000/central-logout');
+
+        $this->assertGuest();
+    }
+
+    public function test_local_login_when_sso_disabled(): void
+    {
+        config(['jumuishi.sso_enabled' => false]);
+
+        $this->get(route('login'))
+            ->assertOk()
+            ->assertSee(__('home.sign_in'), false);
+
+        $this->get('/')
+            ->assertOk();
+    }
+
+    public function test_logout_stays_local_when_sso_disabled(): void
+    {
+        config(['jumuishi.sso_enabled' => false]);
+
+        $this->seedApplication();
+        $this->actingAsRole('ministry@wdf.go.tz');
+
+        $this->post(route('logout'))
+            ->assertRedirect(route('home'));
 
         $this->assertGuest();
     }

@@ -59,17 +59,21 @@ class ApplicantProfilePrefillTest extends TestCase
         ]);
         $user->assignRole('applicant');
 
-        $response = $this->actingAs($user)->get(route('applicants.create'));
+        $profileResponse = $this->actingAs($user)->get(route('profile.show'));
 
-        $response->assertOk();
-        $response->assertSee('value="Anna"', false);
-        $response->assertSee('value="Mary"', false);
-        $response->assertSee('value="Kimaro"', false);
-        $response->assertSee('value="anna.kimaro@example.com"', false);
-        $response->assertSee('value="255712345678"', false);
-        $response->assertSee('value="712345678"', false);
-        $response->assertSee('readonly', false);
-        $response->assertSee(__('applicants.registration_fields_locked'), false);
+        $profileResponse->assertOk();
+        $profileResponse->assertSee('Anna', false);
+        $profileResponse->assertSee('Mary', false);
+        $profileResponse->assertSee('Kimaro', false);
+        $profileResponse->assertSee('anna.kimaro@example.com', false);
+
+        $createResponse = $this->actingAs($user)->get(route('applicants.create'));
+
+        $createResponse->assertOk();
+        $createResponse->assertSee(__('applicants.onboarding_loan_type_hint'), false);
+        $createResponse->assertSee(__('applicants.loan_types.individual'), false);
+        $createResponse->assertSee(__('applicants.loan_types.group'), false);
+        $createResponse->assertDontSee(__('applicants.section_identification'), false);
     }
 
     public function test_profile_store_ignores_tampered_registration_fields(): void
@@ -115,10 +119,13 @@ class ApplicantProfilePrefillTest extends TestCase
         $user = User::factory()->create();
         $user->assignRole('applicant');
 
-        $this->actingAs($user)
-            ->get(route('dashboard'))
-            ->assertOk()
-            ->assertDontSee(__('nav.new_application'), false);
+        $response = $this->actingAs($user)->get(route('dashboard'));
+
+        $response->assertOk();
+        $response->assertSee(__('nav.register_applicant'), false);
+        $response->assertDontSee(route('profile.show').'" class="sidebar-link', false);
+        $response->assertDontSee(route('loan-applications.index').'" class="sidebar-link', false);
+        $response->assertDontSee(route('loan-applications.create').'" class="sidebar-link', false);
     }
 
     public function test_profile_create_redirects_when_profile_exists(): void

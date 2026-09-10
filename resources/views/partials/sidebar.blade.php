@@ -8,16 +8,24 @@
     @endif
 
     @if($nav['isApplicant'])
-        <p class="text-[10px] font-bold text-slate-400 dark:text-zinc-500 uppercase tracking-widest px-4 mb-2 mt-4">{{ __('nav.loan_applications') }}</p>
-        <a href="{{ route('loan-applications.index') }}" class="sidebar-link flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-medium transition-all {{ request()->routeIs('loan-applications.index') ? 'sidebar-active' : '' }}">
-            <svg class="h-4 w-4 opacity-70 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
-            {{ __('nav.my_loans') }}
-        </a>
-        @if($nav['createLoan'])
-            <a href="{{ route('loan-applications.create') }}" class="sidebar-link flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-medium transition-all {{ request()->routeIs('loan-applications.create') ? 'sidebar-active' : '' }}">
-                <svg class="h-4 w-4 opacity-70 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
-                {{ $nav['newApplicationLabel'] }}
+        @if($nav['needsProfileCompletion'])
+            <p class="text-[10px] font-bold text-slate-400 dark:text-zinc-500 uppercase tracking-widest px-4 mb-2 mt-4">{{ __('nav.profile') }}</p>
+            <a href="{{ route('applicants.create') }}" class="sidebar-link flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-medium transition-all {{ request()->routeIs('applicants.create') ? 'sidebar-active' : '' }}">
+                <svg class="h-4 w-4 opacity-70 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+                {{ __('nav.register_applicant') }}
             </a>
+        @else
+            <p class="text-[10px] font-bold text-slate-400 dark:text-zinc-500 uppercase tracking-widest px-4 mb-2 mt-4">{{ __('nav.loan_applications') }}</p>
+            <a href="{{ route('loan-applications.index') }}" class="sidebar-link flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-medium transition-all {{ request()->routeIs('loan-applications.index', 'loan-applications.create') ? 'sidebar-active' : '' }}">
+                <svg class="h-4 w-4 opacity-70 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+                {{ __('nav.my_loans') }}
+            </a>
+            @if($nav['trackLoan'])
+            <a href="{{ route('loans.track') }}" class="sidebar-link flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-medium transition-all {{ request()->routeIs('loans.track') ? 'sidebar-active' : '' }}">
+                <svg class="h-4 w-4 opacity-70 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+                {{ __('nav.track_loan') }}
+            </a>
+            @endif
         @endif
     @endif
 
@@ -65,9 +73,48 @@
         </a>
     @endif
 
+    @if($nav['viewGeneralReportsSection'] ?? false)
+        @php
+            $generalReportsMenuOpen = request()->routeIs('reports.general.*');
+        @endphp
+        <div
+            class="mt-4 space-y-1"
+            x-data="{ open: {{ $generalReportsMenuOpen ? 'true' : 'false' }} }"
+        >
+            <button
+                type="button"
+                @click="open = !open"
+                class="sidebar-link sidebar-menu-toggle flex w-full items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-medium transition-all {{ $generalReportsMenuOpen ? 'sidebar-menu-open' : '' }}"
+                :aria-expanded="open.toString()"
+            >
+                <svg class="h-4 w-4 opacity-70 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+                <span class="flex-1 text-left">{{ __('nav.general_reports') }}</span>
+                <svg class="h-4 w-4 opacity-60 shrink-0 transition-transform duration-200" :class="open ? 'rotate-180' : ''" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+            </button>
+
+            <div
+                x-show="open"
+                x-cloak
+                x-transition:enter="transition ease-out duration-150"
+                x-transition:enter-start="opacity-0 -translate-y-1"
+                x-transition:enter-end="opacity-100 translate-y-0"
+                x-transition:leave="transition ease-in duration-100"
+                x-transition:leave-start="opacity-100 translate-y-0"
+                x-transition:leave-end="opacity-0 -translate-y-1"
+                class="sidebar-submenu space-y-0.5 pl-3 ml-5 border-l border-slate-200 dark:border-white/10"
+            >
+                @if($nav['viewGeneralReports'] ?? false)
+                    <a href="{{ route('reports.general.women.index') }}" class="sidebar-link sidebar-sublink block px-3 py-2 rounded-lg text-sm font-medium transition-all {{ request()->routeIs('reports.general.women.*') ? 'sidebar-sublink-active' : '' }}">
+                        {{ __('nav.registered_women') }}
+                    </a>
+                @endif
+            </div>
+        </div>
+    @endif
+
     @if($nav['viewReportsSection'] ?? false)
         @php
-            $reportsMenuOpen = request()->routeIs('reports.*');
+            $reportsMenuOpen = request()->routeIs('reports.*') && ! request()->routeIs('reports.general.*');
             $reportsOverviewActive = request()->routeIs('reports.index', 'reports.export.*');
             $applicationReportsActive = request()->routeIs('reports.applications.*');
             $analyticalOverviewActive = request()->routeIs('reports.analytical.overview', 'reports.analytical.export.*');

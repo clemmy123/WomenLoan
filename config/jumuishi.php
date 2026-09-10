@@ -14,6 +14,12 @@ return [
 
     'enabled' => (bool) env('JUMUISHI_ENABLED', true),
 
+    /*
+    | When false, WDF keeps local login/logout while Jumuishi API sync can stay on.
+    | Local dev without Jumuishi running: set JUMUISHI_SSO_ENABLED=false.
+    */
+    'sso_enabled' => (bool) env('JUMUISHI_SSO_ENABLED', env('JUMUISHI_ENABLED', true)),
+
     'url' => rtrim((string) env('JUMUISHI_URL', 'http://127.0.0.1:8000'), '/'),
 
     'module_path' => (string) env('JUMUISHI_MODULE_PATH', 'women-loans'),

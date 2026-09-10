@@ -40,32 +40,9 @@
 @endif
 
 @if($showPeriodField)
-    <div class="wizard-field" x-show="showPeriod" x-cloak>
+    <div class="wizard-field wizard-form-grid-span-2" x-show="showPeriod" x-cloak>
         <label class="app-label" for="period">{{ __($lang.'.period') }}</label>
-        <div class="app-filter-control has-clear">
-            <select
-                name="period"
-                id="period"
-                class="app-select"
-                x-model="selectedPeriod"
-                @change="onPeriodChange()"
-            >
-                @foreach($periods as $period)
-                    <option value="{{ $period }}">{{ __('reports.period_'.$period) }}</option>
-                @endforeach
-            </select>
-            <button
-                type="button"
-                class="app-filter-clear-inside"
-                @click.prevent="clearPeriodValue()"
-                title="{{ __('common.clear') }}"
-                aria-label="{{ __('common.clear') }}"
-            >
-                <svg viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
-                    <path d="M6.28 5.22a.75.75 0 00-1.06 1.06L8.94 10l-3.72 3.72a.75.75 0 101.06 1.06L10 11.06l3.72 3.72a.75.75 0 101.06-1.06L11.06 10l3.72-3.72a.75.75 0 00-1.06-1.06L10 8.94 6.28 5.22z"/>
-                </svg>
-            </button>
-        </div>
+        @include('partials.period-segmented', ['periods' => $periods])
     </div>
 @endif
 

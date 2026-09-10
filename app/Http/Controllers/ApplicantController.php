@@ -46,6 +46,7 @@ class ApplicantController extends Controller
             && (bool) config('services.nida.enabled')
             && filled($applicant->nin);
         $manualEntry = ! $isSelfService;
+        $selfServiceOnboarding = $isSelfService && ! $user->applicant;
 
         return view('applicants.create', compact(
             'regions',
@@ -53,12 +54,18 @@ class ApplicantController extends Controller
             'lockRegistrationFields',
             'lockNidaFields',
             'manualEntry',
+            'selfServiceOnboarding',
         ));
     }
 
     public function store(StoreApplicantRequest $request)
     {
         $applicant = $this->applicants->create($request->validated());
+
+        if (auth()->user()?->isApplicant()) {
+            return redirect()->route('loan-applications.create')
+                ->with('success', __('messages.profile_complete_continue_apply'));
+        }
 
         return redirect()->route('applicants.show', $applicant)
             ->with('success', __('messages.applicant_created'));

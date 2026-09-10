@@ -79,13 +79,32 @@ class LoanApplicationController extends Controller
         }
 
         $trackId = $request->query('resume_track_id') ?? old('track_id');
-        $draft = $trackId
-            ? DraftLoan::where('user_id', $user->id)->where('track_id', $trackId)->first()
-            : null;
+        $draft = null;
+
+        if ($trackId) {
+            $draft = DraftLoan::where('user_id', $user->id)->where('track_id', $trackId)->first();
+        } else {
+            $draft = DraftLoan::where('user_id', $user->id)->latest('updated_at')->first();
+
+            if ($draft) {
+                $trackId = $draft->track_id;
+
+                if (! $request->has('resume_track_id')) {
+                    return redirect()->route('loan-applications.create', [
+                        'resume_track_id' => $trackId,
+                        'wizard_step' => $draft->wizardStep(),
+                    ]);
+                }
+            }
+        }
+
+        if (! $trackId) {
+            $trackId = $this->applications->nextTrackId();
+        }
 
         return view('loan_applications.apply', $this->wizardViewData(
             formData: $draft?->form_data ?? [],
-            trackId: $trackId ?? $this->applications->nextTrackId(),
+            trackId: $trackId,
             isDraft: $draft !== null,
         ));
     }
@@ -283,9 +302,6 @@ class LoanApplicationController extends Controller
         )));
 
         $validationStepHint = $this->validationStepHint();
-        if ($validationStepHint !== null) {
-            $wizardStep = $validationStepHint['step'];
-        }
 
         if ($editing && $editingLoan?->status === 'pending' && ! request()->has('wizard_step') && ! old('step') && $validationStepHint === null) {
             $wizardStep = 6;
@@ -326,14 +342,18 @@ class LoanApplicationController extends Controller
             'declarationAccepted' => $declarationAccepted,
             'businessCatalog' => $this->businessSectors->wizardCatalog(),
             'geoApi' => GeoHierarchyService::apiUrls(),
+            'draftSaveUrl' => route('loan-applications.save-draft'),
             'i18n' => [
                 'load_failed' => __('loans.load_failed'),
                 'loading' => __('loans.loading_data'),
                 'step' => __('common.step_n_of', ['step' => ':step', 'total' => 6]),
                 'step_required' => __('loans.step_required'),
                 'document_required' => __('common.document_required'),
+                'tin_incomplete' => __('common.tin_incomplete'),
+                'nin_incomplete' => __('common.nin_incomplete'),
                 'file_too_large' => __('common.file_too_large', ['max' => '1MB']),
                 'business_proposal' => __('loans.business_proposal'),
+                'business_license' => __('loans.business_license'),
                 'business_registration' => __('loans.business_registration'),
                 'proof_address' => __('loans.proof_address'),
                 'application_letter' => __('loans.application_letter'),
@@ -348,6 +368,7 @@ class LoanApplicationController extends Controller
                 'preview_status_pending' => __('loans.preview_status_pending'),
                 'loan_type_individual' => __('loans.continue_as_individual'),
                 'loan_type_group' => __('loans.continue_as_group'),
+                'guarantor' => __('loans.guarantor'),
                 'declaration_confirmed' => __('loans.declaration_confirmed'),
             ],
         ];

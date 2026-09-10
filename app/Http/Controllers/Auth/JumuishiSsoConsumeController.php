@@ -24,7 +24,7 @@ class JumuishiSsoConsumeController extends Controller
     {
         $shellLogin = JumuishiUrl::base().'/login';
 
-        if (! JumuishiUrl::enabled()) {
+        if (! JumuishiUrl::ssoEnabled()) {
             return redirect()->route('login');
         }
 

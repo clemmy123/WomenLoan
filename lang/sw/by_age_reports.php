@@ -44,4 +44,9 @@ return [
     'export_excel' => 'Pakua Excel',
     'export_pdf' => 'Pakua PDF',
     'generated_at' => 'Imetengenezwa',
+    'chart_all_ages' => 'Makundi yote ya umri',
+    'chart_all_ages_help' => 'Utoaji na deni lililobaki kwa kila kundi la umri kwa vichujio vilivyochaguliwa.',
+    'chart_disbursed' => 'Kiasi kilichotolewa',
+    'chart_outstanding' => 'Deni lililobaki',
+    'chart_count' => 'Watu',
 ];

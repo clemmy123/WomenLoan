@@ -43,4 +43,9 @@ return [
     'export_excel' => 'Pakua Excel',
     'export_pdf' => 'Pakua PDF',
     'generated_at' => 'Imetengenezwa',
+    'chart_all_types' => 'Aina zote za mikopo',
+    'chart_all_types_help' => 'Utoaji na deni lililobaki kwa mikopo ya mtu binafsi na vikundi katika kipindi kilichochaguliwa.',
+    'chart_disbursed' => 'Kiasi kilichotolewa',
+    'chart_outstanding' => 'Deni lililobaki',
+    'chart_count' => 'Mikopo',
 ];

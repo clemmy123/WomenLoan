@@ -64,7 +64,7 @@
                 <th class="amount">{{ __('by_bank_reports.col_disbursed') }}</th>
                 <th class="amount">{{ __('by_bank_reports.col_outstanding') }}</th>
                 <th class="amount">{{ __('by_bank_reports.col_paid') }}</th>
-                <th>{{ __('by_bank_reports.col_phone') }}</th>
+                <th>{{ __('by_bank_reports.col_account') }}</th>
             </tr>
         </thead>
         <tbody>
@@ -77,7 +77,7 @@
                 <td class="amount">{{ format_tzs($row['disbursed']) }}</td>
                 <td class="amount">{{ format_tzs($row['outstanding']) }}</td>
                 <td class="amount">{{ format_tzs($row['paid']) }}</td>
-                <td>{{ $row['phone'] }}</td>
+                <td>{{ $row['bank_number'] }}</td>
             </tr>
             @empty
             <tr>

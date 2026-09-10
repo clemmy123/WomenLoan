@@ -2630,6 +2630,10 @@
         z-index: auto;
     }
 
+    .wizard-step-heading {
+        scroll-margin-top: 1.25rem;
+    }
+
     .wizard-panel {
         display: flex;
         flex-direction: column;
@@ -2977,6 +2981,7 @@
         font-weight: 600;
         line-height: 1.25rem;
         border: 1px solid transparent;
+        cursor: pointer;
         transition: transform 0.15s ease, box-shadow 0.15s ease, filter 0.15s ease, background 0.15s ease, opacity 0.15s ease;
         box-shadow: 0 2px 8px rgba(15, 23, 42, 0.08);
     }
@@ -4230,6 +4235,75 @@
         color: #fca5a5;
     }
 
+    .app-segmented {
+        display: flex;
+        width: 100%;
+        max-width: 42rem;
+        padding: 0.25rem;
+        border-radius: 9999px;
+        background: #e8edf3;
+        gap: 0.125rem;
+        overflow-x: auto;
+    }
+
+    .app-segmented-compact {
+        width: auto;
+        max-width: 22rem;
+        display: inline-flex;
+        padding: 0.2rem;
+    }
+
+    .app-segmented-compact .app-segmented-btn {
+        border-radius: 0.7rem;
+        padding: 0.5rem 1rem;
+        color: #334155;
+        font-size: 0.875rem;
+    }
+
+    .app-segmented-btn {
+        flex: 1 1 0;
+        min-width: 4.25rem;
+        border: 0;
+        background: transparent;
+        border-radius: 9999px;
+        padding: 0.45rem 0.7rem;
+        font-size: 0.8125rem;
+        font-weight: 600;
+        line-height: 1.2;
+        color: #64748b;
+        cursor: pointer;
+        white-space: nowrap;
+        transition: background 0.15s ease, color 0.15s ease, box-shadow 0.15s ease;
+    }
+
+    .app-segmented-btn:hover:not(.is-active) {
+        color: #334155;
+    }
+
+    .app-segmented-btn.is-active {
+        background: #fff;
+        color: #0f172a;
+        box-shadow: 0 1px 3px rgba(15, 23, 42, 0.12);
+    }
+
+    .dark .app-segmented {
+        background: rgba(255, 255, 255, 0.08);
+    }
+
+    .dark .app-segmented-btn {
+        color: #94a3b8;
+    }
+
+    .dark .app-segmented-btn:hover:not(.is-active) {
+        color: #e2e8f0;
+    }
+
+    .dark .app-segmented-btn.is-active {
+        background: #27272a;
+        color: #fff;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.35);
+    }
+
     .app-input,
     .app-textarea {
         width: 100%;
@@ -4934,6 +5008,53 @@
     .app-nin-input {
         font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
         letter-spacing: 0.08em;
+    }
+
+    .app-tin-input {
+        font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+        letter-spacing: 0.08em;
+    }
+
+    .app-identity-field {
+        display: flex;
+        flex-direction: column;
+        gap: 0.35rem;
+        width: 100%;
+    }
+
+    .app-identity-invalid,
+    .app-input.app-identity-invalid,
+    .app-nin-input.app-identity-invalid,
+    .app-tin-input.app-identity-invalid {
+        border-color: #ef4444 !important;
+        background-color: #fef2f2;
+        box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.14);
+    }
+
+    .app-identity-error {
+        margin: 0;
+        padding: 0.5rem 0.75rem;
+        border-radius: 0.625rem;
+        font-size: 0.8125rem;
+        line-height: 1.35;
+        color: #b91c1c;
+        background: #fef2f2;
+        border: 1px solid #fecaca;
+    }
+
+    .dark .app-identity-invalid,
+    .dark .app-input.app-identity-invalid,
+    .dark .app-nin-input.app-identity-invalid,
+    .dark .app-tin-input.app-identity-invalid {
+        border-color: #f87171 !important;
+        background-color: rgba(127, 29, 29, 0.22);
+        box-shadow: 0 0 0 3px rgba(248, 113, 113, 0.18);
+    }
+
+    .dark .app-identity-error {
+        color: #fecaca;
+        background: rgba(127, 29, 29, 0.35);
+        border-color: rgba(248, 113, 113, 0.35);
     }
 
     .app-phone-field {

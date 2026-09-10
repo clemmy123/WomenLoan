@@ -79,6 +79,7 @@ class PermissionCatalog
                     'view by bank reports',
                     'view by monthly reports',
                     'view by age reports',
+                    'view general reports',
                 ],
             ],
             'administration' => [
@@ -126,6 +127,7 @@ class PermissionCatalog
             'view by bank reports' => __('nav.by_banks'),
             'view by monthly reports' => __('nav.by_monthly'),
             'view by age reports' => __('nav.by_age'),
+            'view general reports' => __('nav.general_reports'),
             'view administration dashboard' => __('nav.admin_dashboard'),
             'manage users' => __('nav.users'),
             'manage roles' => __('nav.roles'),
@@ -180,6 +182,7 @@ class PermissionCatalog
                 'view by bank reports',
                 'view by monthly reports',
                 'view by age reports',
+                'view general reports',
             ],
             'view analytical reports' => [
                 'view payment reports',

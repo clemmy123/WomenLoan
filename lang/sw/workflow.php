@@ -77,4 +77,16 @@ return [
         'rolled_back' => 'Imerollback Hatua Iliyotangulia',
         'rolled_back_to_applicant' => 'Imerollback kwa Mwombaji',
     ],
+    'steps' => [
+        1 => 'Kata',
+        2 => 'Halmashauri',
+        3 => 'Wizara',
+        4 => 'Mwombaji',
+        5 => 'Wizara',
+        6 => 'Mkurugenzi Msaidizi',
+        7 => 'Mkurugenzi',
+        8 => 'Katibu Mkuu',
+        9 => 'Mhasibu Mkuu',
+        10 => 'Mhasibu',
+    ],
 ];

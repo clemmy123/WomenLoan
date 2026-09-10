@@ -33,6 +33,27 @@ class ApplicationReportService
         'annually',
     ];
 
+  /** @var list<string> */
+    public const PROCESSING_STATUSES = [
+        'pending',
+        'received',
+        'in_review',
+        'awaiting_applicant',
+        'approved',
+        'ready_for_disbursement',
+    ];
+
+  /** @var list<string> */
+    public const RECEIVED_STATUSES = [
+        'disbursed',
+    ];
+
+  /** @var list<string> */
+    public const REJECTED_STATUSES = [
+        'rejected',
+        'declined_by_applicant',
+    ];
+
     public function normalizeFilters(array $input): array
     {
         $fiscalYear = FiscalYear::normalize($input['fiscal_year'] ?? null);
@@ -103,6 +124,69 @@ class ApplicationReportService
     public function exportFilename(string $extension): string
     {
         return 'wdf-application-reports-'.now()->format('Y-m-d-His').'.'.$extension;
+    }
+
+    /**
+     * @return array{
+     *     applied: int,
+     *     processing: int,
+     *     received: int,
+     *     rejected: int
+     * }
+     */
+    public function summary(array $filters): array
+    {
+        $query = $this->baseQuery($filters);
+
+        $applied = (clone $query)->count();
+        $processing = (clone $query)->whereIn('status', self::PROCESSING_STATUSES)->count();
+        $received = (clone $query)->whereIn('status', self::RECEIVED_STATUSES)->count();
+        $rejected = (clone $query)->whereIn('status', self::REJECTED_STATUSES)->count();
+
+        return [
+            'applied' => $applied,
+            'processing' => $processing,
+            'received' => $received,
+            'rejected' => $rejected,
+        ];
+    }
+
+    /**
+     * @return array{
+     *     summary: array{applied: int, processing: int, received: int, rejected: int},
+     *     status_distribution: array{labels: list<string>, data: list<int>},
+     *     applied_vs_received: array{labels: list<string>, data: list<int>}
+     * }
+     */
+    public function chartPayload(array $filters): array
+    {
+        $summary = $this->summary($filters);
+
+        return [
+            'summary' => $summary,
+            'status_distribution' => [
+                'labels' => [
+                    __('application_reports.bucket_processing'),
+                    __('application_reports.bucket_received'),
+                    __('application_reports.bucket_rejected'),
+                ],
+                'data' => [
+                    $summary['processing'],
+                    $summary['received'],
+                    $summary['rejected'],
+                ],
+            ],
+            'applied_vs_received' => [
+                'labels' => [
+                    __('application_reports.bucket_applied'),
+                    __('application_reports.bucket_received'),
+                ],
+                'data' => [
+                    $summary['applied'],
+                    $summary['received'],
+                ],
+            ],
+        ];
     }
 
     protected function baseQuery(array $filters): Builder

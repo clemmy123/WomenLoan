@@ -38,8 +38,27 @@ class ApplicationReportTest extends TestCase
         $response->assertSee(__('application_reports.filters'), false);
         $response->assertSee(__('reports.fiscal_year'), false);
         $response->assertSee(__('application_reports.all_statuses'), false);
+        $response->assertSee(__('application_reports.summary_title'), false);
+        $response->assertSee(__('application_reports.chart_distribution'), false);
         $response->assertSee(__('application_reports.detail_table'), false);
         $response->assertDontSee(__('application_reports.apply_filters_prompt'), false);
+    }
+
+    public function test_application_reports_summary_counts(): void
+    {
+        $service = app(\App\Services\ApplicationReportService::class);
+        $filters = $service->normalizeFilters([
+            'fiscal_year' => 'all',
+            'period' => 'annually',
+        ]);
+
+        $summary = $service->summary($filters);
+
+        $this->assertGreaterThan(0, $summary['applied']);
+        $this->assertSame(
+            $summary['processing'] + $summary['received'] + $summary['rejected'],
+            $summary['applied']
+        );
     }
 
     public function test_application_reports_table_shows_required_columns(): void

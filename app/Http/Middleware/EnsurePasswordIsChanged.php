@@ -2,6 +2,7 @@
 
 namespace App\Http\Middleware;
 
+use App\Services\JumuishiUrl;
 use Closure;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -21,6 +22,10 @@ class EnsurePasswordIsChanged
             Auth::logout();
             $request->session()->invalidate();
             $request->session()->regenerateToken();
+
+            if (JumuishiUrl::ssoEnabled()) {
+                return redirect()->away(JumuishiUrl::ssoStart('/'));
+            }
 
             return redirect()
                 ->route('login')

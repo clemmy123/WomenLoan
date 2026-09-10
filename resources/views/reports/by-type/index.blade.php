@@ -164,6 +164,12 @@
             ],
         ])
 
+        @include('partials.by-list-breakdown-charts', [
+            'title' => __('by_type_reports.chart_all_types'),
+            'help' => __('by_type_reports.chart_all_types_help'),
+            'canvasId' => 'byTypeAllTypesChart',
+        ])
+
         <div class="app-card overflow-hidden">
             <div class="app-card-header">
                 <h2 class="font-bold text-slate-900 dark:text-white">{{ __('by_type_reports.detail_table') }}</h2>

@@ -154,6 +154,12 @@
             ],
         ])
 
+        @include('partials.by-list-breakdown-charts', [
+            'title' => __('by_bank_reports.chart_all_banks'),
+            'help' => __('by_bank_reports.chart_all_banks_help'),
+            'canvasId' => 'byBankAllBanksChart',
+        ])
+
         <div class="app-card overflow-hidden">
             <div class="app-card-header">
                 <h2 class="font-bold text-slate-900 dark:text-white">{{ __('by_bank_reports.detail_table') }}</h2>
@@ -166,7 +172,7 @@
                             <th>{{ __('by_bank_reports.col_disbursed') }}</th>
                             <th>{{ __('by_bank_reports.col_outstanding') }}</th>
                             <th>{{ __('by_bank_reports.col_paid') }}</th>
-                            <th>{{ __('by_bank_reports.col_phone') }}</th>
+                            <th>{{ __('by_bank_reports.col_account') }}</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -185,7 +191,7 @@
                             <td>{{ format_tzs($row['disbursed']) }}</td>
                             <td class="font-semibold text-amber-700 dark:text-amber-400">{{ format_tzs($row['outstanding']) }}</td>
                             <td>{{ format_tzs($row['paid']) }}</td>
-                            <td>{{ $row['phone'] }}</td>
+                            <td class="font-mono">{{ $row['bank_number'] }}</td>
                         </tr>
                         @empty
                         <tr><td colspan="5" class="app-table-empty">{{ __('by_bank_reports.no_results') }}</td></tr>

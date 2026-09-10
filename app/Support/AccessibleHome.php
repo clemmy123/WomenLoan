@@ -23,6 +23,7 @@ class AccessibleHome
             [fn (User $u) => $u->can('view repayments'), 'repayments.index'],
             [fn (User $u) => $u->can('view loan by track id'), 'loans.track'],
             [fn (User $u) => $u->can('view reports overview'), 'reports.index'],
+            [fn (User $u) => $u->can('view general reports'), 'reports.general.women.index'],
             [fn (User $u) => $u->can('view application reports'), 'reports.applications.index'],
             [fn (User $u) => $u->can('view payment reports'), 'reports.analytical.overview'],
             [fn (User $u) => $u->can('view outstanding reports'), 'reports.analytical.outstanding'],

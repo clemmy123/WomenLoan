@@ -201,6 +201,12 @@
             ],
         ])
 
+        @include('partials.by-list-breakdown-charts', [
+            'title' => __('by_age_reports.chart_all_ages'),
+            'help' => __('by_age_reports.chart_all_ages_help'),
+            'canvasId' => 'byAgeBucketsChart',
+        ])
+
         <div class="app-card overflow-hidden">
             <div class="app-card-header">
                 <h2 class="font-bold text-slate-900 dark:text-white">{{ __('by_age_reports.detail_table') }}</h2>

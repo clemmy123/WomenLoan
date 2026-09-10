@@ -40,6 +40,7 @@ class ReportPermissionTest extends TestCase
             'view by bank reports',
             'view by monthly reports',
             'view by age reports',
+            'view general reports',
         ] as $permission) {
             $response->assertSee('value="'.$permission.'"', false);
             $response->assertSee(e(permission_label($permission)), false);

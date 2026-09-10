@@ -77,4 +77,16 @@ return [
         'rolled_back' => 'Rolled Back to Previous Step',
         'rolled_back_to_applicant' => 'Rolled Back to Applicant',
     ],
+    'steps' => [
+        1 => 'Ward',
+        2 => 'Council',
+        3 => 'Ministry',
+        4 => 'Applicant',
+        5 => 'Ministry',
+        6 => 'Ass. Director',
+        7 => 'Director',
+        8 => 'Permanent Secretary',
+        9 => 'Chief',
+        10 => 'Accountant',
+    ],
 ];

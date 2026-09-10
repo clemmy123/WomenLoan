@@ -153,6 +153,8 @@
             ],
         ])
 
+        @include('partials.by-sector-charts')
+
         <div class="app-card overflow-hidden">
             <div class="app-card-header">
                 <h2 class="font-bold text-slate-900 dark:text-white">{{ __('by_sector_reports.detail_table') }}</h2>

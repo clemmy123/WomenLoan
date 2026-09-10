@@ -37,8 +37,29 @@ class ByBankReportTest extends TestCase
         $response->assertSee(__('by_bank_reports.all_banks'), false);
         $response->assertSee(__('by_bank_reports.fiscal_year'), false);
         $response->assertSee(__('by_bank_reports.detail_table'), false);
+        $response->assertSee(__('by_bank_reports.col_account'), false);
         $response->assertSee('name="period"', false);
         $response->assertSee('name="sort"', false);
+        $response->assertSee('byBankAllBanksChart', false);
+    }
+
+    public function test_by_bank_chart_lists_all_banks(): void
+    {
+        $this->actingAsRole('ministry@wdf.go.tz');
+
+        $filters = app(ByBankReportService::class)->normalizeFilters([
+            'fiscal_year' => 'all',
+            'bank_name' => app(ByBankReportService::class)->banks()[0],
+        ]);
+
+        $bankChart = app(ByBankReportService::class)->bankChartData($filters);
+        $bankNames = app(ByBankReportService::class)->banks();
+
+        $this->assertGreaterThanOrEqual(count($bankNames), count($bankChart['labels']));
+
+        foreach ($bankNames as $name) {
+            $this->assertContains($name, $bankChart['labels']);
+        }
     }
 
     public function test_by_bank_filter_limits_to_selected_bank(): void

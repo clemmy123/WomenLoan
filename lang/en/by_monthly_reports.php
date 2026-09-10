@@ -2,7 +2,7 @@
 
 return [
     'title' => 'By Monthly',
-    'subtitle' => 'Choose a month in the current year to view complete financed and debt figures for that month.',
+    'subtitle' => 'Choose any month from January to December in the current year, then apply filters to view results.',
     'filters' => 'Report Filters',
     'show_filters' => 'Show Filters',
     'hide_filters' => 'Hide Filters',
@@ -51,4 +51,9 @@ return [
     'export_excel' => 'Export Excel',
     'export_pdf' => 'Export PDF',
     'generated_at' => 'Generated',
+    'chart_jan_dec' => 'January – December',
+    'chart_jan_dec_help' => 'Disbursement and outstanding debt for each month of the selected year.',
+    'chart_disbursed' => 'Amount disbursed',
+    'chart_outstanding' => 'Outstanding debt',
+    'chart_count' => 'Loans',
 ];

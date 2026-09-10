@@ -29,7 +29,7 @@
         method="GET"
         action="{{ route('reports.analytical.overview') }}"
         class="app-card app-card-padded space-y-5"
-        x-data="{ filtersOpen: false }"
+        x-data="{ filtersOpen: false, selectedPeriod: @js((string) ($f['period'] ?? 'annually')) }"
     >
         @include('partials.filters-toggle-button', [
             'title' => __('analytical_reports.filters'),
@@ -57,13 +57,12 @@
                         @endforeach
                     </select>
                 </div>
-                <div class="wizard-field">
+                <div class="wizard-field wizard-form-grid-span-2 lg:col-span-4">
                     <label class="app-label" for="period">{{ __('analytical_reports.period') }}</label>
-                    <select name="period" id="period" class="app-select" onchange="document.getElementById('use_custom_dates').value=''">
-                        @foreach(\App\Services\AnalyticalReportService::PERIODS as $period)
-                            <option value="{{ $period }}" @selected(($f['period'] ?? '') === $period)>{{ __('reports.period_'.$period) }}</option>
-                        @endforeach
-                    </select>
+                    @include('partials.period-segmented', [
+                        'periods' => \App\Services\AnalyticalReportService::PERIODS,
+                        'periodChange' => "document.getElementById('use_custom_dates').value=''",
+                    ])
                 </div>
                 <div class="wizard-field">
                     <label class="app-label" for="date_from">{{ __('analytical_reports.date_from') }}</label>

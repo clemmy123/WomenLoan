@@ -6,6 +6,7 @@ use App\Models\Applicant;
 use App\Models\Loan;
 use App\Models\LoanPayment;
 use App\Models\Scopes\ApprovalLevelScope;
+use App\Services\Concerns\BuildsByReportChartPayload;
 use App\Support\FiscalYear;
 use Carbon\Carbon;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
@@ -15,6 +16,8 @@ use Illuminate\Support\Facades\Auth;
 
 class ByTypeReportService
 {
+    use BuildsByReportChartPayload;
+
     public const PERIODS = [
         'daily',
         'weekly',
@@ -159,6 +162,50 @@ class ByTypeReportService
     public function exportFilename(string $extension): string
     {
         return 'wdf-by-type-report-'.now()->format('Y-m-d-His').'.'.$extension;
+    }
+
+    public function chartPayload(array $filters): array
+    {
+        $rows = $this->allRows($filters);
+        $summary = $this->summary($filters);
+
+        return array_merge(
+            \App\Support\ByReportChartPayload::build($rows, $summary),
+            ['by_type' => $this->typeChartData($filters)],
+        );
+    }
+
+    /** @return array{labels: list<string>, disbursed: list<float>, outstanding: list<float>, count: list<int>} */
+    public function typeChartData(array $filters): array
+    {
+        $chartFilters = $filters;
+        $chartFilters['loan_type'] = null;
+
+        $loans = $this->baseQuery($chartFilters)->get();
+        $totals = [];
+
+        foreach (Applicant::LOAN_TYPES as $type) {
+            $totals[loan_type_label($type)] = \App\Support\ReportBreakdownChart::emptyRow();
+        }
+
+        foreach ($loans as $loan) {
+            $label = loan_type_label($loan->loan_type);
+            $payment = $this->paymentLedger($loan);
+            \App\Support\ReportBreakdownChart::accumulate(
+                $totals,
+                $label,
+                $this->actualDisbursedAmount($loan),
+                $this->outstandingAmount($loan, $payment),
+            );
+        }
+
+        return \App\Support\ReportBreakdownChart::fromTotals(
+            $totals,
+            __('by_type_reports.chart_disbursed'),
+            __('by_type_reports.chart_outstanding'),
+            __('by_type_reports.chart_count'),
+            sortByDisbursed: false,
+        );
     }
 
     protected function baseQuery(array $filters): Builder

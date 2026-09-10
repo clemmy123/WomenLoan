@@ -42,6 +42,30 @@ class BySectorReportTest extends TestCase
         $response->assertSee(__('by_sector_reports.col_name'), false);
         $response->assertSee('name="fiscal_year"', false);
         $response->assertSee('name="sort"', false);
+        $response->assertSee('bySectorAllSectorsChart', false);
+    }
+
+    public function test_by_sector_chart_lists_all_sectors(): void
+    {
+        $service = app(BySectorReportService::class);
+        $filters = $service->normalizeFilters([
+            'fiscal_year' => 'all',
+            'period' => 'annually',
+        ]);
+
+        $sectorChart = $service->sectorChartData($filters);
+        $sectorNames = $service->sectors()->pluck('name')->all();
+
+        $this->assertGreaterThanOrEqual(count($sectorNames), count($sectorChart['labels']));
+
+        foreach ($sectorNames as $name) {
+            $this->assertContains($name, $sectorChart['labels']);
+        }
+
+        $this->assertGreaterThan(1, count($sectorNames));
+        $this->assertContains('MIRADI MBALIMBALI', $sectorNames);
+        $this->assertContains('AFYA BINAFSI, UANGALIZI NA HUDUMA ZA USTAWI', $sectorNames);
+        $this->assertNotContains('KILIMO', $sectorNames);
     }
 
     public function test_by_sector_filter_limits_to_selected_sector(): void

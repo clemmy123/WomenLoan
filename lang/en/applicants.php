@@ -6,6 +6,17 @@ return [
     'registry_subtitle' => 'Overview of all registered applicant profiles.',
     'create_title' => 'Complete Preliminary Information',
     'create_subtitle' => 'Start with your NIN, then complete the remaining identification and location details.',
+    'onboarding_subtitle' => 'Choose your loan type and complete the remaining details. Your registration information is available under My Profile.',
+    'onboarding_loan_type_hint' => 'Select whether you are applying as an individual or as part of a group.',
+    'onboarding_wizard_steps' => [
+        'loan_type' => 'Loan type',
+        'personal' => 'Personal status',
+        'address' => 'Residential address',
+    ],
+    'loan_type_hints' => [
+        'individual' => 'Apply for a loan on your own.',
+        'group' => 'Apply together with a registered women\'s group.',
+    ],
     'edit_title' => 'Edit Applicant',
     'show_title' => 'Applicant Profile',
     'add_new' => 'Add New Applicant',
