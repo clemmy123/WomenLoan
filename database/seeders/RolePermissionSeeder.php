@@ -33,12 +33,17 @@ class RolePermissionSeeder extends Seeder
             'view general reports',
         ];
 
+        $hqReportPermissions = [
+            ...$allReportPermissions,
+            'view general reports',
+        ];
+
         $rolePermissions = [
             'super_admin' => PermissionCatalog::allPermissionNames(),
             'admin' => [
                 'view dashboard', 'manage applicants', 'register applicant', 'view all loans',
                 'view repayments', 'rollback workflow step',
-                ...$allReportPermissions,
+                ...$hqReportPermissions,
                 'view administration dashboard', 'manage users', 'reset user password',
                 'activate users', 'deactivate users', 'manage roles', 'view audit logs',
                 'manage loan groups', 'view loan by track id',
@@ -66,32 +71,32 @@ class RolePermissionSeeder extends Seeder
                 'view dashboard', 'view all loans', 'review ministry application', 'propose loan amount',
                 'send to applicant confirmation', 'forward to assistant director', 'rollback workflow step',
                 'view loan by track id', 'view repayments',
-                ...$allReportPermissions,
+                ...$hqReportPermissions,
             ],
             'assistant_director' => [
                 'view dashboard', 'view all loans', 'comment as assistant director', 'forward to director',
                 'rollback workflow step', 'view loan by track id', 'view repayments',
-                ...$allReportPermissions,
+                ...$hqReportPermissions,
             ],
             'director' => [
                 'view dashboard', 'view all loans', 'comment as director', 'forward to km',
                 'rollback workflow step', 'view loan by track id', 'view repayments',
-                ...$allReportPermissions,
+                ...$hqReportPermissions,
             ],
             'km' => [
                 'view dashboard', 'view all loans', 'approve as km', 'rollback workflow step',
                 'view loan by track id', 'view repayments',
-                ...$allReportPermissions,
+                ...$hqReportPermissions,
             ],
             'chief' => [
                 'view dashboard', 'assign accountant',
                 'view loan by track id', 'view repayments',
-                ...$allReportPermissions,
+                ...$hqReportPermissions,
             ],
             'accountant' => [
                 'view dashboard', 'disburse loan',
                 'view loan by track id', 'view repayments',
-                ...$allReportPermissions,
+                ...$hqReportPermissions,
             ],
             'ministry_admin' => [
                 'view dashboard',
