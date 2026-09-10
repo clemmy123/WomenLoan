@@ -30,7 +30,7 @@ return [
     'section_loan_preference' => 'Aina ya Mkopo',
     'section_personal_status' => 'Hali ya Kibinafsi',
     'section_residential_address' => 'Anuani ya Makazi',
-    'postal_code' => 'Msimbo wa Posta',
+    'postal_code' => 'Anuani ya makazi',
     'po_box' => 'S.L.P (P.O. Box)',
     'preferred_loan_type' => 'Aina ya Mkopo',
     'select_loan_type' => 'Chagua aina ya mkopo',

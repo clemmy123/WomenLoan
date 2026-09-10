@@ -128,7 +128,7 @@ return [
     'guarantor_occupation' => 'Occupation',
     'guarantor_sex' => 'Sex',
     'guarantor_letter' => 'Guarantor Letter',
-    'guarantor_location' => 'Guarantor Location',
+    'guarantor_location' => 'Guarantor Residence',
     'current_file' => 'Current file',
     'select_relationship' => 'Select relationship',
     'guarantor_relationships' => [

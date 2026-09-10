@@ -63,7 +63,7 @@ class StoreApplicantRequest extends FormRequest
             'has_disability' => ['required', 'in:0,1'],
             'nationality' => ['nullable', 'string', 'max:255'],
             'location_id' => ['required', 'integer', 'exists:streets,id'],
-            'postal_code' => ['nullable', 'string', 'max:20'],
+            'postal_code' => ['nullable', 'string', 'max:5'],
             'po_box' => ['nullable', 'string', 'max:50'],
         ];
     }

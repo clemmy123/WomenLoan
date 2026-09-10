@@ -128,7 +128,7 @@ return [
     'guarantor_occupation' => 'Kazi',
     'guarantor_sex' => 'Jinsia',
     'guarantor_letter' => 'Barua ya Mdhamini',
-    'guarantor_location' => 'Eneo la Mdhamini',
+    'guarantor_location' => 'Makazi ya Mdhamini',
     'current_file' => 'Faili iliyopo',
     'select_relationship' => 'Chagua uhusiano',
     'guarantor_relationships' => [

@@ -30,7 +30,7 @@ return [
     'section_loan_preference' => 'Loan Preference',
     'section_personal_status' => 'Personal Status',
     'section_residential_address' => 'Residential Address',
-    'postal_code' => 'Postal Code',
+    'postal_code' => 'Residential address',
     'po_box' => 'P.O. Box',
     'preferred_loan_type' => 'Loan Type',
     'select_loan_type' => 'Select loan type',

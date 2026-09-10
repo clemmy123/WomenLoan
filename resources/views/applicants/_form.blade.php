@@ -423,8 +423,8 @@
         </div>
 
         <div>
-            <label for="postal_code" class="block text-xs font-semibold text-gray-700 uppercase tracking-wider mb-2">{{ __('applicants.postal_code') }}</label>
-            <input type="text" name="postal_code" id="postal_code" value="{{ old('postal_code', $applicant?->postal_code ?? '') }}" maxlength="20" class="w-full bg-gray-50 border @error('postal_code') border-red-500 @else border-gray-300 @enderror rounded-lg px-4 py-2.5 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-indigo-500">
+            <label for="postal_code" class="block text-xs font-semibold text-gray-700 uppercase tracking-wider mb-2">{{ __('applicants.postal_code') }} ({{ __('common.optional') }})</label>
+            <input type="text" name="postal_code" id="postal_code" value="{{ old('postal_code', $applicant?->postal_code ?? '') }}" maxlength="5" inputmode="text" autocomplete="off" class="w-full bg-gray-50 border @error('postal_code') border-red-500 @else border-gray-300 @enderror rounded-lg px-4 py-2.5 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-indigo-500">
             @error('postal_code') <p class="mt-1.5 text-xs font-medium text-red-600">{{ $message }}</p> @enderror
         </div>
 
