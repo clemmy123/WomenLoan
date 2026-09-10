@@ -41,11 +41,19 @@
     <form
         method="GET"
         action="{{ route('reports.general.women.index') }}"
-        class="app-card app-card-padded space-y-5"
+        class="space-y-4"
         x-data="reportFilters(@js($reportFiltersBoot))"
     >
         <input type="hidden" name="applied" value="1">
 
+        <div>
+            @include('partials.period-segmented', [
+                'periods' => \App\Services\GeneralReportService::PERIODS,
+                'compact' => true,
+            ])
+        </div>
+
+        <div class="app-card app-card-padded space-y-5">
         @include('partials.filters-toggle-button', [
             'title' => __('general_reports.filters'),
             'showLabel' => __('general_reports.show_filters'),
@@ -100,11 +108,7 @@
                 <a href="{{ route('reports.general.women.index') }}" class="app-btn app-btn-secondary">{{ __('general_reports.reset_filters') }}</a>
             </div>
         </div>
-
-        @include('partials.period-segmented', [
-            'periods' => \App\Services\GeneralReportService::PERIODS,
-            'compact' => true,
-        ])
+        </div>
     </form>
 
     @if(! $filtersApplied)

@@ -304,12 +304,19 @@ class GeneralReportTest extends TestCase
         );
         $this->assertTrue($ministryRows->contains(fn (array $row) => $row['account_number'] === $otherWardLoan->bank_number));
         $this->assertTrue($ministryRows->contains(fn (array $row) => $row['account_number'] === $otherRegionLoan->bank_number));
+    }
 
-        $this->actingAsRole('ward.cdo@wdf.go.tz')
-            ->get(route('reports.general.women.index', ['applied' => 1]))
-            ->assertOk()
-            ->assertDontSee('name="region_id"', false)
-            ->assertDontSee('name="ward_id"', false);
+    public function test_ward_council_and_region_roles_cannot_open_general_report(): void
+    {
+        foreach (['ward.cdo@wdf.go.tz', 'council.cdo@wdf.go.tz', 'region.cdo@wdf.go.tz'] as $email) {
+            $this->actingAsRole($email)
+                ->get(route('reports.general.women.index'))
+                ->assertForbidden();
+        }
+
+        $this->actingAsRole('ministry@wdf.go.tz')
+            ->get(route('reports.general.women.index'))
+            ->assertOk();
     }
 
     public function test_applicant_cannot_open_registered_women_report(): void
