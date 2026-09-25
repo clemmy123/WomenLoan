@@ -123,14 +123,15 @@ class SecurityHardeningTest extends TestCase
         $this->assertStringContainsString("object-src 'none'", $csp);
     }
 
-    public function test_health_endpoint_does_not_expose_cache_or_version(): void
+    public function test_health_endpoint_keeps_jumuishi_contract_fields(): void
     {
         $payload = $this->getJson(route('api.jumuishi.health'))
             ->assertOk()
             ->assertJsonPath('status', 'success')
+            ->assertJsonPath('database', 'connected')
             ->json();
 
-        $this->assertArrayNotHasKey('cache', $payload);
-        $this->assertArrayNotHasKey('version', $payload);
+        $this->assertArrayHasKey('cache', $payload);
+        $this->assertArrayHasKey('version', $payload);
     }
 }

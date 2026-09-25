@@ -25,6 +25,8 @@ class HealthController extends Controller
         return response()->json([
             'status' => 'success',
             'database' => $database,
+            'cache' => config('cache.default'),
+            'version' => config('app.version', '1.0.0'),
         ]);
     }
 }

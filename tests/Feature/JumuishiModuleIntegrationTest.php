@@ -36,7 +36,8 @@ class JumuishiModuleIntegrationTest extends TestCase
         $this->getJson(route('api.jumuishi.health'))
             ->assertOk()
             ->assertJsonPath('status', 'success')
-            ->assertJsonPath('database', 'connected');
+            ->assertJsonPath('database', 'connected')
+            ->assertJsonStructure(['status', 'database', 'cache', 'version']);
     }
 
     public function test_queue_health_endpoint_reports_worker_status(): void
