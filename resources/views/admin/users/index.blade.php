@@ -35,18 +35,7 @@
         'locks' => ($geoBounds ?? [])['lock'] ?? [],
     ];
 @endphp
-<div
-    class="page"
-    x-data="{
-        modal: {{ ($errors->has('deactivation_reason') && session('deactivate_user')) ? "'deactivate'" : 'null' }},
-        deactivateUser: {{ \Illuminate\Support\Js::from(session('deactivate_user')) }},
-        openDeactivate(detail) {
-            this.deactivateUser = detail;
-            this.modal = 'deactivate';
-        },
-    }"
-    @user-deactivate.window="openDeactivate($event.detail)"
->
+<div class="app-page{{ ($errors->has('deactivation_reason') && session('deactivate_user')) ? ' is-deactivate-open' : '' }}">
     @include('partials.page-header', [
         'title' => $isInactiveList ? __('admin.deactivated_users') : __('nav.users'),
         'subtitle' => $isInactiveList ? __('admin.deactivated_users_subtitle') : __('admin.users_subtitle'),
@@ -66,12 +55,14 @@
         method="GET"
         action="{{ $listRoute }}"
         class="app-card app-card-padded mb-4 space-y-5"
-        x-data="reportFilters(@js($userFiltersBoot))"
+        data-report-filters='@json($userFiltersBoot)'
     >
         @include('partials.filters-toggle-button', [
             'title' => __('common.filter'),
             'showLabel' => __('common.show_filters'),
             'hideLabel' => __('common.hide_filters'),
+            'target' => 'filters-panel',
+            'expanded' => (bool) ($filtersApplied ?? false),
         ])
 
         <div class="dashboard-recent-toolbar-row list-filters-toolbar-controls">
@@ -85,17 +76,7 @@
             >
         </div>
 
-        <div
-            x-show="filtersOpen"
-            x-cloak
-            x-transition:enter="transition ease-out duration-150"
-            x-transition:enter-start="opacity-0 -translate-y-1"
-            x-transition:enter-end="opacity-100 translate-y-0"
-            x-transition:leave="transition ease-in duration-100"
-            x-transition:leave-start="opacity-100 translate-y-0"
-            x-transition:leave-end="opacity-0 -translate-y-1"
-            class="space-y-5"
-        >
+        <div id="filters-panel" class="collapse space-y-5{{ ($filtersApplied ?? false) ? ' show' : '' }}">
             <div class="wizard-form-grid wizard-form-grid-2 lg:grid-cols-3">
                 @include('partials.report-geo-filters', [
                     'regions' => $regions,

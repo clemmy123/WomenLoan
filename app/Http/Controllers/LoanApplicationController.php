@@ -221,7 +221,11 @@ class LoanApplicationController extends Controller
 
         $trackId = $this->applications->saveDraft($request, Auth::id(), $request->input('track_id'));
 
-        return response()->json(['success' => true, 'track_id' => $trackId]);
+        return response()->json([
+            'success' => true,
+            'track_id' => $trackId,
+            'documents' => $this->applications->draftStoredDocuments($trackId, Auth::id()),
+        ]);
     }
 
     public function finalizeApplication(Loan $loan)
@@ -348,6 +352,7 @@ class LoanApplicationController extends Controller
                 'loading' => __('loans.loading_data'),
                 'step' => __('common.step_n_of', ['step' => ':step', 'total' => 6]),
                 'step_required' => __('loans.step_required'),
+                'field_required' => __('loans.field_required'),
                 'document_required' => __('common.document_required'),
                 'tin_incomplete' => __('common.tin_incomplete'),
                 'nin_incomplete' => __('common.nin_incomplete'),

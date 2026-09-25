@@ -3,11 +3,11 @@
 @section('title', __('nav.change_password'))
 
 @section('content')
-<div class="page page-narrow">
-    <div class="page-header">
+<div class="app-page app-page-narrow">
+    <div class="app-page-header">
         <div>
-            <h1 class="page-title">{{ __('nav.change_password') }}</h1>
-            <p class="page-subtitle">{{ __('profile.change_password_hint') }}</p>
+            <h1 class="app-page-title">{{ __('nav.change_password') }}</h1>
+            <p class="app-page-subtitle">{{ __('profile.change_password_hint') }}</p>
         </div>
     </div>
 

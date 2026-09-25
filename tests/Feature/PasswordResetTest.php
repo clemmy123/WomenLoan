@@ -85,5 +85,16 @@ class PasswordResetTest extends TestCase
                 'is_active' => '1',
             ])
             ->assertForbidden();
+
+        $this->actingAsRole('ward.cdo@wdf.go.tz')
+            ->get(route('admin.users.reset-password', $target))
+            ->assertForbidden();
+
+        $this->actingAsRole('ward.cdo@wdf.go.tz')
+            ->post(route('admin.users.reset-password.update', $target), [
+                'password' => 'HackedPass1!',
+                'password_confirmation' => 'HackedPass1!',
+            ])
+            ->assertForbidden();
     }
 }

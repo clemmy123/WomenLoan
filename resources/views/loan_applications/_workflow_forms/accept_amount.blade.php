@@ -17,7 +17,7 @@
     </div>
 
     <div class="flex justify-end gap-2">
-        <button type="button" @click="modal = null" class="app-btn app-btn-secondary">{{ __('common.cancel') }}</button>
+        <button type="button" data-bs-dismiss="modal" class="app-btn app-btn-secondary">{{ __('common.cancel') }}</button>
         <button type="submit" class="app-btn app-btn-success">{{ __('workflow.buttons.accept_amount') }}</button>
     </div>
 </form>

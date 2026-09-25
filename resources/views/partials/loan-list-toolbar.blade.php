@@ -20,15 +20,10 @@
     $searchPlaceholder = $searchPlaceholder ?? __('dashboard.recent_search_placeholder');
     $sortLabel = $sortLabel ?? __('dashboard.sort_by');
     $filtersOpenByDefault = $showClear || filled($status) || (filled($sort) && $sort !== 'newest' && $sort !== '');
+    $panelId = $panelId ?? 'list-filters-panel';
 @endphp
 
-<form
-    method="GET"
-    action="{{ $action }}"
-    class="dashboard-recent-toolbar list-filters-toolbar"
-    x-data="{ filtersOpen: {{ $filtersOpenByDefault ? 'true' : 'false' }} }"
-    x-ref="recentForm"
->
+<form method="GET" action="{{ $action }}" class="dashboard-recent-toolbar list-filters-toolbar">
     @foreach($hiddenFields as $name => $value)
         <input type="hidden" name="{{ $name }}" value="{{ $value }}">
     @endforeach
@@ -38,6 +33,8 @@
             'title' => __('common.filter'),
             'showLabel' => __('common.show_filters'),
             'hideLabel' => __('common.hide_filters'),
+            'target' => $panelId,
+            'expanded' => $filtersOpenByDefault,
         ])
     @endif
 
@@ -49,25 +46,16 @@
             placeholder="{{ $searchPlaceholder }}"
             class="dashboard-recent-input"
             autocomplete="off"
-            @input.debounce.350ms="$refs.recentForm.requestSubmit()"
+            data-auto-submit-form
+            data-auto-submit-delay="350"
         >
 
         @if($hasExtraFilters)
-            <div
-                class="dashboard-recent-toolbar-row"
-                x-show="filtersOpen"
-                x-cloak
-                x-transition:enter="transition ease-out duration-150"
-                x-transition:enter-start="opacity-0 -translate-y-1"
-                x-transition:enter-end="opacity-100 translate-y-0"
-                x-transition:leave="transition ease-in duration-100"
-                x-transition:leave-start="opacity-100 translate-y-0"
-                x-transition:leave-end="opacity-0 -translate-y-1"
-            >
+            <div id="{{ $panelId }}" class="collapse dashboard-recent-toolbar-row{{ $filtersOpenByDefault ? ' show' : '' }}">
                 @if($useStatusFilter)
                     <label class="dashboard-recent-sort-wrap">
                         <span class="dashboard-recent-sort-label">{{ __('dashboard.status') }}</span>
-                        <select name="status" class="dashboard-recent-select" @change="$refs.recentForm.requestSubmit()">
+                        <select name="status" class="dashboard-recent-select" data-auto-submit-form>
                             @foreach($statusOptions as $value => $label)
                                 <option value="{{ $value }}" @selected((string) $status === (string) $value)>{{ $label }}</option>
                             @endforeach
@@ -77,7 +65,7 @@
                 @if($useSortFilter)
                     <label class="dashboard-recent-sort-wrap">
                         <span class="dashboard-recent-sort-label">{{ $sortLabel }}</span>
-                        <select name="{{ $sortName }}" class="dashboard-recent-select" @change="$refs.recentForm.requestSubmit()">
+                        <select name="{{ $sortName }}" class="dashboard-recent-select" data-auto-submit-form>
                             @foreach($sortOptions as $value => $label)
                                 <option value="{{ $value }}" @selected((string) $sort === (string) $value)>{{ $label }}</option>
                             @endforeach

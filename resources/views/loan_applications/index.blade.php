@@ -3,10 +3,10 @@
 @section('title', __('loans.my_applications'))
 
 @section('content')
-<div class="page">
-    <div class="page-header">
+<div class="app-page">
+    <div class="app-page-header">
         <div>
-            <h1 class="page-title">
+            <h1 class="app-page-title">
                 @if(auth()->user()?->hasRole('chief'))
                     {{ __('nav.assign_accountant_queue') }}
                 @elseif(auth()->user()?->hasRole('accountant'))
@@ -15,7 +15,7 @@
                     {{ __('loans.title') }}
                 @endif
             </h1>
-            <p class="page-subtitle">
+            <p class="app-page-subtitle">
                 @if(auth()->user()?->hasRole('chief'))
                     {{ __('loans.chief_queue_subtitle') }}
                 @elseif(auth()->user()?->hasRole('accountant'))
@@ -33,7 +33,7 @@
             </p>
         </div>
         @can('create loan application')
-        <div class="page-actions flex flex-wrap gap-2">
+        <div class="app-page-actions flex flex-wrap gap-2">
             @if(($preferredLoanType ?? null) === 'group')
                 @if($canSetupGroup ?? false)
                     <a href="{{ route('my-group.create') }}" class="app-btn app-btn-primary">{{ __('groups.setup_title') }}</a>
@@ -65,6 +65,7 @@
         ])
 
         @if($loans->total())
+        @php $showWorkflowStepOnList = \App\Support\StaffZone::isMinistryLevel(auth()->user()); @endphp
         <div class="overflow-x-auto">
             <table class="app-table">
                 <thead>
@@ -92,7 +93,9 @@
                             <td>
                                 <div class="flex flex-wrap items-center gap-1">
                                     @include('partials.loan-action-needed-badge', ['loan' => $loan])
-                                    @include('partials.badge', ['variant' => 'secondary', 'text' => loan_workflow_step_label($loan->current_step)])
+                                    @if($showWorkflowStepOnList)
+                                        @include('partials.badge', ['variant' => 'secondary', 'text' => loan_workflow_step_label($loan->current_step)])
+                                    @endif
                                     @include('partials.loan-status-badge', ['status' => $loan->status])
                                     @include('partials.cdo-loan-scope-badge', ['loan' => $loan])
                                 </div>

@@ -6,17 +6,22 @@
 @php
     $zoneType = \App\Support\StaffZone::typeLabelForUser($user);
     $zoneName = $user->zoneable?->name ?? '—';
-@endphp
-
-<div class="page">
-    @include('partials.page-header', [
-        'title' => __('admin.view_user'),
-        'subtitle' => $user->name,
-        'actions' => '
+    $canResetPassword = auth()->user()?->can('reset user password') && $user->id !== auth()->id();
+    $headerActions = '
             <a href="'.e(route('admin.users.index')).'" class="app-btn app-btn-secondary">'.e(__('common.back')).'</a>
             <a href="'.e(route('admin.users.edit', $user)).'" class="app-btn app-btn-primary">'.e(__('common.edit')).'</a>
             <a href="'.e(route('admin.users.assign-roles', $user)).'" class="app-btn app-btn-secondary">'.e(__('admin.assign_roles')).'</a>
-        ',
+        ';
+    if ($canResetPassword) {
+        $headerActions .= '<a href="'.e(route('admin.users.reset-password', $user)).'" class="app-btn app-btn-secondary">'.e(__('admin.reset_password_emergency')).'</a>';
+    }
+@endphp
+
+<div class="app-page">
+    @include('partials.page-header', [
+        'title' => __('admin.view_user'),
+        'subtitle' => $user->name,
+        'actions' => $headerActions,
     ])
 
     <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">

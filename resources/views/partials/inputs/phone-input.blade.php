@@ -14,6 +14,9 @@
     $hiddenName = $name;
     $localValue = IdentityNormalizer::phoneLocalPart(old($name, $value));
     $normalizedValue = IdentityNormalizer::normalizePhone(old($name, $value));
+    $invalidMessage = trans()->has('validation.custom.'.$name.'.phone')
+        ? __('validation.custom.'.$name.'.phone')
+        : __('validation.phone');
 @endphp
 
 <div {{ $attributes->merge(['class' => 'app-phone-field']) }} data-phone-field>
@@ -30,6 +33,7 @@
         maxlength="9"
         placeholder="712345678"
         data-phone-local
+        data-phone-invalid-message="{{ $invalidMessage }}"
         @readonly($readonly)
         @required($required && ! $readonly)
         class="app-phone-local {{ $class }}"

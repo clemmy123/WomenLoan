@@ -96,6 +96,16 @@ class StaffZone
         return __('admin.zone_none');
     }
 
+    public static function isMinistryLevel(?User $user): bool
+    {
+        if (! $user) {
+            return false;
+        }
+
+        return $user->hasRole(self::KM_ROLE)
+            || $user->hasAnyRole(self::MINISTRY_LEVEL_ROLES);
+    }
+
     public static function typeLabelForUser(User $user): string
     {
         return match ($user->zoneable_type) {

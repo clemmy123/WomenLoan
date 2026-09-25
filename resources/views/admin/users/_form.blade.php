@@ -67,21 +67,24 @@
             @error('phone') <p class="mt-1.5 text-xs font-medium text-red-600">{{ $message }}</p> @enderror
         </div>
 
-        @if (! $user || auth()->user()->can('reset user password'))
+        @if (! $user)
             <div>
-                <label class="app-label" for="admin_password">{{ __('common.password') }} {{ $user ? __('common.password_keep_blank') : '' }} @unless($user) @include('partials.required-mark') @endunless</label>
-                <input type="password" name="password" id="admin_password" {{ $user ? '' : 'required' }} class="app-input" autocomplete="new-password">
+                <label class="app-label" for="admin_password">{{ __('common.password') }} @include('partials.required-mark')</label>
+                <input type="password" name="password" id="admin_password" required class="app-input" autocomplete="new-password">
                 @include('partials.password-requirements', ['targetId' => 'admin_password', 'variant' => 'app'])
                 <p class="mt-1.5 text-xs text-slate-500">{{ __('admin.temporary_password_hint', ['minutes' => (int) config('wdf.temporary_password_minutes', 2)]) }}</p>
                 @error('password') <p class="mt-1.5 text-xs font-medium text-red-600">{{ $message }}</p> @enderror
             </div>
 
             <div>
-                <label class="app-label" for="password_confirmation">{{ __('common.confirm_password') }} @unless($user) @include('partials.required-mark') @endunless</label>
-                <input type="password" name="password_confirmation" id="password_confirmation" {{ $user ? '' : 'required' }} class="app-input" autocomplete="new-password">
+                <label class="app-label" for="password_confirmation">{{ __('common.confirm_password') }} @include('partials.required-mark')</label>
+                <input type="password" name="password_confirmation" id="password_confirmation" required class="app-input" autocomplete="new-password">
             </div>
-        @elseif ($user)
-            <p class="text-sm text-slate-500">{{ __('admin.reset_password_permission_required') }}</p>
+        @elseif (auth()->user()?->can('reset user password') && $user->id !== auth()->id())
+            <div class="rounded-xl border border-amber-200 bg-amber-50 p-3 space-y-2">
+                <p class="text-sm text-slate-700">{{ __('admin.reset_password_edit_hint') }}</p>
+                <a href="{{ route('admin.users.reset-password', $user) }}" class="app-btn app-btn-secondary">{{ __('admin.reset_password_emergency') }}</a>
+            </div>
         @endif
 
         @php
@@ -95,18 +98,16 @@
         @endphp
 
         @if ($canToggleStatus)
-            <div
-                class="space-y-3"
-                x-data="{ active: {{ $isActiveChecked || (! $user && $canActivate && ! $canDeactivate) ? 'true' : 'false' }} }"
-            >
+            <div class="space-y-3" data-account-active>
                 <input type="hidden" name="is_active" value="0">
                 <label class="flex items-center gap-2 text-sm text-slate-700">
                     <input
                         type="checkbox"
                         name="is_active"
                         value="1"
-                        x-model="active"
+                        data-account-active-input
                         class="rounded border-slate-300 text-indigo-600"
+                        @checked($isActiveChecked)
                     >
                     <span>
                         {{ __('admin.active_account') }}
@@ -115,7 +116,7 @@
                 </label>
                 @error('is_active') <p class="mt-1.5 text-xs font-medium text-red-600">{{ $message }}</p> @enderror
 
-                <div x-show="!active" x-cloak class="space-y-2">
+                <div data-account-active-reason class="space-y-2" @if($isActiveChecked) hidden @endif>
                     <label class="app-label" for="deactivation_reason">{{ __('admin.deactivation_reason') }} @include('partials.required-mark')</label>
                     <textarea
                         name="deactivation_reason"
@@ -125,7 +126,6 @@
                         maxlength="1000"
                         class="app-input"
                         placeholder="{{ __('admin.deactivation_reason_placeholder') }}"
-                        :required="!active"
                     >{{ old('deactivation_reason', $user?->deactivation_reason) }}</textarea>
                     <p class="text-xs text-slate-500">{{ __('admin.deactivation_reason_hint') }}</p>
                     @error('deactivation_reason') <p class="mt-1.5 text-xs font-medium text-red-600">{{ $message }}</p> @enderror

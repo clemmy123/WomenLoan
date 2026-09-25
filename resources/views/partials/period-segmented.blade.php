@@ -1,18 +1,18 @@
 @php
     $periodOptions = $periods ?? [];
-    $periodChange = $periodChange ?? 'onPeriodChange()';
-    $compact = $compact ?? false;
+    $selectedPeriod = (string) ($selectedPeriod ?? request('period', 'annually'));
+    $submitOnChange = $submitOnChange ?? false;
 @endphp
-<div class="app-segmented{{ $compact ? ' app-segmented-compact' : '' }}" role="radiogroup" aria-label="{{ __('reports.period') }}">
-    <input type="hidden" name="period" id="period" x-model="selectedPeriod">
+<div class="app-segmented{{ ($compact ?? false) ? ' app-segmented-compact' : '' }}" role="radiogroup" aria-label="{{ __('reports.period') }}" data-period-segmented>
+    <input type="hidden" name="period" id="period" value="{{ $selectedPeriod }}" data-period-input>
     @foreach($periodOptions as $period)
         <button
             type="button"
-            class="app-segmented-btn"
-            :class="{ 'is-active': selectedPeriod === '{{ $period }}' }"
-            @click="selectedPeriod = '{{ $period }}'; {{ $periodChange }}"
+            class="app-segmented-btn{{ $selectedPeriod === (string) $period ? ' is-active' : '' }}"
+            data-period-value="{{ $period }}"
+            @if($submitOnChange) data-period-submit="1" @endif
             role="radio"
-            :aria-checked="selectedPeriod === '{{ $period }}' ? 'true' : 'false'"
+            aria-checked="{{ $selectedPeriod === (string) $period ? 'true' : 'false' }}"
         >
             {{ __('reports.period_'.$period) }}
         </button>

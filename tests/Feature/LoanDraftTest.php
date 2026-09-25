@@ -6,6 +6,7 @@ use App\Models\DraftLoan;
 use App\Models\Loan;
 use App\Models\Scopes\ApprovalLevelScope;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
 use Tests\TestCase;
 
@@ -65,6 +66,41 @@ class LoanDraftTest extends TestCase
         $this->assertSame('individual', $draft->form_data['loan_type']);
         $this->assertSame('Neema Shop', $draft->form_data['business_name']);
         $this->assertSame(1, (int) $draft->form_data['step']);
+    }
+
+    public function test_autosave_draft_returns_stored_documents_and_resume_keeps_them(): void
+    {
+        $user = \App\Models\User::where('email', 'applicant2@wdf.go.tz')->firstOrFail();
+        DraftLoan::where('user_id', $user->id)->delete();
+
+        $response = $this->actingAs($user)->postJson(route('loan-applications.save-draft'), [
+            'track_id' => 'WL000213',
+            'step' => 1,
+            'loan_type' => 'individual',
+            'business_name' => 'Preview Shop',
+            'business_proposal_document' => UploadedFile::fake()->create('proposal.pdf', 100, 'application/pdf'),
+            'proof_address_attachment' => UploadedFile::fake()->create('address.pdf', 100, 'application/pdf'),
+        ]);
+
+        $response->assertOk()->assertJson([
+            'success' => true,
+            'track_id' => 'WL000213',
+        ]);
+
+        $documents = $response->json('documents');
+        $this->assertArrayHasKey('business_proposal_document', $documents);
+        $this->assertArrayHasKey('proof_address_attachment', $documents);
+        $this->assertNotSame('', $documents['business_proposal_document']);
+
+        $this->actingAs($user)
+            ->get(route('loan-applications.create', [
+                'resume_track_id' => 'WL000213',
+                'wizard_step' => 6,
+            ]))
+            ->assertOk()
+            ->assertSee('data-has-existing="true"', false)
+            ->assertSee($documents['business_proposal_document'], false)
+            ->assertSee('Preview Shop', false);
     }
 
     public function test_applicant_can_resume_saved_draft(): void
@@ -160,7 +196,7 @@ class LoanDraftTest extends TestCase
         $this->assertSame(5, (int) $draft->form_data['step']);
     }
 
-    public function test_final_submit_validation_failure_stays_on_review_step(): void
+    public function test_final_submit_validation_failure_stays_on_submitted_step(): void
     {
         $user = $this->applicantWithoutLoan();
         $trackId = 'WL000211';
@@ -219,7 +255,7 @@ class LoanDraftTest extends TestCase
             'guarantor_last_name' => 'Guarantor',
             'guarantor_phone' => '0755123456',
             'guarantor_nin' => '19850101123450000001',
-            'guarantor_relationship' => 'Spouse',
+            'guarantor_relationship' => 'Husband',
             ...$this->guarantorFields(),
         ];
 
@@ -259,7 +295,7 @@ class LoanDraftTest extends TestCase
             'guarantor_last_name' => 'Guarantor',
             'guarantor_phone' => '0755123456',
             'guarantor_nin' => '19850101123450000001',
-            'guarantor_relationship' => 'Spouse',
+            'guarantor_relationship' => 'Husband',
             ...$this->guarantorFields(),
         ]);
 

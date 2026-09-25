@@ -3,14 +3,14 @@
 @section('title', __('nav.my_profile'))
 
 @section('content')
-<div class="page page-narrow">
-    <div class="page-header">
+<div class="app-page app-page-narrow">
+    <div class="app-page-header">
         <a href="{{ route('dashboard') }}" class="text-sm font-semibold text-slate-500 hover:text-slate-900 dark:text-zinc-400 dark:hover:text-white transition-colors">&larr; {{ __('nav.dashboard') }}</a>
     </div>
 
     <div>
-        <h1 class="page-title">{{ __('nav.my_profile') }}</h1>
-        <p class="page-subtitle">{{ __('profile.registration_details_hint') }}</p>
+        <h1 class="app-page-title">{{ __('nav.my_profile') }}</h1>
+        <p class="app-page-subtitle">{{ __('profile.registration_details_hint') }}</p>
     </div>
 
     <div class="app-card app-card-padded">

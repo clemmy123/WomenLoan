@@ -160,7 +160,7 @@ class WorkflowTest extends TestCase
             ->get(route('loan-applications.show', $loan->hashid))
             ->assertOk()
             ->assertSee(__('workflow.buttons.submit'), false)
-            ->assertDontSee("modal = 'propose_amount'", false);
+            ->assertDontSee('app-modal-propose_amount', false);
 
         $response = $this->actingAsRole('ministry@wdf.go.tz')
             ->post(route('loans.workflow', $loan->hashid), [
@@ -322,7 +322,7 @@ class WorkflowTest extends TestCase
         $this->actingAsRole('accountant1@wdf.go.tz')
             ->get(route('loan-applications.show', $loan->hashid))
             ->assertOk()
-            ->assertDontSee("modal = 'disburse'", false);
+            ->assertDontSee('app-modal-disburse', false);
     }
 
     public function test_ministry_can_rollback_application_to_previous_step(): void
@@ -399,7 +399,7 @@ class WorkflowTest extends TestCase
         $this->actingAsRole('km@wdf.go.tz')
             ->get(route('loan-applications.show', $atKm->hashid))
             ->assertOk()
-            ->assertSee("modal = 'rollback_step'", false);
+            ->assertSee('app-modal-rollback_step', false);
 
         $this->actingAsRole('km@wdf.go.tz')
             ->post(route('loans.workflow', $atKm->hashid), [
@@ -417,7 +417,7 @@ class WorkflowTest extends TestCase
         $this->actingAsRole('km@wdf.go.tz')
             ->get(route('loan-applications.show', $approved->hashid))
             ->assertOk()
-            ->assertDontSee("modal = 'rollback_step'", false);
+            ->assertDontSee('app-modal-rollback_step', false);
 
         $this->actingAsRole('km@wdf.go.tz')
             ->post(route('loans.workflow', $approved->hashid), [
@@ -434,7 +434,7 @@ class WorkflowTest extends TestCase
         $this->actingAsRole('director@wdf.go.tz')
             ->get(route('loan-applications.show', $loan->hashid))
             ->assertOk()
-            ->assertDontSee("modal = 'rollback_step'", false);
+            ->assertDontSee('app-modal-rollback_step', false);
 
         $this->actingAsRole('director@wdf.go.tz')
             ->post(route('loans.workflow', $loan->hashid), [
@@ -452,7 +452,7 @@ class WorkflowTest extends TestCase
         $this->actingAsRole('chief@wdf.go.tz')
             ->get(route('loan-applications.show', $approved->hashid))
             ->assertOk()
-            ->assertDontSee("modal = 'rollback_step'", false);
+            ->assertDontSee('app-modal-rollback_step', false);
 
         $this->actingAsRole('chief@wdf.go.tz')
             ->post(route('loans.workflow', $approved->hashid), [
@@ -464,7 +464,7 @@ class WorkflowTest extends TestCase
         $this->actingAsRole('accountant1@wdf.go.tz')
             ->get(route('loan-applications.show', $ready->hashid))
             ->assertOk()
-            ->assertDontSee("modal = 'rollback_step'", false);
+            ->assertDontSee('app-modal-rollback_step', false);
 
         $this->actingAsRole('accountant1@wdf.go.tz')
             ->post(route('loans.workflow', $ready->hashid), [

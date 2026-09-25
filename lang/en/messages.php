@@ -16,6 +16,7 @@ return [
     'workflow_action_success' => 'Action completed successfully.',
     'cannot_delete_self' => 'You cannot delete your own account.',
     'cannot_reset_password' => 'You do not have permission to reset user passwords.',
+    'user_password_reset' => 'Temporary password issued. The staff member must create their own password after signing in.',
     'cannot_activate_users' => 'You do not have permission to activate user accounts.',
     'cannot_deactivate_users' => 'You do not have permission to deactivate user accounts.',
     'cannot_deactivate_self' => 'You cannot deactivate your own account.',

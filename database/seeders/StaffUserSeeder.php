@@ -12,6 +12,10 @@ use Illuminate\Support\Facades\Hash;
 
 class StaffUserSeeder extends Seeder
 {
+    /**
+     * Workflow actor accounts for automated tests only.
+     * Production DatabaseSeeder does not call this.
+     */
     public function run(): void
     {
         $password = Hash::make('password');

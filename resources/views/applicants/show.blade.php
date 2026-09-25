@@ -3,10 +3,10 @@
 @section('title', __('applicants.show_title'))
 
 @section('content')
-<div class="page page-medium">
-    <div class="page-header">
+<div class="app-page app-page-medium">
+    <div class="app-page-header">
         <a href="{{ route('applicants.index') }}" class="text-sm font-semibold text-slate-500 hover:text-slate-900 dark:text-zinc-400 dark:hover:text-white transition-colors">&larr; {{ __('applicants.back_to_registry') }}</a>
-        <div class="page-actions">
+        <div class="app-page-actions">
             <a href="{{ route('applicants.edit', $applicant) }}" class="app-btn app-btn-warning">{{ __('applicants.edit_profile') }}</a>
         </div>
     </div>
@@ -14,8 +14,8 @@
     <div class="app-card overflow-hidden">
         <div class="app-card-header sm:flex sm:items-center sm:justify-between">
             <div>
-                <h1 class="page-title">{{ $applicant->full_name }}</h1>
-                <p class="page-subtitle font-mono text-xs">
+                <h1 class="app-page-title">{{ $applicant->full_name }}</h1>
+                <p class="app-page-subtitle font-mono text-xs">
                     {{ __('applicants.system_profile_id', ['id' => $applicant->id]) }}
                     &bull; {{ __('applicants.linked_user', ['name' => $applicant->user?->name ?? __('common.na')]) }}
                 </p>

@@ -305,6 +305,8 @@ Route::middleware(['auth', 'password.changed'])->group(function () {
         Route::post('users/{user}/activate', [UserController::class, 'activate'])->name('users.activate');
         Route::get('users/{user}/assign-roles', [UserController::class, 'assignRoles'])->name('users.assign-roles');
         Route::put('users/{user}/assign-roles', [UserController::class, 'updateRoles'])->name('users.assign-roles.update');
+        Route::get('users/{user}/reset-password', [UserController::class, 'resetPasswordForm'])->name('users.reset-password');
+        Route::post('users/{user}/reset-password', [UserController::class, 'resetPassword'])->name('users.reset-password.update');
         Route::resource('users', UserController::class);
     });
 

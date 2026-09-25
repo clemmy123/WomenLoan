@@ -4,6 +4,7 @@
     'rate',
     'metrics' => [],
     'rateLabel' => null,
+    'breakdown' => [],
 ])
 
 @php
@@ -20,6 +21,23 @@
             {{ $rateText }}
         </p>
     </div>
+
+    @if(is_array($breakdown) && count($breakdown))
+        <div class="repayment-summary-strip-breakdown">
+            @foreach($breakdown as $item)
+                <a
+                    href="{{ $item['url'] }}"
+                    class="repayment-summary-strip-breakdown-link repayment-summary-strip-breakdown-link--{{ $item['tone'] ?? 'all' }}{{ ($item['active'] ?? false) ? ' is-active' : '' }}"
+                >
+                    <span>{{ $item['label'] }}</span>
+                    <strong>{{ $item['value'] }}</strong>
+                    @if(! empty($item['meta']))
+                        <em>{{ $item['meta'] }}</em>
+                    @endif
+                </a>
+            @endforeach
+        </div>
+    @endif
 
     <dl class="repayment-summary-strip-metrics">
         @foreach($metrics as $metric)

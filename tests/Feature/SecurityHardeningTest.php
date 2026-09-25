@@ -107,4 +107,30 @@ class SecurityHardeningTest extends TestCase
             ->get(route('secure-files.show', ['path' => $encoded]))
             ->assertOk();
     }
+
+    public function test_pages_send_security_headers(): void
+    {
+        config(['jumuishi.enabled' => false, 'jumuishi.sso_enabled' => false]);
+
+        $this->get('/')
+            ->assertOk()
+            ->assertHeader('X-Content-Type-Options', 'nosniff')
+            ->assertHeader('X-Frame-Options', 'SAMEORIGIN')
+            ->assertHeader('Referrer-Policy', 'strict-origin-when-cross-origin');
+
+        $csp = (string) $this->get('/')->headers->get('Content-Security-Policy');
+        $this->assertStringContainsString("default-src 'self'", $csp);
+        $this->assertStringContainsString("object-src 'none'", $csp);
+    }
+
+    public function test_health_endpoint_does_not_expose_cache_or_version(): void
+    {
+        $payload = $this->getJson(route('api.jumuishi.health'))
+            ->assertOk()
+            ->assertJsonPath('status', 'success')
+            ->json();
+
+        $this->assertArrayNotHasKey('cache', $payload);
+        $this->assertArrayNotHasKey('version', $payload);
+    }
 }

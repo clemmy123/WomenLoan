@@ -30,11 +30,11 @@
         'locks' => ($geoBounds ?? [])['lock'] ?? [],
     ];
 @endphp
-<div class="page">
-    <div class="page-header">
+<div class="app-page">
+    <div class="app-page-header">
         <div>
-            <h1 class="page-title lg:text-3xl">{{ __('by_age_reports.title') }}</h1>
-            <p class="page-subtitle">{{ __('by_age_reports.subtitle') }}</p>
+            <h1 class="app-page-title lg:text-3xl">{{ __('by_age_reports.title') }}</h1>
+            <p class="app-page-subtitle">{{ __('by_age_reports.subtitle') }}</p>
         </div>
         <div class="flex flex-wrap items-center gap-2">
             @if($filtersApplied)
@@ -53,7 +53,7 @@
         method="GET"
         action="{{ route('reports.by-age.index') }}"
         class="app-card app-card-padded space-y-5"
-        x-data="reportFilters(@js($reportFiltersBoot))"
+        data-report-filters='@json($reportFiltersBoot)'
     >
         @include('partials.filters-toggle-button', [
             'title' => __('by_age_reports.filters'),
@@ -61,17 +61,7 @@
             'hideLabel' => __('by_age_reports.hide_filters'),
         ])
 
-        <div
-            x-show="filtersOpen"
-            x-cloak
-            x-transition:enter="transition ease-out duration-150"
-            x-transition:enter-start="opacity-0 -translate-y-1"
-            x-transition:enter-end="opacity-100 translate-y-0"
-            x-transition:leave="transition ease-in duration-100"
-            x-transition:leave-start="opacity-100 translate-y-0"
-            x-transition:leave-end="opacity-0 -translate-y-1"
-            class="space-y-5"
-        >
+        <div id="filters-panel" class="collapse space-y-5">
             <div class="wizard-form-grid wizard-form-grid-2 lg:grid-cols-3">
                 @include('partials.report-geo-filters', [
                     'regions' => $regions,
@@ -79,9 +69,9 @@
                     'allowAllRegions' => true,
                 ])
 
-                <div class="wizard-field" x-show="showAgeMin" x-cloak>
+                <div class="wizard-field">
                     <label class="app-label" for="age_min">{{ __('by_age_reports.age_min') }}</label>
-                    <div class="app-filter-control app-filter-control--input" :class="{ 'has-clear': selectedAgeMin }">
+                    <div class="app-filter-control app-filter-control--input">
                         <input
                             type="number"
                             name="age_min"
@@ -90,15 +80,11 @@
                             max="120"
                             class="app-input"
                             placeholder="0"
-                            x-model="selectedAgeMin"
-                            @change="onAgeMinChange()"
                         >
                         <button
                             type="button"
                             class="app-filter-clear-inside"
-                            x-show="selectedAgeMin"
-                            x-cloak
-                            @click.prevent="clearAgeMin()"
+                            data-filter-clear="age_min"
                             title="{{ __('common.clear') }}"
                             aria-label="{{ __('common.clear') }}"
                         >
@@ -109,9 +95,9 @@
                     </div>
                 </div>
 
-                <div class="wizard-field" x-show="showAgeMax" x-cloak>
+                <div class="wizard-field" data-filter-reveal="age-max">
                     <label class="app-label" for="age_max">{{ __('by_age_reports.age_max') }}</label>
-                    <div class="app-filter-control app-filter-control--input" :class="{ 'has-clear': selectedAgeMax }">
+                    <div class="app-filter-control app-filter-control--input">
                         <input
                             type="number"
                             name="age_max"
@@ -120,15 +106,11 @@
                             max="120"
                             class="app-input"
                             placeholder="120"
-                            x-model="selectedAgeMax"
-                            @change="onAgeMaxChange()"
                         >
                         <button
                             type="button"
                             class="app-filter-clear-inside"
-                            x-show="selectedAgeMax"
-                            x-cloak
-                            @click.prevent="clearAgeMax()"
+                            data-filter-clear="age_max"
                             title="{{ __('common.clear') }}"
                             aria-label="{{ __('common.clear') }}"
                         >

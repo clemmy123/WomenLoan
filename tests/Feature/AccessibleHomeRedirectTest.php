@@ -59,6 +59,7 @@ class AccessibleHomeRedirectTest extends TestCase
         $ownPassword = 'OwnPass456!';
 
         $this->put(route('profile.password.required.update'), [
+            'current_password' => $this->strongPassword(),
             'password' => $ownPassword,
             'password_confirmation' => $ownPassword,
         ])->assertRedirect(route('admin.users.index'));

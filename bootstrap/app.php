@@ -21,9 +21,10 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware): void {
+        $middleware->append(\App\Http\Middleware\SecurityHeaders::class);
+
         $middleware->web(append: [
             \App\Http\Middleware\SetLocale::class,
-            \Illuminate\Http\Middleware\AddLinkHeadersForPreloadedAssets::class,
         ]);
 
         $middleware->redirectGuestsTo(function (Request $request) {
@@ -74,7 +75,7 @@ return Application::configure(basePath: dirname(__DIR__))
                 Log::error('Request failed', [
                     'exception' => $e::class,
                     'message' => $e->getMessage(),
-                    'url' => $request->fullUrl(),
+                    'url' => $request->url(),
                     'method' => $request->method(),
                 ]);
 
@@ -89,7 +90,7 @@ return Application::configure(basePath: dirname(__DIR__))
                 'exception' => $e::class,
                 'message' => $e->getMessage(),
                 'user_id' => $request->user()?->id,
-                'url' => $request->fullUrl(),
+                'url' => $request->url(),
                 'method' => $request->method(),
             ]);
 
@@ -116,7 +117,10 @@ return Application::configure(basePath: dirname(__DIR__))
                 if ($column !== null) {
                     $attribute = validation_attribute_label($column);
                     $fieldMessage = __('validation.required', ['attribute' => $attribute]);
-                    $step = LoanWizardFieldMap::stepForField($column);
+                    $postedStep = (int) $request->input('step', 0);
+                    $step = ($postedStep >= 1 && $postedStep <= 6)
+                        ? $postedStep
+                        : LoanWizardFieldMap::stepForField($column);
                     $url = url()->previous();
                     $separator = str_contains($url, '?') ? '&' : '?';
 

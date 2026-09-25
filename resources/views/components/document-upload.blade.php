@@ -53,13 +53,15 @@
             accept="{{ $accept }}"
             class="doc-attachment-input"
             data-pdf-only-message="{{ __('common.file_must_be_pdf') }}"
-            @if($required) data-doc-required="true" @endif
+            @if($required) data-doc-required="true" data-required-message="{{ __('validation.custom.'.$name.'.required') }}" @endif
             @if($hasExisting) data-has-existing="true" data-existing-name="{{ $existingName }}" @endif
             @if(empty(trim($inputAttributes ?? '')) && $required) required @endif
             {!! $inputAttributes ?? '' !!}
         >
     </label>
     @error($name)
-        <p class="doc-attachment-error">{{ $message }}</p>
+        <p class="doc-attachment-error" data-wizard-field-error data-server-error="true">{{ $message }}</p>
+    @else
+        <p class="doc-attachment-error" data-wizard-field-error hidden></p>
     @enderror
 </div>

@@ -7,17 +7,11 @@
     <title>{{ __('home.portal_name') }} | {{ __('nav.welcome') }}</title>
     <link rel="icon" href="{{ asset('images/nembo2.png') }}" type="image/png">
     @include('partials.accessibility-head-script')
-    @vite(['resources/css/app.css', 'resources/js/pages/landing.js'])
+    @include('partials.assets-head')
 </head>
-<body class="landing-page min-h-screen flex flex-col" x-data="landingHeader()" x-init="init()" @scroll.window.passive="onScroll()">
-    <div
-        class="landing-header-spacer"
-        x-show="floating"
-        x-cloak
-        :style="floating ? `height: ${headerHeight}px` : null"
-        aria-hidden="true"
-    ></div>
-    <div class="landing-header" x-ref="header" :class="{ 'is-floating': floating }">
+<body class="landing-page min-h-screen flex flex-col">
+    <div class="landing-header-spacer" data-landing-spacer hidden aria-hidden="true"></div>
+    <div class="landing-header" data-landing-header>
         <header class="landing-nav">
             <a href="{{ route('home') }}" class="landing-brand">
                 <span class="landing-brand-logo-wrap">
@@ -113,5 +107,7 @@
     <footer class="landing-footer">
         <p class="landing-footer-text">{{ __('home.footer_copyright') }}</p>
     </footer>
+    @include('partials.assets-body', ['skipAppJs' => true])
+    <script type="module" src="{{ asset('js/pages/landing.js') }}"></script>
 </body>
 </html>

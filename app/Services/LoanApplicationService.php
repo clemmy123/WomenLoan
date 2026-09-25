@@ -34,6 +34,14 @@ class LoanApplicationService
         return $trackId;
     }
 
+    /**
+     * @return array<string, string>
+     */
+    public function draftStoredDocuments(string $trackId, int $userId): array
+    {
+        return $this->drafts->storedDocuments($trackId, $userId);
+    }
+
     public function submit(StoreLoanApplicationRequest $request, User $user, string $trackId): Loan
     {
         $applicant = $user->applicant;
@@ -287,9 +295,7 @@ class LoanApplicationService
             return 'Guarantor';
         }
 
-        $relationship = trim((string) $request->input('guarantor_relationship', ''));
-
-        return $relationship !== '' ? $relationship : 'Other';
+        return trim((string) $request->input('guarantor_relationship', ''));
     }
 
     private function nullableEmail(?string $email): ?string

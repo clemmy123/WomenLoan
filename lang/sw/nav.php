@@ -15,6 +15,8 @@ return [
     'my_profile' => 'Wasifu Wangu',
     'change_password' => 'Badilisha Nenosiri',
     'loan_applications' => 'Maombi ya Mkopo',
+    'applications_menu' => 'Maombi ya mikopo',
+    'applications' => 'Maombi',
     'new_application' => 'Omba Mkopo Mpya',
     'my_loans' => 'Mikopo Yangu',
     'loan_groups' => 'Vikundi vya Mikopo',
@@ -46,6 +48,7 @@ return [
     'language' => 'Lugha',
     'english' => 'English',
     'swahili' => 'Kiswahili',
+    'home' => 'Nyumbani',
     'welcome' => 'Women Loans System',
     'platform' => 'Mfumo wa Usimamizi wa Mikopo',
 ];

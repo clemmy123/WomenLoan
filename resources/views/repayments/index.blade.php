@@ -10,13 +10,13 @@
         : 0;
 @endphp
 
-<div class="page space-y-6">
-    <div class="page-header">
+<div class="app-page space-y-6">
+    <div class="app-page-header">
         <div>
-            <h1 class="page-title">{{ __('repayments.payments_title') }}</h1>
-            <p class="page-subtitle">{{ __('repayments.index_subtitle') }}</p>
+            <h1 class="app-page-title">{{ __('repayments.payments_title') }}</h1>
+            <p class="app-page-subtitle">{{ __('repayments.index_subtitle') }}</p>
         </div>
-        <div class="page-actions flex flex-wrap gap-2">
+        <div class="app-page-actions flex flex-wrap gap-2">
             @include('partials.report-export-buttons', [
                 'excelRoute' => route('repayments.export.excel', request()->query()),
                 'pdfRoute' => route('repayments.export.pdf', request()->query()),
@@ -80,7 +80,6 @@
                             <th>{{ __('repayments.amount_paid_col') }}</th>
                             <th>{{ __('repayments.outstanding') }}</th>
                             <th>{{ __('dashboard.status') }}</th>
-                            <th class="w-28">{{ __('common.actions') }}</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -98,18 +97,6 @@
                                         'variant' => $indexService->statusVariant($payment),
                                         'text' => $indexService->statusLabel($payment),
                                     ])
-                                </td>
-                                <td>
-                                    <div class="app-row-actions">
-                                        <a
-                                            href="{{ route('repayments.show', $payment) }}"
-                                            class="app-icon-btn app-icon-btn--view"
-                                            title="{{ __('repayments.view_payments') }}"
-                                            aria-label="{{ __('repayments.view_payments') }}"
-                                        >
-                                            @include('partials.icons.eye')
-                                        </a>
-                                    </div>
                                 </td>
                             </tr>
                         @endforeach

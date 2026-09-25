@@ -13,29 +13,22 @@
     }
 @endphp
 
-<div class="relative"
-     x-data="{ menuOpen: false, a11yOpen: false }"
-     @keydown.escape.window="menuOpen = false; a11yOpen = false">
+<div class="dropdown">
     <button type="button"
-            @click="menuOpen = !menuOpen; if (!menuOpen) a11yOpen = false"
-            :aria-expanded="menuOpen"
-            aria-haspopup="dialog"
-            class="app-header-user-btn">
-        <div class="text-right hidden sm:block">
-            <p class="text-xs font-semibold text-slate-900 dark:text-white">{{ $user->name }}</p>
-            <p class="text-[10px] font-medium text-indigo-600 dark:text-indigo-300">{{ role_label($user->displayRole()) }}</p>
+            class="app-header-user-btn dropdown-toggle"
+            data-bs-toggle="dropdown"
+            data-bs-auto-close="outside"
+            aria-expanded="false"
+            aria-haspopup="true"
+            aria-label="{{ __('nav.profile') }}">
+        <div class="app-header-user-meta d-none d-sm-block">
+            <p class="app-header-user-name">{{ $user->name }}</p>
+            <p class="app-header-user-role">{{ role_label($user->displayRole()) }}</p>
         </div>
         @include('partials.user-avatar', ['user' => $user])
     </button>
 
-    <div x-show="menuOpen"
-         x-cloak
-         x-transition.opacity.duration.150ms
-         @click.outside="menuOpen = false; a11yOpen = false"
-         class="app-profile-menu"
-         role="dialog"
-         aria-label="{{ __('nav.profile') }}"
-         @click.stop>
+    <div class="dropdown-menu dropdown-menu-end app-profile-menu" role="menu" aria-label="{{ __('nav.profile') }}">
         <div class="app-profile-menu-accent" aria-hidden="true"></div>
         <div class="app-profile-menu-hero">
             <div class="app-profile-menu-avatar">
@@ -51,7 +44,7 @@
         <div class="app-profile-menu-body">
             <nav class="app-profile-menu-links" aria-label="{{ __('nav.profile') }}">
                 @if($profileUrl)
-                    <a href="{{ $profileUrl }}" class="app-profile-menu-link" @click="menuOpen = false; a11yOpen = false">
+                    <a href="{{ $profileUrl }}" class="app-profile-menu-link">
                         <span class="app-profile-menu-link-icon app-profile-menu-link-icon--profile">
                             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
                                 <path stroke-linecap="round" stroke-linejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0z"/>
@@ -62,7 +55,7 @@
                     </a>
                 @endif
 
-                <a href="{{ route('profile.password.edit') }}" class="app-profile-menu-link" @click="menuOpen = false; a11yOpen = false">
+                <a href="{{ route('profile.password.edit') }}" class="app-profile-menu-link">
                     <span class="app-profile-menu-link-icon app-profile-menu-link-icon--password">
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
                             <rect x="5" y="11" width="14" height="10" rx="2"/>
@@ -76,27 +69,19 @@
             <div class="app-profile-menu-a11y">
                 <button type="button"
                         class="app-profile-menu-a11y-trigger"
-                        @click="a11yOpen = !a11yOpen"
-                        :aria-expanded="a11yOpen"
+                        data-bs-toggle="collapse"
+                        data-bs-target="#profile-menu-a11y-panel"
+                        aria-expanded="false"
                         aria-controls="profile-menu-a11y-panel">
                     <span class="app-profile-menu-a11y-trigger-label">
                         @include('partials.icons.a11y-settings')
                         <span>{{ __('accessibility.title') }}</span>
                     </span>
-                    <svg class="app-profile-menu-a11y-chevron" :class="{ 'is-open': a11yOpen }" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                    <svg class="app-profile-menu-a11y-chevron sidebar-chevron" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
                         <path fill-rule="evenodd" d="M5.23 7.21a.75.75 0 011.06.02L10 10.94l3.71-3.71a.75.75 0 111.06 1.06l-4.24 4.25a.75.75 0 01-1.06 0L5.21 8.29a.75.75 0 01.02-1.08z" clip-rule="evenodd"/>
                     </svg>
                 </button>
-                <div id="profile-menu-a11y-panel"
-                     x-show="a11yOpen"
-                     x-cloak
-                     x-transition:enter="transition ease-out duration-150"
-                     x-transition:enter-start="opacity-0 -translate-y-1"
-                     x-transition:enter-end="opacity-100 translate-y-0"
-                     x-transition:leave="transition ease-in duration-100"
-                     x-transition:leave-start="opacity-100 translate-y-0"
-                     x-transition:leave-end="opacity-0 -translate-y-1"
-                     class="app-profile-menu-a11y-panel">
+                <div id="profile-menu-a11y-panel" class="collapse app-profile-menu-a11y-panel">
                     @include('partials.accessibility-controls-compact')
                 </div>
             </div>

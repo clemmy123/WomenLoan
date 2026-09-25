@@ -46,7 +46,15 @@ class StaffTemporaryPasswordTest extends TestCase
         $this->post('/login', [
             'email' => $user->email,
             'password' => $this->strongPassword(),
-        ])->assertRedirect(route('profile.password.required'));
+        ])
+            ->assertRedirect(route('profile.password.required'))
+            ->assertSessionHas('warning');
+
+        $this->get(route('profile.password.required'))
+            ->assertOk()
+            ->assertSee(__('auth.temporary_password_must_change', [
+                'minutes' => (int) config('wdf.temporary_password_minutes', 2),
+            ]), false);
 
         $user->refresh();
 
@@ -73,6 +81,7 @@ class StaffTemporaryPasswordTest extends TestCase
         $ownPassword = 'OwnPass456!';
 
         $this->put(route('profile.password.required.update'), [
+            'current_password' => $this->strongPassword(),
             'password' => $ownPassword,
             'password_confirmation' => $ownPassword,
         ])->assertRedirect(route('dashboard'));

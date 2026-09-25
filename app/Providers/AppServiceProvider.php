@@ -8,8 +8,7 @@ use App\Services\HashidService;
 use App\Services\Nida\FakeNidaClient;
 use App\Services\Nida\HttpNidaClient;
 use App\Support\NavPermissions;
-use App\Support\SafeVite;
-use Illuminate\Foundation\Vite;
+use App\Support\RuntimeSecurity;
 use Illuminate\Pagination\Paginator;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\View;
@@ -21,7 +20,7 @@ class AppServiceProvider extends ServiceProvider
 {
     public function register(): void
     {
-        $this->app->singleton(Vite::class, fn () => new SafeVite);
+        RuntimeSecurity::apply();
 
         $this->app->singleton(HashidService::class);
 

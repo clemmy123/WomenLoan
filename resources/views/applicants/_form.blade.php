@@ -18,6 +18,7 @@
         : null;
     $ageYears = $dobValue ? \App\Support\AgeCalculator::years(\Carbon\Carbon::parse($dobValue)) : null;
     $selfServiceOnboarding = $selfServiceOnboarding ?? false;
+    $initialOnboardingStep = (int) ($initialOnboardingStep ?? 1);
 @endphp
 
 @if($selfServiceOnboarding)
@@ -228,7 +229,7 @@
 @endif
 
 @if($selfServiceOnboarding)
-<div x-show="step === 1" x-cloak>
+<div data-onboarding-step="1" @if($initialOnboardingStep !== 1) hidden @endif>
 @endif
 <div class="bg-white p-6 rounded-xl border border-gray-200 space-y-6">
     <h2 class="text-sm font-semibold tracking-wide uppercase text-indigo-600 border-b border-gray-100 pb-2">{{ __('applicants.section_loan_preference') }}</h2>
@@ -298,7 +299,6 @@
                         value="{{ $type }}"
                         class="sr-only"
                         required
-                        x-model="loanType"
                         @checked($loanTypeValue === $type)
                     >
                     <div class="loan-type-card__body">
@@ -329,7 +329,7 @@
 @endif
 
 @if($selfServiceOnboarding)
-<div x-show="step === 2" x-cloak>
+<div data-onboarding-step="2" @if($initialOnboardingStep !== 2) hidden @endif>
 @endif
 <div class="bg-white p-6 rounded-xl border border-gray-200 space-y-6">
     <h2 class="text-sm font-semibold tracking-wide uppercase text-indigo-600 border-b border-gray-100 pb-2">{{ __('applicants.section_personal_status') }}</h2>
@@ -342,7 +342,6 @@
                 id="marital_status"
                 required
                 class="app-select @error('marital_status') app-select-error @enderror"
-                @if($selfServiceOnboarding) x-model="maritalStatus" @endif
             >
                 <option value="">{{ __('applicants.select_marital_status') }}</option>
                 @foreach(Applicant::MARITAL_STATUSES as $status)
@@ -362,7 +361,6 @@
                 id="has_disability"
                 required
                 class="app-select @error('has_disability') app-select-error @enderror"
-                @if($selfServiceOnboarding) x-model="hasDisability" @endif
             >
                 <option value="">{{ __('applicants.select_yes_no') }}</option>
                 <option value="1" @selected((string) $disabilityValue === '1')>{{ __('common.yes') }}</option>
@@ -377,7 +375,7 @@
 @endif
 
 @if($selfServiceOnboarding)
-<div x-show="step === 3" x-cloak>
+<div data-onboarding-step="3" @if($initialOnboardingStep !== 3) hidden @endif>
 @endif
 <div class="bg-white p-6 rounded-xl border border-gray-200 space-y-6">
     <h2 class="text-sm font-semibold tracking-wide uppercase text-indigo-600 border-b border-gray-100 pb-2">{{ __('applicants.section_residential_address') }}</h2>

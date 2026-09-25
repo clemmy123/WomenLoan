@@ -11,7 +11,6 @@ use App\Support\StaffAdminScope;
 use App\Support\StaffZone;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
-use Illuminate\Validation\Rules\Password;
 
 class UpdateUserRequest extends FormRequest
 {
@@ -54,7 +53,6 @@ class UpdateUserRequest extends FormRequest
             'last_name' => ['required', 'string', 'max:255', 'min:2'],
             'email' => ['required', 'email', 'max:255', new UniqueEmail($user->id)],
             'phone' => ['required', 'string', new TanzaniaPhone, new UniquePhone($user->id)],
-            'password' => ['nullable', 'confirmed', Password::defaults()],
             'role' => ['required', 'string', 'exists:roles,name'],
             'roles' => ['required', 'array', 'size:1'],
             'roles.*' => ['required', 'string', 'exists:roles,name'],
@@ -95,10 +93,6 @@ class UpdateUserRequest extends FormRequest
                 $this->input('zone_type'),
                 $this->input('zone_id')
             );
-
-            if ($this->filled('password') && ! $actor->can('reset user password')) {
-                $validator->errors()->add('password', __('messages.cannot_reset_password'));
-            }
 
             if (! $this->has('is_active')) {
                 return;

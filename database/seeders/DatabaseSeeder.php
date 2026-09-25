@@ -7,8 +7,11 @@ use Illuminate\Database\Seeder;
 class DatabaseSeeder extends Seeder
 {
     /**
-     * Seed order: permissions → geography → staff → sample data.
-     * Run: php artisan migrate:fresh --seed
+     * Production seed: roles, geography, sectors, then empty operational data.
+     * Super admin: admin@wdf.go.tz only. Demo staff/loans are test-only
+     * (StaffUserSeeder + DummyDataSeeder).
+     *
+     * Run: php artisan db:seed
      */
     public function run(): void
     {
@@ -16,8 +19,8 @@ class DatabaseSeeder extends Seeder
             RolePermissionSeeder::class,
             LocationSeeder::class,
             BusinessSectorSeeder::class,
-            StaffUserSeeder::class,
-            DummyDataSeeder::class,
+            PurgeOperationalDataSeeder::class,
+            AdminUserSeeder::class,
         ]);
     }
 }

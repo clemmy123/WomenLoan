@@ -4,6 +4,7 @@
     $sizes = [
         'header' => 'app-brand-logo app-brand-logo-header',
         'auth' => 'app-brand-logo app-brand-logo-auth',
+        'sidebar' => 'app-brand-logo app-brand-logo-sidebar',
     ];
     $class = $sizes[$size] ?? $sizes['header'];
 @endphp

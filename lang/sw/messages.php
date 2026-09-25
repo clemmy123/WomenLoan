@@ -16,6 +16,7 @@ return [
     'workflow_action_success' => 'Hatua imekamilika.',
     'cannot_delete_self' => 'Huwezi kufuta akaunti yako mwenyewe.',
     'cannot_reset_password' => 'Huna ruhusa ya kuweka upya nenosiri za watumiaji.',
+    'user_password_reset' => 'Nenosiri la muda limetolewa. Mfanyakazi lazima atengeneze nenosiri lake mwenyewe baada ya kuingia.',
     'cannot_activate_users' => 'Huna ruhusa ya kuwasha akaunti za watumiaji.',
     'cannot_deactivate_users' => 'Huna ruhusa ya kuzima akaunti za watumiaji.',
     'cannot_deactivate_self' => 'Huwezi kuzima akaunti yako mwenyewe.',

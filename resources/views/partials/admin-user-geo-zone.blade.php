@@ -13,25 +13,24 @@
     id="staff-geo-section"
     class="app-card app-card-padded mt-6 {{ $geoHasError ? 'ring-2 ring-red-400' : '' }}"
     data-staff-geo-section
+    data-staff-geo-boot='@json($staffGeoBoot)'
     @if($geoHasError) data-error-anchor @endif
-    x-data="userGeoZoneForm(@js($staffGeoBoot))"
-    x-cloak
-    x-show="showGeo"
+    hidden
 >
     <h3 class="font-bold text-slate-900 mb-1">
         {{ __('admin.geo_zone') }} @include('partials.required-mark')
     </h3>
-    <p class="text-sm text-slate-500 mb-2" x-text="labels.geo_hint"></p>
-    <p class="text-xs font-medium text-amber-700 dark:text-amber-300 mb-4" x-show="showGeo">
+    <p class="text-sm text-slate-500 mb-2" data-staff-geo-hint>{{ $staffGeoBoot['labels']['geo_hint'] ?? '' }}</p>
+    <p class="text-xs font-medium text-amber-700 dark:text-amber-300 mb-4" data-staff-geo-required-note hidden>
         {{ __('admin.geo_zone_required') }}
     </p>
 
-    <input type="hidden" name="zone_type" :value="zoneType">
-    <input type="hidden" name="zone_id" :value="zoneId">
-    <input type="hidden" name="cascade_region_id" :value="selectedRegion">
-    <input type="hidden" name="cascade_district_id" :value="selectedDistrict">
-    <input type="hidden" name="cascade_council_id" :value="selectedCouncil">
-    <input type="hidden" name="cascade_ward_id" :value="selectedWard">
+    <input type="hidden" name="zone_type" data-staff-zone-type value="{{ old('zone_type', $staffGeoBoot['zoneType'] ?? '') }}">
+    <input type="hidden" name="zone_id" data-staff-zone-id value="{{ old('zone_id', $staffGeoBoot['zoneId'] ?? '') }}">
+    <input type="hidden" name="cascade_region_id" data-staff-cascade-region value="{{ old('cascade_region_id', $staffGeoBoot['selectedRegion'] ?? '') }}">
+    <input type="hidden" name="cascade_district_id" data-staff-cascade-district value="{{ old('cascade_district_id', $staffGeoBoot['selectedDistrict'] ?? '') }}">
+    <input type="hidden" name="cascade_council_id" data-staff-cascade-council value="{{ old('cascade_council_id', $staffGeoBoot['selectedCouncil'] ?? '') }}">
+    <input type="hidden" name="cascade_ward_id" data-staff-cascade-ward value="{{ old('cascade_ward_id', $staffGeoBoot['selectedWard'] ?? '') }}">
 
     <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <div>
@@ -39,69 +38,48 @@
             <select
                 id="staff_region_id"
                 class="app-select {{ $geoHasError && ! old('cascade_region_id') && ! old('zone_id') ? 'border-red-400' : '' }}"
-                x-model="selectedRegion"
-                @change="onRegionChange()"
-                :required="showGeo"
                 data-geo-step="region"
             >
                 <option value="">{{ __('admin.select_region') }}</option>
-                <template x-for="item in regions" :key="'r-'+item.id">
-                    <option :value="String(item.id)" x-text="item.name"></option>
-                </template>
+                @foreach($staffGeoBoot['regions'] ?? [] as $region)
+                    <option value="{{ $region['id'] }}" @selected((string) old('cascade_region_id', $staffGeoBoot['selectedRegion'] ?? '') === (string) $region['id'])>{{ $region['name'] }}</option>
+                @endforeach
             </select>
         </div>
 
-        <div x-show="showDistrict" x-cloak>
+        <div data-geo-wrap="district" hidden>
             <label class="app-label" for="staff_district_id">{{ __('geo.district') }} @include('partials.required-mark')</label>
             <select
                 id="staff_district_id"
                 class="app-select"
-                x-model="selectedDistrict"
-                @change="onDistrictChange()"
-                :required="showDistrict"
-                :disabled="! selectedRegion"
                 data-geo-step="district"
+                disabled
             >
                 <option value="">{{ __('geo.select_district') }}</option>
-                <template x-for="item in districts" :key="'d-'+item.id">
-                    <option :value="String(item.id)" x-text="item.name"></option>
-                </template>
             </select>
         </div>
 
-        <div x-show="showCouncil" x-cloak>
+        <div data-geo-wrap="council" hidden>
             <label class="app-label" for="staff_council_id">{{ __('geo.council') }} @include('partials.required-mark')</label>
             <select
                 id="staff_council_id"
                 class="app-select"
-                x-model="selectedCouncil"
-                @change="onCouncilChange()"
-                :required="showCouncil"
-                :disabled="! selectedDistrict"
                 data-geo-step="council"
+                disabled
             >
                 <option value="">{{ __('admin.select_council') }}</option>
-                <template x-for="item in councils" :key="'c-'+item.id">
-                    <option :value="String(item.id)" x-text="item.name"></option>
-                </template>
             </select>
         </div>
 
-        <div x-show="showWard" x-cloak>
+        <div data-geo-wrap="ward" hidden>
             <label class="app-label" for="staff_ward_id">{{ __('geo.ward') }} @include('partials.required-mark')</label>
             <select
                 id="staff_ward_id"
                 class="app-select"
-                x-model="selectedWard"
-                @change="onWardChange()"
-                :required="showWard"
-                :disabled="! selectedCouncil"
                 data-geo-step="ward"
+                disabled
             >
                 <option value="">{{ __('admin.select_ward') }}</option>
-                <template x-for="item in wards" :key="'w-'+item.id">
-                    <option :value="String(item.id)" x-text="item.name"></option>
-                </template>
             </select>
         </div>
     </div>

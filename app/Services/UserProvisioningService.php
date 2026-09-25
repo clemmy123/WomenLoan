@@ -181,12 +181,6 @@ class UserProvisioningService
             'is_active' => $isActive,
         ];
 
-        if (! empty($validated['password'])) {
-            $payload['password'] = $validated['password'];
-            $payload['must_change_password'] = true;
-            $payload['temporary_password_expires_at'] = null;
-        }
-
         $wasActive = (bool) $user->is_active;
         $user->update($payload);
 
@@ -211,10 +205,20 @@ class UserProvisioningService
             app(LoginLockoutService::class)->unlock($user->fresh(), notify: true);
         }
 
-        $this->syncToJumuishi(
-            $user->fresh(),
-            syncPassword: ! empty($validated['password'])
-        );
+        $this->syncToJumuishi($user->fresh(), syncPassword: false);
+
+        return $user->fresh();
+    }
+
+    public function resetPassword(User $user, string $password): User
+    {
+        $user->update([
+            'password' => $password,
+            'must_change_password' => true,
+            'temporary_password_expires_at' => null,
+        ]);
+
+        $this->syncToJumuishi($user->fresh(), syncPassword: true);
 
         return $user->fresh();
     }

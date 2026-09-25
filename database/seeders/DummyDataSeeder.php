@@ -22,6 +22,10 @@ use Illuminate\Support\Facades\Hash;
 
 class DummyDataSeeder extends Seeder
 {
+    /**
+     * Sample loans/applicants for automated tests only.
+     * Production DatabaseSeeder does not call this.
+     */
     protected Region $region;
 
     protected District $district;

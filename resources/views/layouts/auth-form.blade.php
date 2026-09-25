@@ -8,9 +8,9 @@
     <title>{{ __('nav.welcome') }} | @yield('auth_title', __('nav.register'))</title>
     <link rel="icon" href="{{ asset('images/nembo2.png') }}" type="image/png">
     @include('partials.accessibility-head-script')
-    @vite(['resources/css/app.css'])
+    @include('partials.assets-head')
     <style>
-        /* Critical auth toolbar — works when Vite/build assets are missing */
+        /* Critical auth toolbar */
         .jj-auth-card-toolbar{display:flex;align-items:center;justify-content:space-between;gap:.75rem;margin-bottom:.85rem}
         .jj-auth-toolbar-actions{display:inline-flex;align-items:center;gap:.45rem;flex-shrink:0}
         .jj-auth-back{display:inline-flex;align-items:center;gap:.35rem;padding:.35rem .75rem .35rem .5rem;border-radius:999px;color:#1a4a8a;font-size:.78rem;font-weight:700;line-height:1.2;text-decoration:none;background:linear-gradient(115deg,#dbeafe 0%,#e8f1ff 45%,#f0f6ff 100%);border:1px solid rgba(147,197,253,.75);white-space:nowrap;transition:transform .2s ease,background .2s ease,color .2s ease,box-shadow .2s ease}
@@ -43,6 +43,6 @@
         </div>
     </div>
 
-    @vite(['resources/js/app.js'])
+    @include('partials.assets-body')
 </body>
 </html>

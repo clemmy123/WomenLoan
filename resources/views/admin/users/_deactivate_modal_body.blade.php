@@ -1,6 +1,6 @@
-<form :action="deactivateUser?.url" method="POST" class="space-y-4">
+<form method="POST" action="{{ session('deactivate_user.url', '#') }}" class="space-y-4" data-deactivate-form>
     @csrf
-    <p class="text-sm font-medium text-slate-800 dark:text-zinc-100" x-text="deactivateUser?.name"></p>
+    <p class="text-sm font-medium text-slate-800 dark:text-zinc-100" data-deactivate-name>{{ session('deactivate_user.name') }}</p>
 
     <div>
         <label class="app-label" for="deactivation_reason">{{ __('admin.deactivation_reason') }} @include('partials.required-mark')</label>
@@ -21,7 +21,7 @@
     </div>
 
     <div class="flex flex-wrap gap-2 justify-end">
-        <button type="button" class="app-btn app-btn-secondary" @click="modal = null">{{ __('common.cancel') }}</button>
+        <button type="button" class="app-btn app-btn-secondary" data-bs-dismiss="modal">{{ __('common.cancel') }}</button>
         <button type="submit" class="app-btn app-btn-danger">{{ __('admin.deactivate_user_confirm') }}</button>
     </div>
 </form>

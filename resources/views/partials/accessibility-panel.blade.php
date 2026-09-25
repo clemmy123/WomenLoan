@@ -8,27 +8,19 @@
     };
 @endphp
 
-<div class="app-a11y-dropdown"
-     x-data="{ open: false }"
-     @click.outside="open = false"
-     @keydown.escape.window="open = false">
+<div class="dropdown app-a11y-dropdown">
     <button type="button"
-            class="{{ $triggerClass }}"
-            @click="open = !open"
-            :aria-expanded="open"
+            class="{{ $triggerClass }} dropdown-toggle"
+            data-bs-toggle="dropdown"
+            data-bs-auto-close="outside"
+            aria-expanded="false"
             aria-haspopup="dialog"
-            :aria-label="@json(__('accessibility.open_settings'))"
-            :title="@json(__('accessibility.title'))">
+            aria-label="{{ __('accessibility.open_settings') }}"
+            title="{{ __('accessibility.title') }}">
         @include('partials.icons.a11y-settings')
     </button>
 
-    <div class="app-a11y-panel"
-         x-show="open"
-         x-cloak
-         x-transition.opacity.duration.150ms
-         role="dialog"
-         aria-label="{{ __('accessibility.title') }}"
-         @click.stop>
+    <div class="dropdown-menu dropdown-menu-end app-a11y-panel" role="dialog" aria-label="{{ __('accessibility.title') }}">
         <p class="app-a11y-panel-title">
             @include('partials.icons.a11y-settings')
             <span>{{ __('accessibility.title') }}</span>

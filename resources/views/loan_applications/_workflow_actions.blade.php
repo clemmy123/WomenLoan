@@ -47,6 +47,8 @@
     } elseif ($canApproveKm) {
         $primaryModal = 'approve_km';
         $actionTitle = __('workflow.action_titles.approve_km');
+        $submitLabel = __('workflow.buttons.approve_km');
+        $submitClass = 'app-btn app-btn-success app-btn-block';
     } elseif ($canAssignAccountant) {
         $primaryModal = 'assign_accountant';
         $actionTitle = __('workflow.action_titles.assign_accountant');
@@ -61,16 +63,16 @@
 @endphp
 
 @if(loan_has_workflow_actions($loan, $user))
-<div class="app-card app-card-padded" x-data="{ modal: null }">
-    <h3 class="font-bold text-slate-900 dark:text-white mb-4">{{ $actionTitle }}</h3>
+<div class="app-card app-card-padded workflow-actions-card">
+    <h3 class="workflow-actions-title">{{ $actionTitle }}</h3>
 
-    <div class="space-y-2">
+    <div class="workflow-actions">
         @if($canApplicantRespond)
-            <p class="text-sm text-slate-600 dark:text-zinc-400 mb-2">{!! __('workflow.proposed_amount', ['amount' => '<strong>'.e(format_tzs($loan->proposed_amount)).'</strong>']) !!}</p>
-            <button type="button" @click="modal = 'accept_amount'" class="app-btn app-btn-success app-btn-block">{{ __('workflow.buttons.submit') }}</button>
-            <button type="button" @click="modal = 'decline_amount'" class="app-btn app-btn-danger app-btn-block">{{ __('workflow.buttons.decline_amount') }}</button>
+            <p class="workflow-actions-help">{!! __('workflow.proposed_amount', ['amount' => '<strong>'.e(format_tzs($loan->proposed_amount)).'</strong>']) !!}</p>
+            <button type="button" class="app-btn app-btn-success app-btn-block" data-open-modal="app-modal-accept_amount">{{ __('workflow.buttons.submit') }}</button>
+            <button type="button" class="app-btn app-btn-danger app-btn-block" data-open-modal="app-modal-decline_amount">{{ __('workflow.buttons.decline_amount') }}</button>
         @elseif($primaryModal)
-            <button type="button" @click="modal = '{{ $primaryModal }}'" class="{{ $submitClass }}">{{ $submitLabel }}</button>
+            <button type="button" class="{{ $submitClass }}" data-open-modal="app-modal-{{ $primaryModal }}">{{ $submitLabel }}</button>
         @endif
 
         @if($hasPrimaryAction && $canRollback)
@@ -80,7 +82,7 @@
         @endif
 
         @if($canRollback)
-            <button type="button" @click="modal = 'rollback_step'" class="app-btn app-btn-danger app-btn-block">{{ $rollbackLabel }}</button>
+            <button type="button" class="app-btn app-btn-danger app-btn-block" data-open-modal="app-modal-rollback_step">{{ $rollbackLabel }}</button>
         @endif
     </div>
 

@@ -55,16 +55,17 @@ return [
         'cors_origins' => (static function (): string {
             $jumuishi = rtrim((string) env('JUMUISHI_URL', ''), '/');
             $configured = trim((string) env('JAMII_CORS_ORIGINS', ''));
+            $appHost = strtolower((string) parse_url((string) env('APP_URL', 'http://localhost'), PHP_URL_HOST));
+            $localApp = in_array($appHost, ['127.0.0.1', 'localhost', '::1', ''], true)
+                || str_ends_with($appHost, '.localhost')
+                || str_ends_with($appHost, '.test')
+                || str_ends_with($appHost, '.local');
             $origins = $configured !== ''
                 ? array_filter(array_map('trim', explode(',', $configured)))
-                : [
+                : ($localApp ? [
                     'http://127.0.0.1:8000',
                     'http://localhost:8000',
-                    'http://127.0.0.1:5173',
-                    'http://127.0.0.1:5175',
-                    'http://localhost:5173',
-                    'http://localhost:5175',
-                ];
+                ] : []);
 
             if ($jumuishi !== '') {
                 array_unshift($origins, $jumuishi);

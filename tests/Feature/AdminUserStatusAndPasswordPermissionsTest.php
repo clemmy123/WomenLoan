@@ -18,25 +18,78 @@ class AdminUserStatusAndPasswordPermissionsTest extends TestCase
         $this->seedApplication();
     }
 
-    public function test_admin_can_reset_password_and_deactivate_user(): void
+    public function test_admin_can_reset_password_via_emergency_action(): void
     {
         $target = User::where('email', 'accountant1@wdf.go.tz')->firstOrFail();
+
+        $this->actingAsRole('admin@wdf.go.tz')
+            ->get(route('admin.users.reset-password', $target))
+            ->assertOk()
+            ->assertSee(__('admin.reset_password_emergency'), false)
+            ->assertSee('name="password"', false);
+
+        $this->actingAsRole('admin@wdf.go.tz')
+            ->post(route('admin.users.reset-password.update', $target), [
+                'password' => 'NewTempPass1!',
+                'password_confirmation' => 'NewTempPass1!',
+            ])
+            ->assertRedirect(route('admin.users.show', $target));
+
+        $target->refresh();
+
+        $this->assertTrue($target->must_change_password);
+        $this->assertTrue(Hash::check('NewTempPass1!', $target->password));
+    }
+
+    public function test_admin_update_does_not_change_password_even_if_posted(): void
+    {
+        $target = User::where('email', 'accountant1@wdf.go.tz')->firstOrFail();
+        $originalHash = $target->password;
 
         $this->actingAsRole('admin@wdf.go.tz')
             ->put(route('admin.users.update', $target), $this->validUpdatePayload($target, [
                 'password' => 'NewTempPass1!',
                 'password_confirmation' => 'NewTempPass1!',
-                'is_active' => '0',
-                'deactivation_reason' => 'Left the ministry temporarily',
+                'first_name' => 'Updated',
             ]))
-            ->assertRedirect(route('admin.users.inactive'));
+            ->assertRedirect(route('admin.users.index'));
 
         $target->refresh();
 
-        $this->assertFalse($target->is_active);
-        $this->assertSame('Left the ministry temporarily', $target->deactivation_reason);
-        $this->assertTrue($target->must_change_password);
-        $this->assertTrue(Hash::check('NewTempPass1!', $target->password));
+        $this->assertSame('Updated', $target->first_name);
+        $this->assertSame($originalHash, $target->password);
+        $this->assertFalse($target->must_change_password);
+        $this->assertTrue(Hash::check('password', $target->password));
+    }
+
+    public function test_assign_roles_does_not_change_password(): void
+    {
+        $target = User::where('email', 'accountant1@wdf.go.tz')->firstOrFail();
+        $originalHash = $target->password;
+
+        $this->actingAsRole('admin@wdf.go.tz')
+            ->put(route('admin.users.assign-roles.update', $target), [
+                'role' => 'chief',
+            ])
+            ->assertRedirect(route('admin.users.assign-roles', $target));
+
+        $target->refresh();
+
+        $this->assertTrue($target->hasRole('chief'));
+        $this->assertSame($originalHash, $target->password);
+        $this->assertFalse($target->must_change_password);
+    }
+
+    public function test_edit_form_does_not_include_password_fields(): void
+    {
+        $target = User::where('email', 'accountant1@wdf.go.tz')->firstOrFail();
+
+        $this->actingAsRole('admin@wdf.go.tz')
+            ->get(route('admin.users.edit', $target))
+            ->assertOk()
+            ->assertDontSee('name="password"', false)
+            ->assertDontSee('id="admin_password"', false)
+            ->assertSee(__('admin.reset_password_emergency'), false);
     }
 
     public function test_admin_can_deactivate_user_via_action_with_reason(): void
@@ -110,7 +163,7 @@ class AdminUserStatusAndPasswordPermissionsTest extends TestCase
             ->assertSee(__('admin.deactivation_details'), false);
     }
 
-    public function test_user_without_reset_permission_cannot_change_password(): void
+    public function test_user_without_reset_permission_cannot_use_emergency_reset(): void
     {
         $actor = $this->makeUserManagerWithout([
             'reset user password',
@@ -119,15 +172,42 @@ class AdminUserStatusAndPasswordPermissionsTest extends TestCase
         $originalHash = $target->password;
 
         $this->actingAs($actor)
+            ->get(route('admin.users.reset-password', $target))
+            ->assertForbidden();
+
+        $this->actingAs($actor)
+            ->post(route('admin.users.reset-password.update', $target), [
+                'password' => 'NewTempPass1!',
+                'password_confirmation' => 'NewTempPass1!',
+            ])
+            ->assertForbidden();
+
+        $this->actingAs($actor)
             ->from(route('admin.users.edit', $target))
             ->put(route('admin.users.update', $target), $this->validUpdatePayload($target, [
                 'password' => 'NewTempPass1!',
                 'password_confirmation' => 'NewTempPass1!',
             ]))
-            ->assertRedirect(route('admin.users.edit', $target))
-            ->assertSessionHasErrors('password');
+            ->assertRedirect(route('admin.users.index'));
 
         $this->assertSame($originalHash, $target->fresh()->password);
+        $this->assertFalse($target->fresh()->must_change_password);
+    }
+
+    public function test_admin_cannot_reset_own_password_via_emergency_action(): void
+    {
+        $admin = User::where('email', 'admin@wdf.go.tz')->firstOrFail();
+
+        $this->actingAs($admin)
+            ->get(route('admin.users.reset-password', $admin))
+            ->assertForbidden();
+
+        $this->actingAs($admin)
+            ->post(route('admin.users.reset-password.update', $admin), [
+                'password' => 'NewTempPass1!',
+                'password_confirmation' => 'NewTempPass1!',
+            ])
+            ->assertForbidden();
     }
 
     public function test_user_without_deactivate_permission_cannot_deactivate(): void

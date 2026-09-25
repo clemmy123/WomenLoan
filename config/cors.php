@@ -1,12 +1,17 @@
 <?php
 
 $jumuishiOrigin = rtrim((string) env('JUMUISHI_URL', ''), '/');
+$configuredCors = trim((string) env('JAMII_CORS_ORIGINS', ''));
+$appHost = strtolower((string) parse_url((string) env('APP_URL', 'http://localhost'), PHP_URL_HOST));
+$localApp = in_array($appHost, ['127.0.0.1', 'localhost', '::1', ''], true)
+    || str_ends_with($appHost, '.localhost')
+    || str_ends_with($appHost, '.test')
+    || str_ends_with($appHost, '.local');
 $jamiiOrigins = array_values(array_filter(array_map(
     'trim',
-    explode(',', (string) env(
-        'JAMII_CORS_ORIGINS',
-        'http://127.0.0.1:8000,http://localhost:8000,http://127.0.0.1:5173,http://127.0.0.1:5175,http://localhost:5173,http://localhost:5175'
-    ))
+    explode(',', $configuredCors !== ''
+        ? $configuredCors
+        : ($localApp ? 'http://127.0.0.1:8000,http://localhost:8000' : ''))
 )));
 if ($jumuishiOrigin !== '') {
     array_unshift($jamiiOrigins, $jumuishiOrigin);
@@ -29,7 +34,7 @@ return [
 
     'allowed_methods' => ['GET', 'POST', 'OPTIONS'],
 
-    'allowed_origins' => $jamiiOrigins !== [] ? $jamiiOrigins : ['*'],
+    'allowed_origins' => $jamiiOrigins,
 
     'allowed_origins_patterns' => [],
 

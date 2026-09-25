@@ -3,7 +3,7 @@
 @section('title', __('applicants.title'))
 
 @section('content')
-<div class="page">
+<div class="app-page">
     @include('partials.page-header', [
         'title' => __('applicants.registry'),
         'subtitle' => __('applicants.registry_subtitle'),
@@ -11,7 +11,7 @@
     ])
 
     <div class="app-card app-card-padded">
-        <form action="{{ route('applicants.index') }}" method="GET" class="flex flex-col sm:flex-row gap-3 items-stretch sm:items-center" x-ref="searchForm">
+        <form action="{{ route('applicants.index') }}" method="GET" class="flex flex-col sm:flex-row gap-3 items-stretch sm:items-center">
             <div class="relative flex-grow">
                 <input
                     type="search"
@@ -20,7 +20,8 @@
                     placeholder="{{ __('applicants.search_please') }}"
                     class="app-input"
                     autocomplete="off"
-                    @input.debounce.350ms="$refs.searchForm.requestSubmit()"
+                    data-auto-submit-form
+                    data-auto-submit-delay="350"
                 >
             </div>
             @if(request('search'))

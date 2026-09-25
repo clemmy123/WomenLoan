@@ -61,6 +61,21 @@ class NidaRqVerificationTest extends TestCase
         $this->assertSame($firstName, $verified->json('data.first_name'));
     }
 
+    public function test_register_page_embeds_nida_api_urls(): void
+    {
+        $html = $this->get(route('register'))
+            ->assertOk()
+            ->assertSee(__('auth.register_title'), false)
+            ->assertSee(__('nida.register_subtitle_nida'), false)
+            ->getContent();
+
+        $this->assertStringContainsString('data-nida-config', $html);
+        $this->assertStringContainsString('startUrl', $html);
+        $this->assertStringContainsString('answerUrl', $html);
+        $this->assertStringNotContainsString('data-nida-config="JSON.parse', $html);
+        $this->assertStringNotContainsString('The route undefined could not be found.', $html);
+    }
+
     public function test_different_nins_yield_different_demo_names(): void
     {
         $names = [];

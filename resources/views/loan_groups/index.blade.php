@@ -1,7 +1,7 @@
 @extends('layouts.app')
 
 @section('content')
-<div class="page">
+<div class="app-page">
     @include('partials.page-header', [
         'title' => __('groups.index_title'),
         'subtitle' => __('groups.index_subtitle'),

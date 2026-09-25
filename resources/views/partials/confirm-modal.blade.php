@@ -1,8 +1,3 @@
-{{--
-    Gradient "Are you sure?" confirm card.
-    Requires parent Alpine scope. Pass $show (x-show expression), $close, $title, $message.
-    Optional: $note, $confirmLabel, $cancelLabel, $confirmClick, $confirmVariant (primary|success|danger), $footer (raw HTML).
---}}
 @php
     $confirmLabel = $confirmLabel ?? __('common.yes');
     $cancelLabel = $cancelLabel ?? __('common.cancel');
@@ -12,23 +7,24 @@
         'danger' => 'app-confirm-modal-btn--danger',
         default => 'app-confirm-modal-btn--ok',
     };
+    $modalId = $id ?? $name ?? 'default';
 @endphp
 <div
-    x-show="{!! $show !!}"
-    x-cloak
     class="app-modal-root"
+    id="confirm-modal-{{ $modalId }}"
+    hidden
     role="alertdialog"
     aria-modal="true"
-    aria-labelledby="confirm-modal-title-{{ $id ?? $name ?? 'default' }}"
-    @keydown.escape.window="{!! $close !!}"
+    aria-labelledby="confirm-modal-title-{{ $modalId }}"
+    aria-hidden="true"
 >
-    <div class="app-modal-backdrop" @click="{!! $close !!}"></div>
-    <div class="app-confirm-modal-panel" @click.stop>
+    <div class="app-modal-backdrop" data-close-modal></div>
+    <div class="app-confirm-modal-panel">
         <div class="app-confirm-modal-hero">
             <button
                 type="button"
                 class="app-confirm-modal-close"
-                @click="{!! $close !!}"
+                data-close-modal
                 aria-label="{{ __('common.close') }}"
             >&times;</button>
             <div class="app-confirm-modal-icon" aria-hidden="true">
@@ -40,7 +36,7 @@
             </div>
         </div>
         <div class="app-confirm-modal-body">
-            <h3 id="confirm-modal-title-{{ $id ?? $name ?? 'default' }}" class="app-confirm-modal-title">{{ $title }}</h3>
+            <h3 id="confirm-modal-title-{{ $modalId }}" class="app-confirm-modal-title">{{ $title }}</h3>
             <p class="app-confirm-modal-message">{{ $message }}</p>
             @if(! empty($note))
                 <p class="app-confirm-modal-note">{{ $note }}</p>
@@ -50,18 +46,20 @@
             @endif
             @if(! empty($footer))
                 {!! $footer !!}
-            @elseif(! empty($confirmClick))
+            @else
                 <div class="app-confirm-modal-actions">
-                    <button
-                        type="button"
-                        class="app-confirm-modal-btn {{ $confirmVariantClass }}"
-                        @click="{!! $confirmClick !!}"
-                    >{{ $confirmLabel }}</button>
-                    <button
-                        type="button"
-                        class="app-confirm-modal-btn app-confirm-modal-btn--cancel"
-                        @click="{!! $close !!}"
-                    >{{ $cancelLabel }}</button>
+                    @if(! empty($confirmFormAction))
+                        <form method="POST" action="{{ $confirmFormAction }}">
+                            @csrf
+                            @if(! empty($confirmMethod))
+                                @method($confirmMethod)
+                            @endif
+                            <button type="submit" class="app-confirm-modal-btn {{ $confirmVariantClass }}">{{ $confirmLabel }}</button>
+                        </form>
+                    @elseif(! empty($confirmButtonAttrs))
+                        <button type="button" class="app-confirm-modal-btn {{ $confirmVariantClass }}" {!! $confirmButtonAttrs !!}>{{ $confirmLabel }}</button>
+                    @endif
+                    <button type="button" class="app-confirm-modal-btn app-confirm-modal-btn--cancel" data-close-modal>{{ $cancelLabel }}</button>
                 </div>
             @endif
         </div>

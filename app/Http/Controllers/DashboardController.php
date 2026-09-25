@@ -14,20 +14,30 @@ class DashboardController extends Controller
         $user = Auth::user();
         $stats = $this->stats->forUser();
         $recentFilter = $this->stats->normalizeRecentFilter($request->query('recent'));
+        $recentType = $this->stats->normalizeRecentType($request->query('type'));
         $recentSearch = trim((string) $request->query('search', ''));
         $recentSort = $this->stats->normalizeRecentSort($request->query('sort'));
-        $recentLoans = $this->stats->paginatedRecentLoans($recentFilter, $recentSearch, $recentSort);
+        $recentLoans = $this->stats->paginatedRecentLoans(
+            $recentFilter,
+            $recentSearch,
+            $recentSort,
+            type: $recentType,
+        );
         $recentSortOptions = $this->stats->recentSortOptions();
         $monthly = $this->stats->monthlyApplications();
         $pipeline = $this->stats->stepBreakdown();
         $fiscalYear = $this->stats->currentFiscalYearKey();
         $fiscalYearFrom = $this->stats->currentFiscalYearContext()['from'];
+        $disbursedCollection = $recentFilter === 'disbursed'
+            ? $this->stats->disbursedCollectionSummary($recentType)
+            : null;
 
         return view('dashboard', compact(
             'user',
             'stats',
             'recentLoans',
             'recentFilter',
+            'recentType',
             'recentSearch',
             'recentSort',
             'recentSortOptions',
@@ -35,6 +45,7 @@ class DashboardController extends Controller
             'pipeline',
             'fiscalYear',
             'fiscalYearFrom',
+            'disbursedCollection',
         ));
     }
 }

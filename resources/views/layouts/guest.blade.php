@@ -7,7 +7,7 @@
     <title>{{ __('nav.welcome') }} | {{ __('nav.login') }}</title>
     <link rel="icon" href="{{ asset('images/nembo2.png') }}" type="image/png">
     @include('partials.accessibility-head-script')
-    @vite(['resources/css/app.css'])
+    @include('partials.assets-head')
 </head>
 <body class="h-full flex items-center justify-center p-6 bg-slate-50 dark:dark-auth-bg">
     <div class="w-full max-w-md">
@@ -26,6 +26,6 @@
             @include('partials.locale-flags')
         </div>
     </div>
-    @vite(['resources/js/app.js'])
+    @include('partials.assets-body')
 </body>
 </html>

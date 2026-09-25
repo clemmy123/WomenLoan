@@ -9,6 +9,7 @@
     $isKmViewer = $viewer?->hasRole('km') ?? false;
     $isDisbursementViewer = $viewer?->hasAnyRole(['chief', 'accountant']) ?? false;
     $isSimplifiedViewer = $isKmViewer || $isDisbursementViewer;
+    $showAssignedOfficer = \App\Support\StaffZone::isMinistryLevel($viewer);
     $hasWorkflow = loan_has_workflow_actions($loan);
     $cdoViewOnlyMessage = $isApplicantViewer
         ? null
@@ -46,19 +47,19 @@
             ]);
     }
 @endphp
-<div class="page">
-    <div class="page-header">
+<div class="app-page">
+    <div class="app-page-header">
         <div>
             <a href="{{ route('loan-applications.index') }}" class="text-sm font-semibold text-slate-500 dark:text-zinc-400 hover:text-indigo-600 dark:hover:text-indigo-400 mb-2 inline-block">← {{ __('common.back_to_list') }}</a>
-            <h1 class="page-title">{{ $loan->loan_track_id }}</h1>
-            <p class="page-subtitle">{{ loan_type_label($loan->loan_type) }} — {{ loan_workflow_step_label($loan->current_step) }}</p>
+            <h1 class="app-page-title">{{ $loan->loan_track_id }}</h1>
+            <p class="app-page-subtitle">{{ loan_type_label($loan->loan_type) }} — {{ loan_workflow_step_label($loan->current_step) }}</p>
         </div>
         @include('partials.loan-status-badge', ['status' => $loan->status])
         @unless($isApplicantViewer)
             @include('partials.cdo-loan-scope-badge', ['loan' => $loan])
         @endunless
         @if($loan->isEditableByApplicant())
-        <div class="page-actions">
+        <div class="app-page-actions">
             <a href="{{ route('loan-applications.edit', $loan) }}" class="app-btn app-btn-primary">{{ __('loans.edit_application') }}</a>
         </div>
         @endif
@@ -89,7 +90,9 @@
                         @include('partials.detail-field', ['label' => __('dashboard.disbursed'), 'value' => $loan->disbursed_amount ? format_tzs($loan->disbursed_amount) : null])
                         @include('partials.detail-field', ['label' => __('loans.bank_name'), 'value' => $loan->bank_name])
                         @include('partials.detail-field', ['label' => __('loans.bank_number'), 'value' => $loan->bank_number, 'mono' => true])
-                        @include('partials.detail-field', ['label' => __('loans.assigned_officer'), 'value' => $loan->officer?->name])
+                        @if($showAssignedOfficer)
+                            @include('partials.detail-field', ['label' => __('loans.assigned_officer'), 'value' => $loan->officer?->name])
+                        @endif
                     </div>
                 </div>
 
@@ -181,6 +184,9 @@
                         @include('partials.detail-field', ['label' => __('loans.tin_number'), 'value' => $business?->tin_number, 'mono' => true])
                         @include('partials.detail-field', ['label' => __('loans.bank_name'), 'value' => $loan->bank_name])
                         @include('partials.detail-field', ['label' => __('loans.bank_number'), 'value' => $loan->bank_number, 'mono' => true])
+                        @if($showAssignedOfficer)
+                            @include('partials.detail-field', ['label' => __('loans.assigned_officer'), 'value' => $loan->officer?->name])
+                        @endif
                     </div>
                 </div>
 
@@ -214,8 +220,10 @@
                         @include('partials.detail-field', ['label' => __('loans.date_issued'), 'value' => $loan->date_issued?->translatedFormat('d M Y')])
                         @unless($isApplicantViewer)
                             @include('partials.detail-field', ['label' => __('loans.approved_by'), 'value' => $loan->approved_by])
-                            @include('partials.detail-field', ['label' => __('loans.assigned_officer'), 'value' => $loan->officer?->name])
                         @endunless
+                        @if($showAssignedOfficer)
+                            @include('partials.detail-field', ['label' => __('loans.assigned_officer'), 'value' => $loan->officer?->name])
+                        @endif
                         @if($loan->loan_type === 'group')
                             @include('partials.detail-field', ['label' => __('loans.loan_group'), 'value' => $loan->group?->name])
                         @endif
@@ -359,7 +367,9 @@
                             @include('partials.detail-field', ['label' => __('applicants.last_name'), 'value' => $guarantor->last_name ?: $guarantorNameParts['last_name']])
                             @include('partials.detail-field', ['label' => __('loans.guarantor_phone'), 'value' => $guarantor->phone])
                             @include('partials.detail-field', ['label' => __('loans.guarantor_nin'), 'value' => $guarantor->id_number, 'mono' => true])
-                            @include('partials.detail-field', ['label' => __('loans.guarantor_relationship'), 'value' => __('loans.guarantor_relationships')[$guarantor->relationship] ?? $guarantor->relationship])
+                            @if(($loan->loan_type ?? null) !== 'group')
+                                @include('partials.detail-field', ['label' => __('loans.guarantor_relationship'), 'value' => __('loans.guarantor_relationships')[$guarantor->relationship] ?? $guarantor->relationship])
+                            @endif
                             @include('partials.detail-field', ['label' => __('loans.guarantor_occupation'), 'value' => $guarantor->occupation])
                             @include('partials.detail-field', [
                                 'label' => __('loans.guarantor_sex'),

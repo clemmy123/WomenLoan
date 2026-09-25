@@ -17,5 +17,5 @@
 <script type="application/json" id="geo-api-config">@json($geoApi)</script>
 <script type="application/json" id="geo-cascade-labels">@json($geoCascadeLabels)</script>
 <script type="application/json" id="geo-cascade-old-values">@json($geoCascadeOldValues)</script>
-@vite(['resources/js/pages/geo-cascade.js'])
+<script type="module" src="{{ asset('js/pages/geo-cascade.js') }}"></script>
 @endpush

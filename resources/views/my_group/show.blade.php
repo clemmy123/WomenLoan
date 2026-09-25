@@ -26,27 +26,20 @@
         'destroy_url' => route('my-group.members.destroy', $m),
     ])->values();
 @endphp
+<script type="application/json" id="group-members-data">@json($membersPayload)</script>
 <div
-    class="page page-medium"
-    x-data="{
-        modal: null,
-        member: null,
-        ageTemplate: @js(__('applicants.age_years', ['age' => ':age'])),
-        ageLabel(dob) {
-            const age = window.calculateAge?.(dob);
-            if (age === null || age === undefined) return '';
-            return this.ageTemplate.replace(':age', String(age));
-        },
-    }"
+    class="app-page app-page-medium"
+    data-group-show
+    data-age-template="{{ __('applicants.age_years', ['age' => ':age']) }}"
 >
-    <div class="page-header">
+    <div class="app-page-header">
         <div>
-            <h1 class="page-title">{{ $group->name }}</h1>
-            <p class="page-subtitle">{{ __('groups.my_group_subtitle') }}</p>
+            <h1 class="app-page-title">{{ $group->name }}</h1>
+            <p class="app-page-subtitle">{{ __('groups.my_group_subtitle') }}</p>
         </div>
-        <div class="page-actions flex flex-wrap gap-2">
+        <div class="app-page-actions flex flex-wrap gap-2">
             @if($canManage)
-                <button type="button" @click="modal = 'add'" class="app-btn app-btn-secondary">{{ __('groups.add_member') }}</button>
+                <button type="button" class="app-btn app-btn-secondary" data-open-modal="app-modal-add">{{ __('groups.add_member') }}</button>
             @endif
             @if($canStartApplication ?? false)
             <a href="{{ route('loan-applications.create') }}" class="app-btn app-btn-success">{{ __('loans.continue_as_group') }}</a>
@@ -114,12 +107,12 @@
                         <td class="text-right whitespace-nowrap">
                             <div class="inline-flex flex-wrap justify-end gap-1">
                                 <button type="button" class="app-btn app-btn-secondary text-xs px-2.5 py-1.5"
-                                    @click="member = @js($membersPayload[$index]); modal = 'view'">{{ __('common.view') }}</button>
+                                    data-member-action="view" data-member-index="{{ $index }}">{{ __('common.view') }}</button>
                                 <button type="button" class="app-btn app-btn-secondary text-xs px-2.5 py-1.5"
-                                    @click="member = @js($membersPayload[$index]); modal = 'edit'">{{ __('common.edit') }}</button>
+                                    data-member-action="edit" data-member-index="{{ $index }}">{{ __('common.edit') }}</button>
                                 @if(! $member->is_group_leader)
                                 <button type="button" class="app-btn app-btn-danger text-xs px-2.5 py-1.5"
-                                    @click="member = @js($membersPayload[$index]); modal = 'remove'">{{ __('groups.remove_member') }}</button>
+                                    data-member-action="remove" data-member-index="{{ $index }}">{{ __('groups.remove_member') }}</button>
                                 @endif
                             </div>
                         </td>
@@ -177,12 +170,12 @@
                 @if($canManage)
                 <div class="flex flex-wrap gap-2 pt-1">
                     <button type="button" class="app-btn app-btn-secondary text-xs"
-                        @click="member = @js($membersPayload[$index]); modal = 'view'">{{ __('common.view') }}</button>
+                        data-member-action="view" data-member-index="{{ $index }}">{{ __('common.view') }}</button>
                     <button type="button" class="app-btn app-btn-secondary text-xs"
-                        @click="member = @js($membersPayload[$index]); modal = 'edit'">{{ __('common.edit') }}</button>
+                        data-member-action="edit" data-member-index="{{ $index }}">{{ __('common.edit') }}</button>
                     @if(! $member->is_group_leader)
                     <button type="button" class="app-btn app-btn-danger text-xs"
-                        @click="member = @js($membersPayload[$index]); modal = 'remove'">{{ __('groups.remove_member') }}</button>
+                        data-member-action="remove" data-member-index="{{ $index }}">{{ __('groups.remove_member') }}</button>
                     @endif
                 </div>
                 @endif
@@ -192,182 +185,30 @@
     </div>
 
     @if($canManage)
-        {{-- View member --}}
-        <div x-show="modal === 'view' && member" x-cloak class="app-modal-root" role="dialog" aria-modal="true" @keydown.escape.window="modal = null">
-            <div class="app-modal-backdrop" @click="modal = null"></div>
-            <div class="app-modal-panel" @click.stop>
-                <div class="app-modal-header">
-                    <h3 class="app-modal-title" x-text="member?.full_name"></h3>
-                    <button type="button" class="app-modal-close" @click="modal = null">&times;</button>
-                </div>
-                <div class="app-modal-body space-y-4">
-                    <dl class="detail-grid">
-                        <div><dt class="text-xs text-slate-500 uppercase">{{ __('applicants.first_name') }}</dt><dd class="font-medium" x-text="member?.first_name"></dd></div>
-                        <div><dt class="text-xs text-slate-500 uppercase">{{ __('applicants.middle_name') }}</dt><dd x-text="member?.middle_name || '—'"></dd></div>
-                        <div><dt class="text-xs text-slate-500 uppercase">{{ __('applicants.last_name') }}</dt><dd class="font-medium" x-text="member?.last_name"></dd></div>
-                        <div><dt class="text-xs text-slate-500 uppercase">{{ __('groups.leadership') }}</dt><dd x-text="member?.leadership_role_label ?? '{{ __('common.na') }}'"></dd></div>
-                        <div><dt class="text-xs text-slate-500 uppercase">{{ __('applicants.nin') }}</dt><dd class="font-mono text-sm" x-text="member?.nin"></dd></div>
-                        <div><dt class="text-xs text-slate-500 uppercase">{{ __('applicants.dob') }}</dt><dd x-text="member?.dob_label ?? '—'"></dd></div>
-                        <div><dt class="text-xs text-slate-500 uppercase">{{ __('applicants.sex') }}</dt><dd x-text="member?.sex ?? '—'"></dd></div>
-                        <div><dt class="text-xs text-slate-500 uppercase">{{ __('applicants.marital_status') }}</dt><dd x-text="member?.marital_status_label ?? '—'"></dd></div>
-                        <div><dt class="text-xs text-slate-500 uppercase">{{ __('common.phone') }}</dt><dd x-text="member?.phone"></dd></div>
-                        <div class="md:col-span-2"><dt class="text-xs text-slate-500 uppercase">{{ __('common.email') }}</dt><dd x-text="member?.email || '—'"></dd></div>
-                    </dl>
-                    <div class="flex justify-end">
-                        <button type="button" class="app-btn app-btn-secondary" @click="modal = null">{{ __('common.cancel') }}</button>
-                    </div>
-                </div>
-            </div>
-        </div>
+        @include('partials.modal', [
+            'name' => 'view-member',
+            'modalId' => 'app-modal-view-member',
+            'title' => __('common.view'),
+            'wide' => true,
+            'body' => view('my_group._member_view_modal_body')->render(),
+        ])
 
-        {{-- Edit member --}}
-        <div x-show="modal === 'edit' && member" x-cloak class="app-modal-root" role="dialog" aria-modal="true" @keydown.escape.window="modal = null">
-            <div class="app-modal-backdrop" @click="modal = null"></div>
-            <div class="app-modal-panel max-w-lg" @click.stop>
-                <div class="app-modal-header">
-                    <h3 class="app-modal-title">{{ __('groups.edit_member') }}</h3>
-                    <button type="button" class="app-modal-close" @click="modal = null">&times;</button>
-                </div>
-                <div class="app-modal-body">
-                    <template x-if="member?.is_group_leader">
-                        <form :action="member?.update_url" method="POST" class="space-y-4">
-                            @csrf
-                            @method('PUT')
-                            <p class="text-sm text-slate-500 dark:text-zinc-400">{{ __('groups.leader_edit_hint') }}</p>
-                            <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                                <div class="wizard-field">
-                                    <label class="app-label">{{ __('applicants.first_name') }}</label>
-                                    <input type="text" class="app-input" :value="member?.first_name" readonly>
-                                </div>
-                                <div class="wizard-field">
-                                    <label class="app-label">{{ __('applicants.middle_name') }}</label>
-                                    <input type="text" class="app-input" :value="member?.middle_name || ''" readonly>
-                                </div>
-                                <div class="wizard-field">
-                                    <label class="app-label">{{ __('applicants.last_name') }}</label>
-                                    <input type="text" class="app-input" :value="member?.last_name" readonly>
-                                </div>
-                            </div>
-                            <div class="wizard-field">
-                                <label class="app-label">{{ __('applicants.dob') }} @include('partials.required-mark')</label>
-                                <input
-                                    type="date"
-                                    name="dob"
-                                    class="app-input"
-                                    x-model="member.dob"
-                                    max="{{ now()->subYears(18)->toDateString() }}"
-                                    required
-                                >
-                                <p class="mt-1.5 text-xs font-medium text-indigo-600" x-show="ageLabel(member?.dob)" x-text="ageLabel(member?.dob)"></p>
-                            </div>
-                            <div class="wizard-field">
-                                <label class="app-label">{{ __('applicants.sex') }} @include('partials.required-mark')</label>
-                                @include('partials.inputs.female-sex-field')
-                            </div>
-                            <div class="wizard-field">
-                                <label class="app-label">{{ __('groups.leadership') }}</label>
-                                <select name="leadership_role" class="app-select">
-                                    <option value="">{{ __('groups.select_leadership') }}</option>
-                                    @foreach(\App\Support\GroupLeadershipRole::options() as $key => $label)
-                                        <option value="{{ $key }}" :selected="member?.leadership_role === '{{ $key }}'">{{ $label }}</option>
-                                    @endforeach
-                                </select>
-                            </div>
-                            <div class="flex justify-end gap-2">
-                                <button type="button" class="app-btn app-btn-secondary" @click="modal = null">{{ __('common.cancel') }}</button>
-                                <button type="submit" class="app-btn app-btn-primary">{{ __('common.save') }}</button>
-                            </div>
-                        </form>
-                    </template>
-                    <template x-if="member && !member.is_group_leader">
-                        <form :action="member.update_url" method="POST" class="space-y-4">
-                            @csrf
-                            @method('PUT')
-                            <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                                <div class="wizard-field">
-                                    <label class="app-label">{{ __('applicants.first_name') }} @include('partials.required-mark')</label>
-                                    <input type="text" name="first_name" class="app-input" :value="member.first_name" required>
-                                </div>
-                                <div class="wizard-field">
-                                    <label class="app-label">{{ __('applicants.middle_name') }}</label>
-                                    <input type="text" name="middle_name" class="app-input" :value="member.middle_name || ''">
-                                </div>
-                                <div class="wizard-field">
-                                    <label class="app-label">{{ __('applicants.last_name') }} @include('partials.required-mark')</label>
-                                    <input type="text" name="last_name" class="app-input" :value="member.last_name" required>
-                                </div>
-                            </div>
-                            <div class="wizard-form-grid wizard-form-grid-2">
-                                <div class="wizard-field">
-                                    <label class="app-label">{{ __('applicants.nin') }} @include('partials.required-mark')</label>
-                                    <input type="text" name="nin" class="app-input" :value="member.nin" required>
-                                </div>
-                                <div class="wizard-field">
-                                    <label class="app-label">{{ __('applicants.dob') }} @include('partials.required-mark')</label>
-                                    <input
-                                        type="date"
-                                        name="dob"
-                                        class="app-input"
-                                        x-model="member.dob"
-                                        max="{{ now()->subYears(18)->toDateString() }}"
-                                        required
-                                    >
-                                    <p class="mt-1.5 text-xs font-medium text-indigo-600" x-show="ageLabel(member?.dob)" x-text="ageLabel(member?.dob)"></p>
-                                </div>
-                                <div class="wizard-field">
-                                    <label class="app-label">{{ __('applicants.sex') }} @include('partials.required-mark')</label>
-                                    <input type="hidden" name="sex" value="Female">
-                                    <input type="text" value="{{ __('applicants.female') }}" readonly
-                                        class="app-input bg-gray-100 border-gray-200 text-gray-600 cursor-not-allowed">
-                                </div>
-                                <div class="wizard-field">
-                                    <label class="app-label">{{ __('applicants.marital_status') }} @include('partials.required-mark')</label>
-                                    <select name="marital_status" class="app-select" required>
-                                        @foreach(\App\Models\Applicant::MARITAL_STATUSES as $status)
-                                            <option value="{{ $status }}" :selected="member?.marital_status === '{{ $status }}'">{{ __('applicants.marital_statuses.'.$status) }}</option>
-                                        @endforeach
-                                    </select>
-                                </div>
-                                <div class="wizard-field">
-                                    <label class="app-label">{{ __('common.phone') }} @include('partials.required-mark')</label>
-                                    <input type="text" name="phone" class="app-input" :value="member.phone" required>
-                                </div>
-                                <div class="wizard-field">
-                                    <label class="app-label">{{ __('common.email') }}</label>
-                                    <input type="email" name="email" class="app-input" :value="member.email || ''">
-                                </div>
-                                <div class="wizard-field">
-                                    <label class="app-label">{{ __('groups.leadership') }}</label>
-                                    <select name="leadership_role" class="app-select">
-                                        <option value="">{{ __('groups.select_leadership') }}</option>
-                                        @foreach(\App\Support\GroupLeadershipRole::options() as $key => $label)
-                                            <option value="{{ $key }}" :selected="member?.leadership_role === '{{ $key }}'">{{ $label }}</option>
-                                        @endforeach
-                                    </select>
-                                </div>
-                            </div>
-                            <div class="flex justify-end gap-2">
-                                <button type="button" class="app-btn app-btn-secondary" @click="modal = null">{{ __('common.cancel') }}</button>
-                                <button type="submit" class="app-btn app-btn-primary">{{ __('common.save') }}</button>
-                            </div>
-                        </form>
-                    </template>
-                </div>
-            </div>
-        </div>
+        @include('partials.modal', [
+            'name' => 'edit-member',
+            'modalId' => 'app-modal-edit-member',
+            'title' => __('groups.edit_member'),
+            'wide' => true,
+            'body' => view('my_group._member_edit_modal_body')->render(),
+        ])
 
         @include('partials.confirm-modal', [
-            'show' => "modal === 'remove' && member",
-            'close' => 'modal = null',
+            'name' => 'remove-member',
             'title' => __('groups.remove_member'),
             'message' => __('groups.remove_member_confirm'),
-            'confirmLabel' => __('groups.remove_member'),
-            'confirmVariant' => 'danger',
-            'body' => '<p class="font-semibold text-slate-900 dark:text-white" x-text="member?.full_name"></p>',
+            'body' => '<p class="font-semibold text-slate-900 dark:text-white" data-remove-member-name></p>',
             'footer' => view('my_group._remove_member_confirm_footer')->render(),
         ])
 
-        {{-- Add member --}}
         @include('partials.modal', [
             'name' => 'add',
             'title' => __('groups.add_member'),

@@ -1,23 +1,24 @@
-{{-- Requires parent x-data with `modal` property. Pass $name and $title. Body via $body. --}}
+{{-- WDF overlay modal. Open with data-open-modal="{{ $modalId }}". --}}
 @php
     $wide = $wide ?? false;
+    $modalId = $modalId ?? 'app-modal-'.$name;
 @endphp
 <div
-    x-show="modal === @js($name)"
-    x-cloak
     class="app-modal-root"
+    id="{{ $modalId }}"
+    hidden
     role="dialog"
     aria-modal="true"
     aria-labelledby="modal-title-{{ $name }}"
-    @keydown.escape.window="modal = null"
+    aria-hidden="true"
 >
-    <div class="app-modal-backdrop" @click="modal = null"></div>
-    <div class="app-confirm-modal-panel{{ $wide ? ' app-confirm-modal-panel--wide' : '' }}" @click.stop>
+    <div class="app-modal-backdrop" data-close-modal></div>
+    <div class="app-confirm-modal-panel{{ $wide ? ' app-confirm-modal-panel--wide' : '' }}">
         <div class="app-confirm-modal-hero">
             <button
                 type="button"
                 class="app-confirm-modal-close"
-                @click="modal = null"
+                data-close-modal
                 aria-label="{{ __('common.close') }}"
             >&times;</button>
             <div class="app-confirm-modal-icon" aria-hidden="true">

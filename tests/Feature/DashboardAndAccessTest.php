@@ -82,6 +82,59 @@ class DashboardAndAccessTest extends TestCase
         $response->assertDontSee('Hidden Officer');
     }
 
+    public function test_assigned_officer_is_visible_from_ministry_level_only(): void
+    {
+        $loan = $this->loanByTrack('WL000001');
+
+        $this->actingAsRole('ward.cdo@wdf.go.tz')
+            ->get(route('loan-applications.show', $loan->hashid))
+            ->assertOk()
+            ->assertDontSee(__('loans.assigned_officer'), false);
+
+        $this->actingAsRole('council.cdo@wdf.go.tz')
+            ->get(route('loan-applications.show', $loan->hashid))
+            ->assertOk()
+            ->assertDontSee(__('loans.assigned_officer'), false);
+
+        $this->actingAsRole('ministry@wdf.go.tz')
+            ->get(route('loan-applications.show', $loan->hashid))
+            ->assertOk()
+            ->assertSee(__('loans.assigned_officer'), false);
+
+        $this->actingAsRole('km@wdf.go.tz')
+            ->get(route('loan-applications.show', $loan->hashid))
+            ->assertOk()
+            ->assertSee(__('loans.assigned_officer'), false);
+    }
+
+    public function test_list_shows_workflow_step_from_ministry_level_only(): void
+    {
+        $assDirLabel = __('loans.workflow_steps.6');
+        $wardLabel = __('loans.workflow_steps.1');
+        $ministryLabel = __('loans.workflow_steps.3');
+
+        $this->actingAsRole('assdir@wdf.go.tz')
+            ->get(route('loan-applications.index'))
+            ->assertOk()
+            ->assertSee($assDirLabel, false);
+
+        $this->actingAsRole('ministry@wdf.go.tz')
+            ->get(route('loan-applications.index'))
+            ->assertOk()
+            ->assertSee($ministryLabel, false);
+
+        $this->actingAsRole('ward.cdo@wdf.go.tz')
+            ->get(route('loan-applications.index'))
+            ->assertOk()
+            ->assertDontSee($assDirLabel, false)
+            ->assertDontSee($wardLabel, false);
+
+        $this->actingAsRole('council.cdo@wdf.go.tz')
+            ->get(route('loan-applications.index'))
+            ->assertOk()
+            ->assertDontSee($assDirLabel, false);
+    }
+
     public function test_katibu_mkuu_sees_application_progress_tracker(): void
     {
         $loan = $this->loanByTrack('WL000001');
@@ -119,6 +172,7 @@ class DashboardAndAccessTest extends TestCase
         $response->assertSee(__('loans.tin_number'), false);
         $response->assertSee(__('loans.bank_name'), false);
         $response->assertSee(__('loans.bank_number'), false);
+        $response->assertSee(__('loans.assigned_officer'), false);
         $response->assertSee(__('loans.progress_steps'), false);
         $response->assertSee(__('loans.progress_steps_help'), false);
         $response->assertSee(__('loans.workflow_steps.1'), false);
@@ -131,18 +185,24 @@ class DashboardAndAccessTest extends TestCase
         $response->assertDontSee(__('loans.approval_history'), false);
     }
 
-    public function test_permanent_secretary_label_follows_locale(): void
+    public function test_workflow_step_labels_match_actual_roles(): void
     {
         app()->setLocale('en');
-        $this->assertSame('Permanent Secretary Review', __('loans.workflow_steps.6'));
+        $this->assertSame('Assistant Director Review', __('loans.workflow_steps.6'));
+        $this->assertSame('Permanent Secretary Review', __('loans.workflow_steps.8'));
+        $this->assertSame('Assistant Director', role_label('assistant_director'));
         $this->assertSame('Permanent Secretary', role_label('km'));
+        $this->assertSame('Ass. Director', \App\Support\WorkflowSteps::labelForStep(6));
         $this->assertSame('Permanent Secretary', \App\Support\WorkflowSteps::labelForStep(8));
         $this->assertStringNotContainsString('Katibu Mkuu', __('loans.workflow_steps.6'));
-        $this->assertStringNotContainsString('Katibu Mkuu', role_label('km'));
+        $this->assertStringNotContainsString('Katibu Mkuu', __('loans.workflow_steps.8'));
 
         app()->setLocale('sw');
-        $this->assertSame('Ukaguzi wa Katibu Mkuu', __('loans.workflow_steps.6'));
+        $this->assertSame('Ukaguzi wa Mkurugenzi Msaidizi', __('loans.workflow_steps.6'));
+        $this->assertSame('Ukaguzi wa Katibu Mkuu', __('loans.workflow_steps.8'));
+        $this->assertSame('Mkurugenzi Msaidizi', role_label('assistant_director'));
         $this->assertSame('Katibu Mkuu', role_label('km'));
+        $this->assertSame('Mkurugenzi Msaidizi', \App\Support\WorkflowSteps::labelForStep(6));
         $this->assertSame('Katibu Mkuu', \App\Support\WorkflowSteps::labelForStep(8));
     }
 
@@ -223,7 +283,22 @@ class DashboardAndAccessTest extends TestCase
             ->get(route('dashboard', ['recent' => 'disbursed']))
             ->assertOk()
             ->assertSee(__('dashboard.recent_filter_disbursed'), false)
-            ->assertSee('WL000012', false);
+            ->assertSee(__('dashboard.disbursed_summary_copy', [
+                'all' => '1',
+                'individual' => '0',
+                'group' => '1',
+            ]), false)
+            ->assertSee(__('dashboard.summary_all'), false)
+            ->assertSee(__('dashboard.summary_individual'), false)
+            ->assertSee(__('dashboard.summary_groups'), false)
+            ->assertSee(__('repayments.collection_rate', ['rate' => 22]), false)
+            ->assertSee(__('repayments.disbursed_col'), false)
+            ->assertSee(__('repayments.amount_paid_col'), false)
+            ->assertSee(__('repayments.outstanding'), false)
+            ->assertSee('WL000012', false)
+            ->assertDontSee(__('common.actions'), false)
+            ->assertDontSee(__('dashboard.funds_received'), false)
+            ->assertSee(loan_status_label('disbursed'), false);
     }
 
     public function test_dashboard_recent_list_supports_search_and_sort(): void
@@ -253,7 +328,8 @@ class DashboardAndAccessTest extends TestCase
         $this->actingAs($ministry);
 
         $stats = app(DashboardStatsService::class)->forUser();
-        $this->assertSame(11, $stats['total']);
+        $this->assertSame(11, $stats['loan_count']);
+        $this->assertSame($stats['individual_count'] + $stats['group_members_count'], $stats['total']);
         $this->assertSame(0, $stats['disbursed']);
 
         $this->get(route('dashboard'))
@@ -278,7 +354,43 @@ class DashboardAndAccessTest extends TestCase
 
         $this->get(route('dashboard', ['recent' => 'approved']))
             ->assertOk()
-            ->assertSee('WL000012', false);
+            ->assertSee('WL000012', false)
+            ->assertDontSee(__('common.actions'), false);
+    }
+
+    public function test_total_applications_count_individuals_and_group_members(): void
+    {
+        $ministry = \App\Models\User::where('email', 'ministry@wdf.go.tz')->firstOrFail();
+        DashboardStatsService::flushForUser($ministry->id);
+        $this->actingAs($ministry);
+
+        $stats = app(DashboardStatsService::class)->forUser();
+
+        $this->assertSame($stats['individual_count'] + $stats['group_members_count'], $stats['total']);
+        $this->assertGreaterThan($stats['individual_count'], $stats['total']);
+        $this->assertSame(3, $stats['group_members_count']);
+
+        $this->get(route('dashboard'))
+            ->assertOk()
+            ->assertSee(__('dashboard.summary_individual'), false)
+            ->assertSee(__('dashboard.summary_groups'), false)
+            ->assertDontSee(__('common.actions'), false);
+
+        $this->get(route('dashboard', ['type' => 'individual']))
+            ->assertOk()
+            ->assertSee(__('dashboard.recent_filter_individual'), false)
+            ->assertSee('WL000001', false)
+            ->assertDontSee('WL000002', false)
+            ->assertDontSee(__('common.actions'), false)
+            ->assertSee(loan_status_label('pending'), false);
+
+        $this->get(route('dashboard', ['type' => 'group']))
+            ->assertOk()
+            ->assertSee(__('dashboard.recent_filter_group'), false)
+            ->assertSee('WL000002', false)
+            ->assertDontSee('WL000001', false)
+            ->assertDontSee(__('common.actions'), false)
+            ->assertSee(loan_status_label('received'), false);
     }
 
     public function test_dashboard_shows_current_fiscal_year_label(): void

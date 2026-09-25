@@ -15,6 +15,8 @@ return [
     'my_profile' => 'My Profile',
     'change_password' => 'Change Password',
     'loan_applications' => 'Loan Applications',
+    'applications_menu' => 'Loan Applications',
+    'applications' => 'Applications',
     'new_application' => 'New Application',
     'my_loans' => 'My Loans',
     'loan_groups' => 'Loan Groups',
@@ -46,6 +48,7 @@ return [
     'language' => 'Language',
     'english' => 'English',
     'swahili' => 'Kiswahili',
+    'home' => 'Home',
     'welcome' => 'Women Loans System',
     'platform' => 'Loan Management Platform',
 ];

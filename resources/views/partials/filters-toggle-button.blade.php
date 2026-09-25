@@ -2,14 +2,20 @@
     'title',
     'showLabel',
     'hideLabel',
+    'target' => 'filters-panel',
+    'expanded' => false,
 ])
 
 <button
     type="button"
-    @click="filtersOpen = !filtersOpen"
     class="list-filters-toggle"
-    :aria-expanded="filtersOpen.toString()"
-    :aria-label="filtersOpen ? @js($hideLabel) : @js($showLabel)"
+    data-bs-toggle="collapse"
+    data-bs-target="#{{ $target }}"
+    aria-expanded="{{ $expanded ? 'true' : 'false' }}"
+    aria-controls="{{ $target }}"
+    aria-label="{{ $expanded ? $hideLabel : $showLabel }}"
+    data-show-label="{{ $showLabel }}"
+    data-hide-label="{{ $hideLabel }}"
 >
     <span class="list-filters-toggle-icon" aria-hidden="true">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -17,8 +23,5 @@
         </svg>
     </span>
     <span class="list-filters-toggle-title">{{ $title }}</span>
-    <span
-        class="list-filters-toggle-state"
-        x-text="filtersOpen ? @js($hideLabel) : @js($showLabel)"
-    ></span>
+    <span class="list-filters-toggle-state">{{ $expanded ? $hideLabel : $showLabel }}</span>
 </button>

@@ -3,6 +3,7 @@
 return [
     'cancel' => 'Ghairi',
     'close' => 'Funga',
+    'menu' => 'Menyu',
     'save' => 'Hifadhi',
     'edit' => 'Hariri',
     'delete' => 'Futa',

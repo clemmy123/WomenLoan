@@ -75,6 +75,25 @@ class DraftLoanService
             ->value('form_data') ?? [];
     }
 
+    /**
+     * @return array<string, string>
+     */
+    public function storedDocuments(string $trackId, int $userId): array
+    {
+        $formData = $this->findFormData($trackId, $userId);
+        $documents = [];
+
+        foreach (self::DOCUMENT_FIELDS as $field) {
+            $path = $formData[$field] ?? null;
+
+            if (is_string($path) && $path !== '') {
+                $documents[$field] = basename($path);
+            }
+        }
+
+        return $documents;
+    }
+
     public function deleteByTrackId(string $trackId): void
     {
         $draft = DraftLoan::query()->where('track_id', $trackId)->first();

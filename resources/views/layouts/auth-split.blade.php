@@ -7,7 +7,7 @@
     <title>{{ __('nav.welcome') }} | @yield('auth_title', __('nav.login'))</title>
     <link rel="icon" href="{{ asset('images/nembo2.png') }}" type="image/png">
     @include('partials.accessibility-head-script')
-    @vite(['resources/css/app.css'])
+    @include('partials.assets-head')
     @stack('head')
 </head>
 <body class="auth-split-page">
@@ -61,6 +61,6 @@
         </main>
     </div>
 
-    @vite(['resources/js/app.js'])
+    @include('partials.assets-body')
 </body>
 </html>

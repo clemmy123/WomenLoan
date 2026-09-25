@@ -15,13 +15,27 @@
         'filtersOpen' => false,
         'revealTimeFilters' => (bool) $filtersApplied,
         'hasSort' => false,
+        'submitOnPeriodChange' => true,
     ];
 @endphp
-<div class="page">
-    <div class="page-header">
+<div class="app-page">
+    <form
+        method="GET"
+        action="{{ route('reports.index') }}"
+        class="app-page-report"
+        data-report-filters='@json($reportFiltersBoot)'
+    >
+    <div class="app-page-header">
         <div>
-            <h1 class="page-title lg:text-3xl">{{ __('reports.title') }}</h1>
-            <p class="page-subtitle">{{ __('reports.subtitle') }}</p>
+            <div class="app-page-heading-row">
+                <h1 class="app-page-title lg:text-3xl">{{ __('reports.title') }}</h1>
+                @include('partials.period-segmented', [
+                    'periods' => \App\Services\ReportService::PERIODS,
+                    'compact' => true,
+                    'submitOnChange' => true,
+                ])
+            </div>
+            <p class="app-page-subtitle">{{ __('reports.subtitle') }}</p>
         </div>
         <div class="flex flex-wrap items-center gap-2">
             @if($filtersApplied)
@@ -34,39 +48,25 @@
         </div>
     </div>
 
-    <form
-        method="GET"
-        action="{{ route('reports.index') }}"
-        class="app-card app-card-padded space-y-5"
-        x-data="reportFilters(@js($reportFiltersBoot))"
-    >
+    <div class="app-card app-card-padded space-y-5">
         @include('partials.filters-toggle-button', [
             'title' => __('reports.filters'),
             'showLabel' => __('reports.show_filters'),
             'hideLabel' => __('reports.hide_filters'),
         ])
 
-        <div
-            x-show="filtersOpen"
-            x-cloak
-            x-transition:enter="transition ease-out duration-150"
-            x-transition:enter-start="opacity-0 -translate-y-1"
-            x-transition:enter-end="opacity-100 translate-y-0"
-            x-transition:leave="transition ease-in duration-100"
-            x-transition:leave-start="opacity-100 translate-y-0"
-            x-transition:leave-end="opacity-0 -translate-y-1"
-            class="space-y-5"
-        >
+        <div id="filters-panel" class="collapse space-y-5">
             <div class="wizard-form-grid wizard-form-grid-2 lg:grid-cols-3">
                 @include('partials.report-time-filters', [
                     'langPrefix' => 'reports',
                     'fiscalYearOptions' => $fiscalYearOptions,
                     'periods' => \App\Services\ReportService::PERIODS,
+                    'showPeriod' => false,
                     'showSort' => false,
                 ])
             </div>
 
-            <div class="wizard-form-grid wizard-form-grid-2 lg:grid-cols-4" x-show="showPeriod" x-cloak>
+            <div class="wizard-form-grid wizard-form-grid-2 lg:grid-cols-4" data-filter-reveal="period-extra">
                 <div class="wizard-field">
                     <label class="app-label" for="marital_status">{{ __('reports.marital_status') }}</label>
                     <select name="marital_status" id="marital_status" class="app-select">
@@ -91,6 +91,7 @@
                 <a href="{{ route('reports.index') }}" class="app-btn app-btn-secondary">{{ __('reports.reset_filters') }}</a>
             </div>
         </div>
+    </div>
     </form>
 
     @if(! $filtersApplied)
@@ -205,6 +206,6 @@
 @if($filtersApplied)
 @push('scripts')
 <script type="application/json" id="reports-chart-data">@json($charts)</script>
-@vite(['resources/js/pages/reports.js'])
+@include('partials.chart-js', ['module' => 'js/pages/reports.js'])
 @endpush
 @endif

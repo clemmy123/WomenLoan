@@ -3,7 +3,7 @@
 @section('title', __('groups.show_title'))
 
 @section('content')
-<div class="page">
+<div class="app-page">
     @include('partials.page-header', [
         'title' => $loanGroup->name,
         'subtitle' => __('groups.reg_number').': '.($loanGroup->registration_number ?? __('common.na')),

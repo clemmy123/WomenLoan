@@ -39,16 +39,20 @@
 @endphp
 
 <div
-    class="page page-narrow"
+    class="app-page app-page-narrow"
     @if($selfServiceOnboarding)
-        x-data="applicantOnboardingWizard(@js($onboardingWizardConfig))"
+        data-applicant-onboarding-wizard
+        data-onboarding-config='@json($onboardingWizardConfig)'
     @endif
 >
+    @if($selfServiceOnboarding)
+        @include('partials.wizard-loading')
+    @endif
     <div class="flex items-center space-x-4">
         <a href="{{ $backUrl }}" class="text-sm font-medium text-gray-500 hover:text-gray-900 transition-colors">&larr; {{ $backLabel }}</a>
     </div>
 
-    <div x-ref="wizardHeading">
+    <div data-onboarding-heading>
         <h1 class="text-2xl font-bold tracking-tight text-gray-900">
             {{ $manualEntry ? __('applicants.add_new') : ($selfServiceOnboarding ? __('nav.register_applicant') : __('applicants.create_title')) }}
         </h1>
@@ -80,9 +84,6 @@
         action="{{ route('applicants.store') }}"
         method="POST"
         class="space-y-6 {{ $selfServiceOnboarding ? 'mt-6' : '' }}"
-        @if($selfServiceOnboarding)
-            @submit="onSubmit($event)"
-        @endif
     >
         @csrf
 
@@ -90,6 +91,7 @@
             'lockRegistrationFields' => $lockRegistrationFields ?? false,
             'lockNidaFields' => $lockNidaFields,
             'selfServiceOnboarding' => $selfServiceOnboarding,
+            'initialOnboardingStep' => $initialOnboardingStep,
             'regionId' => null,
             'districtId' => null,
             'councilId' => null,
@@ -102,10 +104,9 @@
                 <div>
                     <button
                         type="button"
-                        x-show="step > 1"
-                        x-cloak
-                        @click="prev()"
+                        data-onboarding-back
                         class="app-btn app-btn-outline"
+                        hidden
                     >
                         {{ __('common.back') }}
                     </button>
@@ -114,22 +115,16 @@
                     <a href="{{ $backUrl }}" class="app-btn app-btn-outline">{{ __('common.cancel') }}</a>
                     <button
                         type="button"
-                        x-show="step < totalSteps"
-                        x-cloak
-                        @click="next()"
-                        :disabled="!canAdvanceStep()"
+                        data-onboarding-next
                         class="app-btn app-btn-primary transition-all"
-                        :class="!canAdvanceStep() ? 'opacity-40 cursor-not-allowed' : 'cursor-pointer'"
                     >
                         {{ __('common.next') }}
                     </button>
                     <button
                         type="submit"
-                        x-show="step === totalSteps"
-                        x-cloak
-                        :disabled="!canSubmitProfile()"
+                        data-onboarding-submit
                         class="app-btn app-btn-primary transition-all"
-                        :class="!canSubmitProfile() ? 'opacity-40 cursor-not-allowed' : 'cursor-pointer'"
+                        hidden
                     >
                         {{ __('applicants.save_profile') }}
                     </button>

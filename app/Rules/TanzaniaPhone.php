@@ -13,7 +13,10 @@ class TanzaniaPhone implements ValidationRule
         $normalized = IdentityNormalizer::normalizePhone($value);
 
         if (! preg_match('/^255[67]\d{8}$/', $normalized)) {
-            $fail(__('validation.phone', ['attribute' => __('common.phone')]));
+            $customKey = "validation.custom.{$attribute}.phone";
+            $custom = __($customKey);
+
+            $fail($custom === $customKey ? __('validation.phone') : $custom);
         }
     }
 }

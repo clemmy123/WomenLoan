@@ -7,18 +7,45 @@
     $recentFilter = $recentFilter ?? 'all';
     $fyStartLabel = \Carbon\Carbon::parse($fiscalYearFrom)->translatedFormat('d M Y');
     $statFyMeta = __('dashboard.since_fy_start', ['date' => $fyStartLabel]);
-    $statCardUrl = fn (string $filter) => route('dashboard', ['recent' => $filter]) . '#recent-applications';
+    $statCardUrl = function (string $filter, ?string $type = null) {
+        $query = ['recent' => $filter];
+        if (in_array($type, ['individual', 'group'], true)) {
+            $query['type'] = $type;
+        }
+
+        return route('dashboard', $query).'#recent-applications';
+    };
+    $recentType = $recentType ?? 'all';
+    $disbursedCollection = $disbursedCollection ?? null;
+    $hideListActions = in_array($recentFilter, ['all', 'approved', 'disbursed'], true);
+    $showWorkflowStepOnList = \App\Support\StaffZone::isMinistryLevel(auth()->user());
+    $applicationsBreakdown = [
+        [
+            'label' => __('dashboard.summary_individual'),
+            'value' => number_format($stats['individual_count'] ?? 0),
+            'url' => $statCardUrl('all', 'individual'),
+            'active' => $recentFilter === 'all' && $recentType === 'individual',
+            'tone' => 'individual',
+        ],
+        [
+            'label' => __('dashboard.summary_groups'),
+            'value' => number_format($stats['group_members_count'] ?? 0),
+            'url' => $statCardUrl('all', 'group'),
+            'active' => $recentFilter === 'all' && $recentType === 'group',
+            'tone' => 'group',
+        ],
+    ];
     $statIconApplications = '<svg fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>';
     $statIconPending = '<svg fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>';
     $statIconApproved = '<svg fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>';
     $statIconDisbursed = '<svg fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"/></svg>';
 @endphp
-<div class="page" x-data="{}">
+<div class="app-page">
     {{-- Header --}}
-    <div class="page-header">
+    <div class="app-page-header">
         <div>
-            <h1 class="page-title lg:text-3xl">{{ __('dashboard.overview') }}</h1>
-            <p class="page-subtitle capitalize">
+            <h1 class="app-page-title lg:text-3xl">{{ __('dashboard.overview') }}</h1>
+            <p class="app-page-subtitle capitalize">
                 {{ str_replace('_', ' ', $user->displayRole()) }} · {{ now()->format('l, d M Y') }}
                 · {{ __('dashboard.fiscal_year_scope', ['year' => $fiscalYear]) }}
             </p>
@@ -26,7 +53,7 @@
     </div>
 
     {{-- Stat cards --}}
-    <div class="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+    <div class="dashboard-stats-grid">
         @if($user->hasRole('applicant'))
             @include('partials.dashboard-stat-card', [
                 'url' => $statCardUrl('all'),
@@ -78,6 +105,7 @@
                 'value' => $stats['total'],
                 'ariaLabel' => __('dashboard.total_applications') . ' — ' . __('dashboard.view_in_recent_list'),
                 'icon' => $statIconApplications,
+                'breakdown' => $applicationsBreakdown,
             ])
             @include('partials.dashboard-stat-card', [
                 'url' => $statCardUrl('disbursed'),
@@ -113,6 +141,7 @@
                 'value' => $stats['total'],
                 'ariaLabel' => __('dashboard.total_applications') . ' — ' . __('dashboard.view_in_recent_list'),
                 'icon' => $statIconApplications,
+                'breakdown' => $applicationsBreakdown,
             ])
             @include('partials.dashboard-stat-card', [
                 'url' => $statCardUrl('disbursed'),
@@ -133,6 +162,7 @@
                 'meta' => $statFyMeta,
                 'ariaLabel' => __('dashboard.total_applications') . ' — ' . __('dashboard.view_in_recent_list'),
                 'icon' => $statIconApplications,
+                'breakdown' => $applicationsBreakdown,
             ])
             @include('partials.dashboard-stat-card', [
                 'url' => $statCardUrl('pending'),
@@ -176,43 +206,103 @@
     @endif
 
     {{-- Charts row --}}
-    <div class="grid gap-6 lg:grid-cols-2">
-        <div class="rounded-2xl bg-white dark:dark-surface border border-slate-200 dark:border-white/[0.08] p-6">
-            <div class="flex items-center justify-between mb-6">
-                <div>
-                    <h2 class="font-bold text-slate-900 dark:text-white">{{ __('dashboard.applications_trend') }}</h2>
-                    <p class="text-xs text-slate-500 dark:text-zinc-400 mt-0.5">{{ __('dashboard.since_fy_start', ['date' => $fyStartLabel]) }}</p>
-                </div>
+    <div class="dashboard-charts-grid">
+        <div class="dashboard-chart-card">
+            <div class="dashboard-chart-card-head">
+                <h2 class="dashboard-chart-title">{{ __('dashboard.applications_trend') }}</h2>
+                <p class="dashboard-chart-subtitle">{{ __('dashboard.since_fy_start', ['date' => $fyStartLabel]) }}</p>
             </div>
-            <div class="h-56"><canvas id="trendChart"></canvas></div>
+            <div class="dashboard-chart-canvas"><canvas id="trendChart"></canvas></div>
         </div>
 
         @if(!$user->hasRole('applicant'))
-        <div class="rounded-2xl bg-white dark:dark-surface border border-slate-200 dark:border-white/[0.08] p-6">
-            <h2 class="font-bold text-slate-900 dark:text-white mb-6">{{ __('dashboard.pipeline_status') }}</h2>
-            <div class="h-56"><canvas id="pipelineChart"></canvas></div>
+        <div class="dashboard-chart-card">
+            <h2 class="dashboard-chart-title dashboard-chart-title--solo">{{ __('dashboard.pipeline_status') }}</h2>
+            <div class="dashboard-chart-canvas"><canvas id="pipelineChart"></canvas></div>
         </div>
         @endif
     </div>
 
     {{-- Recent applications --}}
-    <div id="recent-applications" class="app-card overflow-hidden scroll-mt-6">
+    <div id="recent-applications" class="dashboard-recent-block scroll-mt-6">
+        @if($recentFilter === 'disbursed' && $disbursedCollection)
+            @php
+                $disbursedAll = $disbursedCollection['all'] ?? $disbursedCollection;
+                $disbursedIndividual = $disbursedCollection['individual'] ?? $disbursedCollection;
+                $disbursedGroup = $disbursedCollection['group'] ?? $disbursedCollection;
+            @endphp
+            @include('partials.repayment-summary-strip', [
+                'title' => __('repayments.summary_title'),
+                'copy' => __('dashboard.disbursed_summary_copy', [
+                    'all' => number_format($disbursedAll['count'] ?? 0),
+                    'individual' => number_format($disbursedIndividual['count'] ?? 0),
+                    'group' => number_format($disbursedGroup['count'] ?? 0),
+                ]),
+                'rate' => $disbursedCollection['collection_rate'],
+                'breakdown' => [
+                    [
+                        'label' => __('dashboard.summary_all'),
+                        'value' => format_tzs($disbursedAll['total_disbursed'] ?? 0),
+                        'meta' => trans_choice('dashboard.disbursed_summary_loans', (int) ($disbursedAll['count'] ?? 0), ['count' => number_format($disbursedAll['count'] ?? 0)]),
+                        'url' => $statCardUrl('disbursed'),
+                        'active' => $recentType === 'all',
+                        'tone' => 'all',
+                    ],
+                    [
+                        'label' => __('dashboard.summary_individual'),
+                        'value' => format_tzs($disbursedIndividual['total_disbursed'] ?? 0),
+                        'meta' => trans_choice('dashboard.disbursed_summary_loans', (int) ($disbursedIndividual['count'] ?? 0), ['count' => number_format($disbursedIndividual['count'] ?? 0)]),
+                        'url' => $statCardUrl('disbursed', 'individual'),
+                        'active' => $recentType === 'individual',
+                        'tone' => 'individual',
+                    ],
+                    [
+                        'label' => __('dashboard.summary_groups'),
+                        'value' => format_tzs($disbursedGroup['total_disbursed'] ?? 0),
+                        'meta' => trans_choice('dashboard.disbursed_summary_loans', (int) ($disbursedGroup['count'] ?? 0), ['count' => number_format($disbursedGroup['count'] ?? 0)]),
+                        'url' => $statCardUrl('disbursed', 'group'),
+                        'active' => $recentType === 'group',
+                        'tone' => 'group',
+                    ],
+                ],
+                'metrics' => [
+                    [
+                        'label' => __('repayments.disbursed_col'),
+                        'value' => format_tzs($disbursedCollection['total_disbursed']),
+                    ],
+                    [
+                        'label' => __('repayments.amount_paid_col'),
+                        'value' => format_tzs($disbursedCollection['total_paid']),
+                        'tone' => 'paid',
+                    ],
+                    [
+                        'label' => __('repayments.outstanding'),
+                        'value' => format_tzs($disbursedCollection['total_outstanding']),
+                        'tone' => 'outstanding',
+                    ],
+                ],
+            ])
+        @endif
+
+        <div class="app-card overflow-hidden">
         <div class="app-card-header">
             <div>
                 @if($user->hasRole('chief'))
-                    <h2 class="font-bold text-slate-900 dark:text-white">{{ __('dashboard.chief_queue_title') }}</h2>
-                    <p class="text-xs text-slate-500 dark:text-zinc-400 mt-0.5">{{ __('dashboard.chief_queue_help') }}</p>
+                    <h2 class="app-card-title">{{ __('dashboard.chief_queue_title') }}</h2>
+                    <p>{{ __('dashboard.chief_queue_help') }}</p>
                 @elseif($user->hasRole('accountant'))
-                    <h2 class="font-bold text-slate-900 dark:text-white">{{ __('dashboard.accountant_queue_title') }}</h2>
-                    <p class="text-xs text-slate-500 dark:text-zinc-400 mt-0.5">{{ __('dashboard.accountant_queue_help') }}</p>
+                    <h2 class="app-card-title">{{ __('dashboard.accountant_queue_title') }}</h2>
+                    <p>{{ __('dashboard.accountant_queue_help') }}</p>
                 @else
-                    <h2 class="font-bold text-slate-900 dark:text-white">{{ __('dashboard.recent_applications') }}</h2>
+                    <h2 class="app-card-title">{{ __('dashboard.recent_applications') }}</h2>
                     @if($recentFilter !== 'all')
-                        <p class="text-xs text-indigo-600 dark:text-indigo-400 mt-0.5 font-medium">{{ __('dashboard.recent_filter_' . $recentFilter) }}</p>
+                        <p>{{ __('dashboard.recent_filter_' . $recentFilter) }}</p>
+                    @elseif($recentType !== 'all')
+                        <p>{{ __('dashboard.recent_filter_' . $recentType) }}</p>
                     @endif
                 @endif
             </div>
-            <a href="{{ route('loan-applications.index') }}" class="text-xs font-semibold text-indigo-600 dark:text-indigo-400 hover:underline">{{ __('dashboard.view_all') }} →</a>
+            <a href="{{ route('loan-applications.index') }}" class="app-card-link">{{ __('dashboard.view_all') }} →</a>
         </div>
 
         @include('partials.loan-list-toolbar', [
@@ -220,9 +310,14 @@
             'search' => $recentSearch,
             'sort' => $recentSort,
             'sortOptions' => $recentSortOptions,
-            'hiddenFields' => ['recent' => $recentFilter],
-            'showClear' => $recentSearch !== '' || $recentSort !== 'newest',
-            'clearUrl' => route('dashboard', ['recent' => $recentFilter]) . '#recent-applications',
+            'hiddenFields' => array_filter([
+                'recent' => $recentFilter,
+                'type' => $recentType !== 'all' ? $recentType : null,
+            ]),
+            'showClear' => $recentSearch !== '' || $recentSort !== 'newest' || $recentType !== 'all',
+            'clearUrl' => route('dashboard', array_filter([
+                'recent' => $recentFilter,
+            ])) . '#recent-applications',
         ])
 
         @if($recentLoans->total())
@@ -235,14 +330,18 @@
                         <th>{{ __('loans.list_name') }}</th>
                         <th>{{ __('loans.business_ward') }}</th>
                         <th>{{ __('dashboard.amount') }}</th>
-                        <th>{{ __('dashboard.step') }}</th>
+                        @if($showWorkflowStepOnList)
+                            <th>{{ __('dashboard.step') }}</th>
+                        @endif
                         <th>{{ __('dashboard.status') }}</th>
-                        <th class="w-24">{{ __('common.actions') }}</th>
+                        @unless($hideListActions)
+                            <th class="w-24">{{ __('common.actions') }}</th>
+                        @endunless
                     </tr>
                 </thead>
                 <tbody>
                     @foreach($recentLoans as $loan)
-                    @php $needsAction = loan_needs_user_action($loan); @endphp
+                    @php $needsAction = ! $hideListActions && loan_needs_user_action($loan); @endphp
                     <tr @class(['loan-row--needs-action' => $needsAction])>
                         <td>
                             @include('partials.track-id-chip', ['trackId' => $loan->loan_track_id])
@@ -250,16 +349,22 @@
                         <td>{{ loan_type_label($loan->loan_type) }}</td>
                         <td class="text-slate-700 dark:text-zinc-300">{{ loan_display_name($loan) }}</td>
                         <td>{{ $loan->businessDetails?->ward?->name ?? '—' }}</td>
-                        <td class="font-medium">{{ format_tzs($loan->requested_amount) }}</td>
-                        <td>@include('partials.badge', ['variant' => 'secondary', 'text' => loan_workflow_step_label($loan->current_step)])</td>
+                        <td class="font-medium">{{ format_tzs($recentFilter === 'disbursed' ? ($loan->disbursed_amount ?: $loan->requested_amount) : $loan->requested_amount) }}</td>
+                        @if($showWorkflowStepOnList)
+                            <td>@include('partials.badge', ['variant' => 'secondary', 'text' => loan_workflow_step_label($loan->current_step)])</td>
+                        @endif
                         <td>
                             <div class="flex flex-wrap items-center gap-1">
-                                @include('partials.loan-action-needed-badge', ['loan' => $loan])
+                                @unless($hideListActions)
+                                    @include('partials.loan-action-needed-badge', ['loan' => $loan])
+                                @endunless
                                 @include('partials.loan-status-badge', ['status' => $loan->status])
                                 @include('partials.cdo-loan-scope-badge', ['loan' => $loan])
                             </div>
                         </td>
-                        <td>@include('partials.loan-row-actions', ['loan' => $loan])</td>
+                        @unless($hideListActions)
+                            <td>@include('partials.loan-row-actions', ['loan' => $loan])</td>
+                        @endunless
                     </tr>
                     @endforeach
                 </tbody>
@@ -277,6 +382,7 @@
             @endif
         </p>
         @endif
+        </div>
     </div>
 </div>
 @endsection
@@ -297,5 +403,5 @@
     ];
 @endphp
 <script type="application/json" id="dashboard-chart-data">@json($dashboardChartData)</script>
-@vite(['resources/js/pages/dashboard.js'])
+@include('partials.chart-js', ['module' => 'js/pages/dashboard.js'])
 @endpush

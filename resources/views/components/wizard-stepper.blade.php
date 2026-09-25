@@ -9,19 +9,14 @@
                     @if (! $loop->first)
                         <span
                             class="loan-wizard-stepper__line loan-wizard-stepper__line--before"
-                            :class="{ 'is-complete': step > {{ $number - 1 }} }"
+                            data-stepper-line="{{ $number - 1 }}"
                             aria-hidden="true"
                         ></span>
                     @endif
 
                     <span
-                        class="loan-wizard-stepper__node"
-                        :class="{
-                            'is-complete': step > {{ $number }},
-                            'is-active': step === {{ $number }},
-                            'is-pending': step < {{ $number }}
-                        }"
-                        :aria-current="step === {{ $number }} ? 'step' : false"
+                        class="loan-wizard-stepper__node is-pending"
+                        data-stepper-node="{{ $number }}"
                     >
                         <span class="loan-wizard-stepper__icon">
                             @include('partials.wizard-step-icon', ['icon' => $step['icon'] ?? 'document'])
@@ -31,25 +26,15 @@
                     @if (! $loop->last)
                         <span
                             class="loan-wizard-stepper__line loan-wizard-stepper__line--after"
-                            :class="{
-                                'is-complete': step > {{ $number }},
-                                'is-active': step === {{ $number }}
-                            }"
+                            data-stepper-line="{{ $number }}"
                             aria-hidden="true"
                         ></span>
                     @endif
                 </div>
 
                 <div class="loan-wizard-stepper__meta">
-                    <p
-                        class="loan-wizard-stepper__title"
-                        :class="{
-                            'is-complete': step > {{ $number }},
-                            'is-active': step === {{ $number }},
-                            'is-pending': step < {{ $number }}
-                        }"
-                    >
-                        <span class="loan-wizard-stepper__check" x-show="step > {{ $number }}" x-cloak aria-hidden="true">
+                    <p class="loan-wizard-stepper__title is-pending">
+                        <span class="loan-wizard-stepper__check" hidden aria-hidden="true">
                             <svg viewBox="0 0 20 20" fill="currentColor">
                                 <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.857-9.809a.75.75 0 00-1.214-.882l-3.483 4.79-1.88-1.88a.75.75 0 10-1.06 1.061l2.5 2.5a.75.75 0 001.137-.089l4-5.5z" clip-rule="evenodd"/>
                             </svg>

@@ -27,7 +27,7 @@ class JamiiCors
             return $origin;
         }
 
-        return $allowed[0] ?? '*';
+        return $allowed[0] ?? '';
     }
 
     public static function isAllowedNext(?string $next): bool

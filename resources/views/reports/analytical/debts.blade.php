@@ -6,11 +6,24 @@
 @php
     $f = $filters;
 @endphp
-<div class="page">
-    <div class="page-header">
+<div class="app-page">
+    <form
+        method="GET"
+        action="{{ route($indexRouteName) }}"
+        class="app-page-report"
+        data-period-form
+    >
+    <div class="app-page-header">
         <div>
-            <h1 class="page-title lg:text-3xl">{{ $pageTitle }}</h1>
-            <p class="page-subtitle">{{ $pageSubtitle }}</p>
+            <div class="app-page-heading-row">
+                <h1 class="app-page-title lg:text-3xl">{{ $pageTitle }}</h1>
+                @include('partials.period-segmented', [
+                    'periods' => \App\Services\AnalyticalReportService::PERIODS,
+                    'compact' => true,
+                    'submitOnChange' => true,
+                ])
+            </div>
+            <p class="app-page-subtitle">{{ $pageSubtitle }}</p>
         </div>
         <div class="flex flex-wrap items-center gap-2">
             @if($filtersApplied)
@@ -25,30 +38,15 @@
         </div>
     </div>
 
-    <form
-        method="GET"
-        action="{{ route($indexRouteName) }}"
-        class="app-card app-card-padded space-y-5"
-        x-data="{ filtersOpen: false, selectedPeriod: @js((string) ($f['period'] ?? 'annually')) }"
-    >
+    <div class="app-card app-card-padded space-y-5">
         @include('partials.filters-toggle-button', [
             'title' => __('analytical_reports.filters'),
             'showLabel' => __('analytical_reports.show_filters'),
             'hideLabel' => __('analytical_reports.hide_filters'),
         ])
 
-        <div
-            x-show="filtersOpen"
-            x-cloak
-            x-transition:enter="transition ease-out duration-150"
-            x-transition:enter-start="opacity-0 -translate-y-1"
-            x-transition:enter-end="opacity-100 translate-y-0"
-            x-transition:leave="transition ease-in duration-100"
-            x-transition:leave-start="opacity-100 translate-y-0"
-            x-transition:leave-end="opacity-0 -translate-y-1"
-            class="space-y-5"
-        >
-            <div class="wizard-form-grid wizard-form-grid-2 lg:grid-cols-4">
+        <div id="filters-panel" class="collapse space-y-5">
+            <div class="wizard-form-grid wizard-form-grid-2 lg:grid-cols-3">
                 <div class="wizard-field">
                     <label class="app-label" for="fiscal_year">{{ __('analytical_reports.fiscal_year') }}</label>
                     <select name="fiscal_year" id="fiscal_year" class="app-select" onchange="document.getElementById('use_custom_dates').value=''">
@@ -56,13 +54,6 @@
                             <option value="{{ $fyKey }}" @selected(($f['fiscal_year'] ?? '') === $fyKey)>{{ $fyLabel }}</option>
                         @endforeach
                     </select>
-                </div>
-                <div class="wizard-field wizard-form-grid-span-2 lg:col-span-4">
-                    <label class="app-label" for="period">{{ __('analytical_reports.period') }}</label>
-                    @include('partials.period-segmented', [
-                        'periods' => \App\Services\AnalyticalReportService::PERIODS,
-                        'periodChange' => "document.getElementById('use_custom_dates').value=''",
-                    ])
                 </div>
                 <div class="wizard-field">
                     <label class="app-label" for="date_from">{{ __('analytical_reports.date_from') }}</label>
@@ -80,6 +71,7 @@
                 <a href="{{ route($indexRouteName) }}" class="app-btn app-btn-secondary">{{ __('analytical_reports.reset_filters') }}</a>
             </div>
         </div>
+    </div>
     </form>
 
     @if(! $filtersApplied)

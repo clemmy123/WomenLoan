@@ -78,4 +78,18 @@ class StaffZoneTest extends TestCase
 
         $this->assertSame(__('admin.zone_region'), StaffZone::typeLabelForUser($user->fresh(['roles', 'zoneable'])));
     }
+
+    public function test_ministry_level_includes_national_roles_not_geo_cdo(): void
+    {
+        $ministry = User::where('email', 'ministry@wdf.go.tz')->firstOrFail();
+        $km = User::where('email', 'km@wdf.go.tz')->firstOrFail();
+        $ward = User::where('email', 'ward.cdo@wdf.go.tz')->firstOrFail();
+        $applicant = User::where('email', 'applicant2@wdf.go.tz')->firstOrFail();
+
+        $this->assertTrue(StaffZone::isMinistryLevel($ministry));
+        $this->assertTrue(StaffZone::isMinistryLevel($km));
+        $this->assertFalse(StaffZone::isMinistryLevel($ward));
+        $this->assertFalse(StaffZone::isMinistryLevel($applicant));
+        $this->assertFalse(StaffZone::isMinistryLevel(null));
+    }
 }

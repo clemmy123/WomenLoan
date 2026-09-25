@@ -17,13 +17,27 @@
         'revealTimeFilters' => (bool) $filtersApplied,
         'primarySelectId' => 'status',
         'hasSort' => false,
+        'submitOnPeriodChange' => true,
     ];
 @endphp
-<div class="page">
-    <div class="page-header">
+<div class="app-page">
+    <form
+        method="GET"
+        action="{{ route('reports.applications.index') }}"
+        class="app-page-report"
+        data-report-filters='@json($reportFiltersBoot)'
+    >
+    <div class="app-page-header">
         <div>
-            <h1 class="page-title lg:text-3xl">{{ __('application_reports.title') }}</h1>
-            <p class="page-subtitle">{{ __('application_reports.subtitle') }}</p>
+            <div class="app-page-heading-row">
+                <h1 class="app-page-title lg:text-3xl">{{ __('application_reports.title') }}</h1>
+                @include('partials.period-segmented', [
+                    'periods' => \App\Services\ApplicationReportService::PERIODS,
+                    'compact' => true,
+                    'submitOnChange' => true,
+                ])
+            </div>
+            <p class="app-page-subtitle">{{ __('application_reports.subtitle') }}</p>
         </div>
         <div class="flex flex-wrap items-center gap-2">
             @if($filtersApplied)
@@ -38,46 +52,31 @@
         </div>
     </div>
 
-    <form
-        method="GET"
-        action="{{ route('reports.applications.index') }}"
-        class="app-card app-card-padded space-y-5"
-        x-data="reportFilters(@js($reportFiltersBoot))"
-    >
+    <div class="app-card app-card-padded space-y-5">
         @include('partials.filters-toggle-button', [
             'title' => __('application_reports.filters'),
             'showLabel' => __('application_reports.show_filters'),
             'hideLabel' => __('application_reports.hide_filters'),
         ])
 
-        <div
-            x-show="filtersOpen"
-            x-cloak
-            x-transition:enter="transition ease-out duration-150"
-            x-transition:enter-start="opacity-0 -translate-y-1"
-            x-transition:enter-end="opacity-100 translate-y-0"
-            x-transition:leave="transition ease-in duration-100"
-            x-transition:leave-start="opacity-100 translate-y-0"
-            x-transition:leave-end="opacity-0 -translate-y-1"
-            class="space-y-5"
-        >
+        <div id="filters-panel" class="collapse space-y-5">
             <div class="wizard-form-grid wizard-form-grid-2 lg:grid-cols-3">
                 @include('partials.report-time-filters', [
                     'langPrefix' => 'application_reports',
                     'fiscalYearOptions' => $fiscalYearOptions,
                     'periods' => \App\Services\ApplicationReportService::PERIODS,
+                    'showPeriod' => false,
                     'showSort' => false,
                 ])
 
                 <div class="wizard-field">
                     <label class="app-label" for="status">{{ __('application_reports.status') }}</label>
-                    <div class="app-filter-control" :class="{ 'has-clear': selectedPrimary }">
+                    <div class="app-filter-control">
                         <select
                             name="status"
                             id="status"
                             class="app-select"
-                            x-model="selectedPrimary"
-                            @change="onPrimaryChange()"
+                            data-primary-filter
                         >
                             <option value="">{{ __('application_reports.all_statuses') }}</option>
                             @foreach($statuses as $status)
@@ -87,9 +86,7 @@
                         <button
                             type="button"
                             class="app-filter-clear-inside"
-                            x-show="selectedPrimary"
-                            x-cloak
-                            @click.prevent="clearPrimaryValue()"
+                            data-filter-clear="primary"
                             title="{{ __('common.clear') }}"
                             aria-label="{{ __('common.clear') }}"
                         >
@@ -106,6 +103,7 @@
                 <a href="{{ route('reports.applications.index') }}" class="app-btn app-btn-secondary">{{ __('application_reports.reset_filters') }}</a>
             </div>
         </div>
+    </div>
     </form>
 
     @if(! $filtersApplied)
@@ -213,7 +211,7 @@
         </div>
 
         <script type="application/json" id="application-reports-chart-data">@json($charts)</script>
-        @vite(['resources/js/pages/application-reports.js'])
+        @include('partials.chart-js', ['module' => 'js/pages/application-reports.js'])
     @endif
 </div>
 @endsection

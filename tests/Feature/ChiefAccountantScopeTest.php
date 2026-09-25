@@ -203,7 +203,8 @@ class ChiefAccountantScopeTest extends TestCase
         $this->assertSame(1, $stats['approved']);
         $this->assertSame(1, $stats['ready_for_disbursement']);
         $this->assertSame(1, $stats['disbursed']);
-        $this->assertSame(3, $stats['total']);
+        $this->assertSame(3, $stats['loan_count']);
+        $this->assertSame($stats['individual_count'] + $stats['group_members_count'], $stats['total']);
 
         $this->get(route('dashboard', ['recent' => 'approved']))
             ->assertOk()
@@ -227,7 +228,8 @@ class ChiefAccountantScopeTest extends TestCase
         $this->assertSame(0, $stats['approved']);
         $this->assertSame(1, $stats['ready_for_disbursement']);
         $this->assertSame(1, $stats['disbursed']);
-        $this->assertSame(2, $stats['total']);
+        $this->assertSame(2, $stats['loan_count']);
+        $this->assertSame($stats['individual_count'] + $stats['group_members_count'], $stats['total']);
 
         $this->get(route('dashboard', ['recent' => 'ready_for_disbursement']))
             ->assertOk()

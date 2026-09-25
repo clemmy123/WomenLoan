@@ -69,7 +69,7 @@
         @include('partials.inputs.leadership-role-select')
     </div>
     <div class="flex justify-end gap-2">
-        <button type="button" @click="modal = null" class="app-btn app-btn-secondary">{{ __('common.cancel') }}</button>
+        <button type="button" data-bs-dismiss="modal" class="app-btn app-btn-secondary">{{ __('common.cancel') }}</button>
         <button type="submit" class="app-btn app-btn-primary">{{ __('common.save') }}</button>
     </div>
 </form>

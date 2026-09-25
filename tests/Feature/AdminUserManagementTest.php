@@ -317,5 +317,6 @@ class AdminUserManagementTest extends TestCase
         $response->assertSee(route('admin.users.show', $target), false);
         $response->assertSee(route('admin.users.edit', $target), false);
         $response->assertSee(route('admin.users.assign-roles', $target), false);
+        $response->assertSee(route('admin.users.reset-password', $target), false);
     }
 }

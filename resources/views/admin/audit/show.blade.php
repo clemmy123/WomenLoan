@@ -9,7 +9,7 @@
     $newValues = $properties['attributes'] ?? [];
     $changedKeys = collect(array_unique(array_merge(array_keys($old), array_keys($newValues))))->sort()->values();
 @endphp
-<div class="page">
+<div class="app-page">
     @include('partials.page-header', [
         'title' => __('audit.detail_title'),
         'subtitle' => __('audit.detail_subtitle'),

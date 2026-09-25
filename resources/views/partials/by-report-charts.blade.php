@@ -17,4 +17,4 @@
 </div>
 
 <script type="application/json" id="by-list-reports-chart-data">@json($charts)</script>
-@vite(['resources/js/pages/by-list-reports.js'])
+@include('partials.chart-js', ['module' => 'js/pages/by-list-reports.js'])

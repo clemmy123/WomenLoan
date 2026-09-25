@@ -1,4 +1,4 @@
-@if(session('success') || session('error') || $errors->any())
+@if(session('success') || session('error') || session('warning') || $errors->any())
 <div class="app-flash-stack" data-auto-dismiss>
     @if(session('success'))
         @include('partials.status-card', [
@@ -12,6 +12,15 @@
         @include('partials.status-card', [
             'type' => 'error',
             'message' => session('error'),
+            'toast' => true,
+        ])
+    @endif
+
+    @if(session('warning'))
+        @include('partials.status-card', [
+            'type' => 'error',
+            'title' => __('common.error'),
+            'message' => session('warning'),
             'toast' => true,
         ])
     @endif

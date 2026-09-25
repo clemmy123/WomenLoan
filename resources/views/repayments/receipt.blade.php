@@ -6,11 +6,11 @@
 @php
     $applicant = $payment->loan?->applicant;
 @endphp
-<div class="page page-medium space-y-6">
-    <div class="page-header print:hidden">
+<div class="app-page app-page-medium space-y-6">
+    <div class="app-page-header print:hidden">
         <div>
-            <h1 class="page-title">{{ __('repayments.receipt_title') }}</h1>
-            <p class="page-subtitle font-mono text-indigo-600">{{ $receiptNumber }}</p>
+            <h1 class="app-page-title">{{ __('repayments.receipt_title') }}</h1>
+            <p class="app-page-subtitle font-mono text-indigo-600">{{ $receiptNumber }}</p>
         </div>
         <div class="flex flex-wrap gap-2">
             <button type="button" onclick="window.print()" class="app-btn app-btn-primary">{{ __('repayments.print_receipt') }}</button>

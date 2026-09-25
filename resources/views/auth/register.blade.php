@@ -4,9 +4,7 @@
 
 @push('head')
 <style>
-    /* Register-only: hide Alpine dump before CSS/JS ready */
-    [x-cloak]{display:none!important}
-    .app-a11y-panel[x-cloak]{display:none!important}
+    /* Register-only: hide wizard panels before JS ready */
     .nida-wizard:not([data-ready]) .nida-error,
     .nida-wizard:not([data-ready]) .nida-panel{display:none!important}
     .nida-wizard:not([data-ready]) .nida-panel[data-panel="nin"]{display:block!important}
@@ -53,30 +51,32 @@
 @section('content')
 @php
     $nidaEnabled = (bool) config('services.nida.enabled');
+    $nidaRegisterConfig = [
+        'startUrl' => route('nida.api.start'),
+        'answerUrl' => route('nida.api.answer'),
+        'oldNin' => old('nin', ''),
+        'labels' => ['wrongAnswer' => __('nida.challenge_failed')],
+    ];
 @endphp
 
 <div
     class="auth-split-form-wrap auth-form-wrap @if($nidaEnabled) nida-wizard @endif"
     @if ($nidaEnabled)
-        x-data="nidaRegisterWizard({
-            startUrl: @js(route('nida.api.start')),
-            answerUrl: @js(route('nida.api.answer')),
-            oldNin: @js(old('nin', '')),
-            labels: {
-                wrongAnswer: @js(__('nida.challenge_failed')),
-            },
-        })"
-        x-init="$el.setAttribute('data-ready', '1'); $watch('step', (value) => document.body.classList.toggle('is-preview-step', value === 'preview'))"
-        :data-step="step"
+        data-nida-register-wizard
+        data-nida-config='@json($nidaRegisterConfig)'
+        data-label-loading="{{ __('common.loading') }}"
+        data-label-continue-nin="{{ __('nida.continue_nin') }}"
+        data-label-submit-answer="{{ __('nida.submit_answer') }}"
+        data-step="nin"
     @endif
 >
     @include('partials.auth-flash-messages')
 
     @if ($nidaEnabled)
-        <p class="nida-error" x-show="error" x-text="error" x-cloak role="alert"></p>
+        <p class="nida-error" data-nida-error hidden role="alert"></p>
 
         {{-- Step 1: NIN only --}}
-        <div class="auth-split-form nida-panel" data-panel="nin" x-show="step === 'nin'">
+        <div class="auth-split-form nida-panel" data-nida-panel="nin" data-panel="nin">
             <div class="auth-split-form-header">
                 <h2 class="auth-split-form-title">{{ __('auth.register_title') }}</h2>
                 <p class="jj-auth-intro">{{ __('nida.register_subtitle_nida') }}</p>
@@ -93,32 +93,31 @@
                     data-nin-input
                     class="auth-split-input w-full app-nin-input"
                     placeholder="19000000-00000-00000-00"
-                    x-model="nin"
-                    @keydown.enter.prevent="startNin()"
+                    data-nida-nin
                     autofocus
                 >
             </div>
-            <button type="button" class="auth-split-submit" @click="startNin()" :disabled="loading || nin.replace(/\D/g,'').length < 20">
-                <span x-text="loading ? @js(__('common.loading')) : @js(__('nida.continue_nin'))"></span>
+            <button type="button" class="auth-split-submit" data-nida-start disabled>
+                <span data-nida-btn-label>{{ __('nida.continue_nin') }}</span>
             </button>
         </div>
 
         {{-- Step 2: Security question only --}}
-        <div class="auth-split-form nida-panel" data-panel="question" x-show="step === 'question'" x-cloak>
+        <div class="auth-split-form nida-panel" data-nida-panel="question" data-panel="question" hidden>
             <div class="auth-split-form-header">
                 <h2 class="auth-split-form-title">{{ __('nida.step_questions') }}</h2>
                 <p class="jj-auth-intro">{{ __('nida.question_step_intro') }}</p>
             </div>
             <div class="nida-question-card">
-                <p class="nida-question-code" x-text="rqCode"></p>
-                <p class="nida-question-text" x-text="question"></p>
+                <p class="nida-question-code" data-nida-rq-code></p>
+                <p class="nida-question-text" data-nida-question></p>
             </div>
             <div class="auth-split-field">
                 <label class="auth-split-label" for="nida_answer">{{ __('nida.answer_label') }} @include('partials.required-mark')</label>
-                <input id="nida_answer" type="text" class="auth-split-input" x-model="answer" @keydown.enter.prevent="submitAnswer()" autocomplete="off">
+                <input id="nida_answer" type="text" class="auth-split-input" data-nida-answer autocomplete="off">
             </div>
-            <button type="button" class="auth-split-submit" @click="submitAnswer()" :disabled="loading || !answer.trim()">
-                <span x-text="loading ? @js(__('common.loading')) : @js(__('nida.submit_answer'))"></span>
+            <button type="button" class="auth-split-submit" data-nida-submit-answer disabled>
+                <span data-nida-btn-label>{{ __('nida.submit_answer') }}</span>
             </button>
             @if ((string) config('services.nida.driver', 'fake') === 'fake')
                 <p class="nida-hint nida-demo-answers">{{ __('nida.demo_answers_hint') }}</p>
@@ -126,54 +125,52 @@
         </div>
 
         {{-- Step 3: Profile review only --}}
-        <div class="nida-panel" data-panel="preview" x-show="step === 'preview'" x-cloak>
-            <div class="nida-identity-card" x-show="identity">
+        <div class="nida-panel" data-nida-panel="preview" data-panel="preview" hidden>
+            <div class="nida-identity-card" data-nida-identity hidden>
                 <div class="nida-identity-header">
                     <span class="nida-verified-pill">{{ __('nida.verified_badge') }}</span>
                     <div class="nida-identity-photo-wrap">
-                        <template x-if="photoSrc()">
-                            <img :src="photoSrc()" alt="" class="nida-identity-photo" width="96" height="120">
-                        </template>
+                        <img data-nida-photo alt="" class="nida-identity-photo" width="96" height="120" hidden>
                     </div>
                 </div>
                 <dl class="nida-identity-grid">
                     <div class="nida-identity-field">
                         <dt>{{ __('applicants.first_name') }}</dt>
-                        <dd x-text="identity?.first_name"></dd>
+                        <dd data-nida-field="first_name"></dd>
                     </div>
                     <div class="nida-identity-field">
                         <dt>{{ __('applicants.middle_name') }}</dt>
-                        <dd x-text="identity?.middle_name || '—'"></dd>
+                        <dd data-nida-field="middle_name"></dd>
                     </div>
                     <div class="nida-identity-field">
                         <dt>{{ __('applicants.last_name') }}</dt>
-                        <dd x-text="identity?.last_name"></dd>
+                        <dd data-nida-field="last_name"></dd>
                     </div>
                     <div class="nida-identity-field">
                         <dt>{{ __('applicants.sex') }}</dt>
-                        <dd x-text="identity?.sex"></dd>
+                        <dd data-nida-field="sex"></dd>
                     </div>
                     <div class="nida-identity-field">
                         <dt>{{ __('applicants.dob') }}</dt>
-                        <dd x-text="identity?.dob"></dd>
+                        <dd data-nida-field="dob"></dd>
                     </div>
                     <div class="nida-identity-field">
                         <dt>{{ __('applicants.age') }}</dt>
-                        <dd x-text="identity?.age"></dd>
+                        <dd data-nida-field="age"></dd>
                     </div>
                     <div class="nida-identity-field nida-identity-field--full">
                         <dt>{{ __('applicants.nin') }}</dt>
-                        <dd class="nida-mono" x-text="identity?.nin"></dd>
+                        <dd class="nida-mono" data-nida-field="nin"></dd>
                     </div>
                     <div class="nida-identity-field nida-identity-field--full">
                         <dt>{{ __('applicants.nationality') }}</dt>
-                        <dd x-text="identity?.nationality"></dd>
+                        <dd data-nida-field="nationality"></dd>
                     </div>
                 </dl>
             </div>
             <div class="nida-preview-footer">
                 <p class="nida-preview-hint">{{ __('nida.preview_continue_hint') }}</p>
-                <button type="button" class="auth-split-submit" @click="continueToAccount()">
+                <button type="button" class="auth-split-submit" data-nida-continue-account>
                     <span>{{ __('nida.continue_account') }}</span>
                     <svg class="auth-split-submit-icon" viewBox="0 0 24 24" fill="none" aria-hidden="true">
                         <path d="M5 12h14" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
@@ -190,8 +187,8 @@
         class="auth-split-form nida-panel"
         data-panel="account"
         @if ($nidaEnabled)
-            x-show="step === 'account'"
-            x-cloak
+            data-nida-panel="account"
+            hidden
         @endif
     >
         @csrf
@@ -202,10 +199,10 @@
                 <p class="jj-auth-intro">{{ __('nida.account_step_intro') }}</p>
             </div>
 
-            <input type="hidden" name="nin" :value="identity?.nin || ''">
-            <input type="hidden" name="first_name" :value="identity?.first_name || ''">
-            <input type="hidden" name="middle_name" :value="identity?.middle_name || ''">
-            <input type="hidden" name="last_name" :value="identity?.last_name || ''">
+            <input type="hidden" name="nin" data-nida-hidden="nin" value="">
+            <input type="hidden" name="first_name" data-nida-hidden="first_name" value="">
+            <input type="hidden" name="middle_name" data-nida-hidden="middle_name" value="">
+            <input type="hidden" name="last_name" data-nida-hidden="last_name" value="">
         @else
             <div class="auth-split-form-header">
                 <h2 class="auth-split-form-title">{{ __('auth.register_title') }}</h2>
@@ -263,44 +260,26 @@
             ])
         </div>
 
-        <div class="auth-split-field" x-data="{ showPassword: false }">
+        <div class="auth-split-field">
             <label class="auth-split-label" for="password">{{ __('common.password') }} @include('partials.required-mark')</label>
             <div class="auth-split-input-wrap">
                 <span class="auth-split-input-icon" aria-hidden="true">
                     <svg viewBox="0 0 24 24" fill="none"><rect x="5" y="11" width="14" height="10" rx="2" stroke="currentColor" stroke-width="1.75"/><path d="M8 11V8a4 4 0 118 0v3" stroke="currentColor" stroke-width="1.75" stroke-linecap="round"/></svg>
                 </span>
-                <input :type="showPassword ? 'text' : 'password'" name="password" id="password" required class="auth-split-input auth-split-input--password" placeholder="••••••••">
-                <button type="button" @click="showPassword = !showPassword" class="auth-split-password-toggle"
-                    :aria-label="showPassword ? @json(__('auth.hide_password')) : @json(__('auth.show_password'))">
-                    <svg x-show="!showPassword" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
-                    </svg>
-                    <svg x-show="showPassword" x-cloak class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21"/>
-                    </svg>
-                </button>
+                <input type="password" name="password" id="password" required class="auth-split-input auth-split-input--password" placeholder="••••••••">
+                @include('partials.password-toggle')
             </div>
             @include('partials.password-requirements', ['targetId' => 'password', 'variant' => 'auth'])
         </div>
 
-        <div class="auth-split-field" x-data="{ showPassword: false }">
+        <div class="auth-split-field">
             <label class="auth-split-label" for="password_confirmation">{{ __('common.confirm_password') }} @include('partials.required-mark')</label>
             <div class="auth-split-input-wrap">
                 <span class="auth-split-input-icon" aria-hidden="true">
                     <svg viewBox="0 0 24 24" fill="none"><rect x="5" y="11" width="14" height="10" rx="2" stroke="currentColor" stroke-width="1.75"/><path d="M8 11V8a4 4 0 118 0v3" stroke="currentColor" stroke-width="1.75" stroke-linecap="round"/></svg>
                 </span>
-                <input :type="showPassword ? 'text' : 'password'" name="password_confirmation" id="password_confirmation" required class="auth-split-input auth-split-input--password" placeholder="••••••••">
-                <button type="button" @click="showPassword = !showPassword" class="auth-split-password-toggle"
-                    :aria-label="showPassword ? @json(__('auth.hide_password')) : @json(__('auth.show_password'))">
-                    <svg x-show="!showPassword" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
-                    </svg>
-                    <svg x-show="showPassword" x-cloak class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21"/>
-                    </svg>
-                </button>
+                <input type="password" name="password_confirmation" id="password_confirmation" required class="auth-split-input auth-split-input--password" placeholder="••••••••">
+                @include('partials.password-toggle')
             </div>
         </div>
 

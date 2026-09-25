@@ -20,14 +20,19 @@ trait ValidatesLoanApplication
 {
     private const DOCUMENT_MAX_KB = 1024;
 
+    /** @var list<string> */
+    public const INDIVIDUAL_GUARANTOR_RELATIONSHIPS = [
+        'Father',
+        'Mother',
+        'Brother',
+        'Sister',
+        'Child',
+        'Husband',
+        'Friend',
+    ];
+
     protected function prepareForValidation(): void
     {
-        if ($this->filled('guarantor_first_name') && ! $this->filled('guarantor_relationship')) {
-            $this->merge([
-                'guarantor_relationship' => $this->isGroupLoanType() ? 'Guarantor' : 'Other',
-            ]);
-        }
-
         $merge = [];
 
         if ($this->has('guarantor_nin')) {
@@ -61,12 +66,8 @@ trait ValidatesLoanApplication
             }
         }
 
-        if ($this->has('guarantor_relationship') && trim((string) $this->input('guarantor_relationship')) === '' && ! $this->isGroupLoanType()) {
+        if ($this->has('guarantor_relationship') && trim((string) $this->input('guarantor_relationship')) === '') {
             $merge['guarantor_relationship'] = null;
-        }
-
-        if ($this->isGroupLoanType()) {
-            $merge['guarantor_relationship'] = 'Guarantor';
         }
 
         if ($merge !== []) {
@@ -96,6 +97,10 @@ trait ValidatesLoanApplication
             }
 
             $this->merge($profileMerge);
+        }
+
+        if ($this->isGroupLoanType()) {
+            $this->merge(['guarantor_relationship' => 'Guarantor']);
         }
     }
 
@@ -191,7 +196,9 @@ trait ValidatesLoanApplication
             'guarantor_last_name' => [$updating ? 'nullable' : 'required', 'string', 'max:100', 'min:2'],
             'guarantor_phone' => ['nullable', 'string', new TanzaniaPhone, new UniquePhone],
             'guarantor_nin' => ['nullable', 'string', new TanzanianNin, new UniqueNin],
-            'guarantor_relationship' => 'nullable|string|max:50',
+            'guarantor_relationship' => $this->isGroupLoanType()
+                ? ['nullable', 'string', 'max:50']
+                : ['required', 'string', 'max:50', Rule::in(self::INDIVIDUAL_GUARANTOR_RELATIONSHIPS)],
             'guarantor_occupation' => 'nullable|string|max:255',
             'guarantor_sex' => [$updating ? 'nullable' : 'required', 'string', 'in:Male,Female'],
             'guarantor_region_id' => [$updating ? 'nullable' : 'required', 'exists:regions,id'],
@@ -280,12 +287,8 @@ trait ValidatesLoanApplication
     protected function failedValidation(Validator $validator): void
     {
         $firstField = collect($validator->errors()->keys())->first();
-        $step = LoanWizardFieldMap::stepForField($firstField);
+        $step = $this->submittedWizardStep($firstField);
         $isFinalCreateSubmit = ! $this->route('loan') && $this->input('form_action') !== 'save_draft';
-
-        if ($isFinalCreateSubmit) {
-            $step = 6;
-        }
 
         $trackId = $this->input('track_id');
 
@@ -303,6 +306,17 @@ trait ValidatesLoanApplication
         throw (new ValidationException($validator))
             ->errorBag($this->errorBag)
             ->redirectTo($url);
+    }
+
+    protected function submittedWizardStep(?string $fallbackField = null): int
+    {
+        $posted = (int) $this->input('step', 0);
+
+        if ($posted >= 1 && $posted <= 6) {
+            return $posted;
+        }
+
+        return LoanWizardFieldMap::stepForField($fallbackField);
     }
 
     private function draftHasDocument(string $column): bool

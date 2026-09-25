@@ -10,11 +10,11 @@
         || filled($f['date_from'] ?? null)
         || filled($f['date_to'] ?? null);
 @endphp
-<div class="page" x-data="{ filtersOpen: {{ $hasActiveFilters ? 'true' : 'false' }} }">
-    <div class="page-header">
+<div class="app-page">
+    <div class="app-page-header">
         <div>
-            <h1 class="page-title lg:text-3xl">{{ __('nav.audit_logs') }}</h1>
-            <p class="page-subtitle">{{ __('audit.subtitle') }}</p>
+            <h1 class="app-page-title lg:text-3xl">{{ __('nav.audit_logs') }}</h1>
+            <p class="app-page-subtitle">{{ __('audit.subtitle') }}</p>
         </div>
         <div class="flex flex-wrap items-center gap-2">
             @include('partials.report-export-buttons', [
@@ -31,19 +31,11 @@
             'title' => __('audit.filters'),
             'showLabel' => __('audit.show_filters'),
             'hideLabel' => __('audit.hide_filters'),
+            'target' => 'filters-panel',
+            'expanded' => $hasActiveFilters,
         ])
 
-        <div
-            x-show="filtersOpen"
-            x-cloak
-            x-transition:enter="transition ease-out duration-150"
-            x-transition:enter-start="opacity-0 -translate-y-1"
-            x-transition:enter-end="opacity-100 translate-y-0"
-            x-transition:leave="transition ease-in duration-100"
-            x-transition:leave-start="opacity-100 translate-y-0"
-            x-transition:leave-end="opacity-0 -translate-y-1"
-            class="space-y-5"
-        >
+        <div id="filters-panel" class="collapse space-y-5{{ $hasActiveFilters ? ' show' : '' }}">
             <div class="wizard-form-grid wizard-form-grid-2 lg:grid-cols-4">
                 <div class="wizard-field lg:col-span-2">
                     <label class="app-label" for="search">{{ __('audit.search') }}</label>

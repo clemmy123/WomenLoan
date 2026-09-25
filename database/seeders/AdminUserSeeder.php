@@ -4,14 +4,13 @@ namespace Database\Seeders;
 
 use App\Models\User;
 use Illuminate\Database\Seeder;
-use Illuminate\Support\Facades\Hash;
 
 class AdminUserSeeder extends Seeder
 {
     public function run(): void
     {
-        $admin = User::updateOrCreate(
-            ['email' => 'admin@wdf.go.tz'],
+        $admin = User::query()->firstOrCreate(
+            ['email' => PurgeOperationalDataSeeder::SUPER_ADMIN_EMAIL],
             [
                 'check_number' => '1000000001',
                 'first_name' => 'System',
@@ -19,24 +18,17 @@ class AdminUserSeeder extends Seeder
                 'last_name' => 'Administrator',
                 'name' => 'System Administrator',
                 'phone' => '255700000000',
-                'password' => Hash::make('password'),
+                'password' => 'password',
                 'is_active' => true,
+                'must_change_password' => false,
             ]
         );
-        $admin->syncRoles(['super_admin']);
 
-        $applicant = User::updateOrCreate(
-            ['email' => 'test@example.com'],
-            [
-                'first_name' => 'Test',
-                'middle_name' => null,
-                'last_name' => 'Applicant',
-                'name' => 'Test Applicant',
-                'phone' => '255711111111',
-                'password' => Hash::make('password'),
-                'is_active' => true,
-            ]
-        );
-        $applicant->syncRoles(['applicant']);
+        $admin->forceFill([
+            'is_active' => true,
+            'must_change_password' => false,
+        ])->save();
+
+        $admin->syncRoles(['super_admin']);
     }
 }

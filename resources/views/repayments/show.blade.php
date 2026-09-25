@@ -16,11 +16,11 @@
     $statusLabel = $indexService->statusLabel($payment);
 @endphp
 
-<div class="page space-y-6">
-    <div class="page-header">
+<div class="app-page space-y-6">
+    <div class="app-page-header">
         <div>
-            <h1 class="page-title">{{ __('repayments.schedule_title') }}</h1>
-            <p class="page-subtitle font-mono text-indigo-600">{{ $payment->loan?->loan_track_id }}</p>
+            <h1 class="app-page-title">{{ __('repayments.schedule_title') }}</h1>
+            <p class="app-page-subtitle font-mono text-indigo-600">{{ $payment->loan?->loan_track_id }}</p>
         </div>
         <a href="{{ route('repayments.index') }}" class="text-sm font-semibold text-indigo-600 dark:text-indigo-400 hover:underline">← {{ __('nav.repayments') }}</a>
     </div>

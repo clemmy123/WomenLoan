@@ -3,6 +3,7 @@
 return [
     'cancel' => 'Cancel',
     'close' => 'Close',
+    'menu' => 'Menu',
     'save' => 'Save',
     'edit' => 'Edit',
     'delete' => 'Delete',

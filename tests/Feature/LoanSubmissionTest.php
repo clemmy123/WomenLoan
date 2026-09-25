@@ -68,7 +68,7 @@ class LoanSubmissionTest extends TestCase
             'guarantor_last_name' => 'Guarantor',
             'guarantor_phone' => '0755123456',
             'guarantor_nin' => '19850101123450000001',
-            'guarantor_relationship' => 'Spouse',
+            'guarantor_relationship' => 'Husband',
             ...$this->guarantorFields(),
             'guarantor_letter' => UploadedFile::fake()->create('guarantor-letter.pdf', 100, 'application/pdf'),
         ]);
@@ -85,7 +85,7 @@ class LoanSubmissionTest extends TestCase
         $this->assertSame('Guarantor', $guarantor->last_name);
         $this->assertSame('Jane Guarantor', $guarantor->name);
         $this->assertSame('received', $loan->status);
-        $this->assertSame('Spouse', $guarantor->relationship);
+        $this->assertSame('Husband', $guarantor->relationship);
         $this->assertSame('Male', $guarantor->sex);
         $this->assertSame(1, $guarantor->guarantor_region_id);
         $this->assertSame(1, $guarantor->guarantor_street_id);
@@ -95,7 +95,7 @@ class LoanSubmissionTest extends TestCase
         $this->assertNotNull($loan->businessDetails->bank_statement);
     }
 
-    public function test_guarantor_relationship_defaults_when_not_provided(): void
+    public function test_individual_loan_requires_guarantor_relationship(): void
     {
         $user = $this->applicantWithoutLoan();
 
@@ -128,16 +128,16 @@ class LoanSubmissionTest extends TestCase
             'guarantor_nin' => '19850101123450000002',
             ...$this->guarantorFields(),
             'guarantor_letter' => UploadedFile::fake()->create('guarantor-letter.pdf', 100, 'application/pdf'),
-        ])->assertRedirect();
+        ])->assertSessionHasErrors('guarantor_relationship');
 
-        $loan = Loan::withoutGlobalScope(ApprovalLevelScope::class)
-            ->where('loan_track_id', 'WL000301')
-            ->firstOrFail();
-
-        $this->assertSame('Other', Gurantor::where('loan_id', $loan->id)->value('relationship'));
+        $this->assertNull(
+            Loan::withoutGlobalScope(ApprovalLevelScope::class)
+                ->where('loan_track_id', 'WL000301')
+                ->first()
+        );
     }
 
-    public function test_guarantor_relationship_defaults_when_empty_string(): void
+    public function test_individual_loan_rejects_invalid_guarantor_relationship(): void
     {
         $user = $this->applicantWithoutLoan();
 
@@ -168,16 +168,25 @@ class LoanSubmissionTest extends TestCase
             'guarantor_last_name' => 'Guarantor',
             'guarantor_phone' => '0755123456',
             'guarantor_nin' => '19850101123450000002',
-            'guarantor_relationship' => '',
+            'guarantor_relationship' => 'Spouse',
             ...$this->guarantorFields(),
             'guarantor_letter' => UploadedFile::fake()->create('guarantor-letter.pdf', 100, 'application/pdf'),
-        ])->assertRedirect();
+        ])->assertSessionHasErrors('guarantor_relationship');
+    }
 
-        $loan = Loan::withoutGlobalScope(ApprovalLevelScope::class)
-            ->where('loan_track_id', 'WL000302')
-            ->firstOrFail();
+    public function test_individual_apply_form_shows_guarantor_relationship_dropdown(): void
+    {
+        $user = $this->applicantWithoutLoan();
+        \App\Models\DraftLoan::where('user_id', $user->id)->delete();
 
-        $this->assertSame('Other', Gurantor::where('loan_id', $loan->id)->value('relationship'));
+        $response = $this->actingAs($user)->get(route('loan-applications.create'));
+
+        $response->assertOk();
+        $response->assertSee('name="guarantor_relationship"', false);
+
+        foreach (['Father', 'Mother', 'Brother', 'Sister', 'Child', 'Husband', 'Friend'] as $value) {
+            $response->assertSee('value="'.$value.'"', false);
+        }
     }
 
     public function test_group_loan_requires_group_documents(): void
@@ -218,8 +227,16 @@ class LoanSubmissionTest extends TestCase
 
         $group = \App\Models\LoanGroup::where('name', 'Group Loan Test')->firstOrFail();
 
+        \App\Models\DraftLoan::where('user_id', $user->id)->delete();
+
+        $this->actingAs($user)
+            ->get(route('loan-applications.create'))
+            ->assertOk()
+            ->assertDontSee('name="guarantor_relationship"', false);
+
         $this->actingAs($user)->post(route('loan-applications.store'), [
             'track_id' => 'WL000302',
+            'loan_type' => 'group',
             'loan_group_id' => $group->id,
             'region_id' => 1,
             'district_id' => 1,
@@ -246,7 +263,6 @@ class LoanSubmissionTest extends TestCase
             'guarantor_last_name' => 'Guarantor',
             'guarantor_phone' => '0755111222',
             'guarantor_nin' => '19940101123450000014',
-            'guarantor_relationship' => 'Friend',
             ...$this->guarantorFields(),
             'guarantor_letter' => UploadedFile::fake()->create('guarantor-letter.pdf', 100, 'application/pdf'),
         ])->assertRedirect(route('loan-applications.index'));
@@ -296,7 +312,7 @@ class LoanSubmissionTest extends TestCase
             'guarantor_last_name' => 'Guarantor',
                 'guarantor_phone' => '0755123456',
                 'guarantor_nin' => '19850101123450000003',
-                'guarantor_relationship' => 'Spouse',
+                'guarantor_relationship' => 'Husband',
                 ...$this->guarantorFields(),
                 'guarantor_letter' => UploadedFile::fake()->create('guarantor-letter.pdf', 100, 'application/pdf'),
             ])
@@ -335,7 +351,7 @@ class LoanSubmissionTest extends TestCase
                 'guarantor_last_name' => 'Guarantor',
                 'guarantor_phone' => '0755123456',
                 'guarantor_nin' => '19850101123450000003',
-                'guarantor_relationship' => 'Spouse',
+                'guarantor_relationship' => 'Husband',
                 ...$this->guarantorFields(),
                 'guarantor_letter' => UploadedFile::fake()->create('guarantor-letter.pdf', 100, 'application/pdf'),
             ]);
@@ -383,7 +399,7 @@ class LoanSubmissionTest extends TestCase
             'guarantor_last_name' => 'Guarantor',
                 'guarantor_phone' => '0755123456',
                 'guarantor_nin' => '19850101123450000004',
-                'guarantor_relationship' => 'Spouse',
+                'guarantor_relationship' => 'Husband',
                 ...$this->guarantorFields(),
                 'guarantor_letter' => UploadedFile::fake()->create('guarantor-letter.pdf', 100, 'application/pdf'),
             ])
@@ -427,7 +443,7 @@ class LoanSubmissionTest extends TestCase
             'guarantor_last_name' => 'Guarantor',
                 'guarantor_phone' => '0755123456',
                 'guarantor_nin' => '19850101123450000005',
-                'guarantor_relationship' => 'Spouse',
+                'guarantor_relationship' => 'Husband',
                 ...$this->guarantorFields(),
                 'guarantor_letter' => UploadedFile::fake()->create('guarantor-letter.pdf', 100, 'application/pdf'),
             ])
@@ -441,6 +457,7 @@ class LoanSubmissionTest extends TestCase
         $response = $this->actingAs($user)->from(route('loan-applications.create'))
             ->post(route('loan-applications.store'), [
                 'track_id' => 'WL000306',
+                'step' => 2,
                 'loan_type' => 'individual',
                 'region_id' => 1,
                 'district_id' => 1,
@@ -467,14 +484,14 @@ class LoanSubmissionTest extends TestCase
                 'guarantor_first_name' => 'Jane',
                 'guarantor_last_name' => 'Guarantor',
                 'guarantor_nin' => '19850101123450000006',
-                'guarantor_relationship' => 'Spouse',
+                'guarantor_relationship' => 'Husband',
                 ...$this->guarantorFields(),
                 'guarantor_letter' => UploadedFile::fake()->create('guarantor-letter.pdf', 100, 'application/pdf'),
             ]);
 
         $response->assertRedirect(route('loan-applications.create', [
             'resume_track_id' => 'WL000306',
-            'wizard_step' => 6,
+            'wizard_step' => 2,
         ]));
         $response->assertSessionHasErrors('guarantor_phone');
         $response->assertSessionDoesntHaveErrors('error');
@@ -485,7 +502,7 @@ class LoanSubmissionTest extends TestCase
             ->assertDontSee(__('messages.unexpected_error'), false);
     }
 
-    public function test_missing_business_type_returns_validation_error_at_review_step(): void
+    public function test_missing_business_type_stays_on_submitted_step(): void
     {
         $user = $this->applicantWithoutLoan();
         $trackId = 'WL000307';
@@ -519,7 +536,7 @@ class LoanSubmissionTest extends TestCase
             'guarantor_last_name' => 'Guarantor',
             'guarantor_phone' => '0755123456',
             'guarantor_nin' => '19850101123450000007',
-            'guarantor_relationship' => 'Spouse',
+            'guarantor_relationship' => 'Husband',
             ...$this->guarantorFields(),
             'guarantor_letter' => UploadedFile::fake()->create('guarantor-letter.pdf', 100, 'application/pdf'),
         ]);
@@ -530,5 +547,127 @@ class LoanSubmissionTest extends TestCase
         ]));
         $response->assertSessionHasErrors('business_type');
         $response->assertSessionDoesntHaveErrors('error');
+    }
+
+    public function test_invalid_business_phone_stays_on_phone_step(): void
+    {
+        $user = $this->applicantWithoutLoan();
+
+        $response = $this->actingAs($user)->from(route('loan-applications.create'))
+            ->post(route('loan-applications.store'), [
+                'track_id' => 'WL000308',
+                'step' => 1,
+                'loan_type' => 'individual',
+                'region_id' => 1,
+                'district_id' => 1,
+                'council_id' => 1,
+                'ward_id' => 1,
+                'street_id' => 1,
+                'business_name' => 'Test Shop',
+                'business_phone' => '255877777777',
+                'business_email' => 'shop@test.com',
+                'business_sector' => 'Trade',
+                'business_type' => 'Retail',
+                'tin_number' => '321-654-987',
+                'business_proposal_document' => UploadedFile::fake()->create('proposal.pdf', 100, 'application/pdf'),
+                'proof_address_attachment' => UploadedFile::fake()->create('proof-address.pdf', 100, 'application/pdf'),
+                'application_letter' => UploadedFile::fake()->create('letter.pdf', 100, 'application/pdf'),
+                'bank_statement' => UploadedFile::fake()->create('statement.pdf', 100, 'application/pdf'),
+                'has_disability' => '0',
+                'is_widowed' => '0',
+                'requested_amount' => 500000,
+                'declaration' => '1',
+                'guarantor_first_name' => 'Jane',
+                'guarantor_last_name' => 'Guarantor',
+                'guarantor_phone' => '0755999111',
+                'guarantor_nin' => '19850101123450000099',
+                'guarantor_relationship' => 'Husband',
+                ...$this->guarantorFields(),
+                'guarantor_letter' => UploadedFile::fake()->create('guarantor-letter.pdf', 100, 'application/pdf'),
+            ]);
+
+        $response->assertRedirect(route('loan-applications.create', [
+            'resume_track_id' => 'WL000308',
+            'wizard_step' => 1,
+        ]));
+        $response->assertSessionHasErrors('business_phone');
+        $response->assertSessionDoesntHaveErrors('error');
+
+        $this->actingAs($user)
+            ->get($response->headers->get('Location'))
+            ->assertOk()
+            ->assertSee(__('validation.custom.business_phone.phone'), false);
+    }
+
+    public function test_invalid_business_phone_from_review_stays_on_review_step(): void
+    {
+        $user = $this->applicantWithoutLoan();
+        $trackId = 'WL000309';
+
+        $response = $this->actingAs($user)->from(route('loan-applications.create', [
+            'resume_track_id' => $trackId,
+            'wizard_step' => 6,
+        ]))->post(route('loan-applications.store'), [
+            'track_id' => $trackId,
+            'step' => 6,
+            'loan_type' => 'individual',
+            'region_id' => 1,
+            'district_id' => 1,
+            'council_id' => 1,
+            'ward_id' => 1,
+            'street_id' => 1,
+            'business_name' => 'Test Shop',
+            'business_phone' => '255877777777',
+            'business_email' => 'shop@test.com',
+            'business_sector' => 'Trade',
+            'business_type' => 'Retail',
+            'tin_number' => '321-654-987',
+            'business_proposal_document' => UploadedFile::fake()->create('proposal.pdf', 100, 'application/pdf'),
+            'proof_address_attachment' => UploadedFile::fake()->create('proof-address.pdf', 100, 'application/pdf'),
+            'application_letter' => UploadedFile::fake()->create('letter.pdf', 100, 'application/pdf'),
+            'bank_statement' => UploadedFile::fake()->create('statement.pdf', 100, 'application/pdf'),
+            'has_disability' => '0',
+            'is_widowed' => '0',
+            'requested_amount' => 500000,
+            'declaration' => '1',
+            'guarantor_first_name' => 'Jane',
+            'guarantor_last_name' => 'Guarantor',
+            'guarantor_phone' => '0755999111',
+            'guarantor_nin' => '19850101123450000088',
+            'guarantor_relationship' => 'Husband',
+            ...$this->guarantorFields(),
+            'guarantor_letter' => UploadedFile::fake()->create('guarantor-letter.pdf', 100, 'application/pdf'),
+        ]);
+
+        $response->assertRedirect(route('loan-applications.create', [
+            'resume_track_id' => $trackId,
+            'wizard_step' => 6,
+        ]));
+        $response->assertSessionHasErrors('business_phone');
+    }
+
+    public function test_empty_business_fields_show_specific_messages(): void
+    {
+        $user = $this->applicantWithoutLoan();
+
+        $response = $this->actingAs($user)
+            ->from(route('loan-applications.create'))
+            ->post(route('loan-applications.store'), [
+                'track_id' => 'WL000401',
+                'loan_type' => 'individual',
+                'declaration' => '1',
+            ]);
+
+        $response->assertSessionHasErrors([
+            'business_name' => __('validation.custom.business_name.required'),
+            'region_id' => __('validation.custom.region_id.required'),
+            'business_phone' => __('validation.custom.business_phone.required'),
+            'business_sector' => __('validation.custom.business_sector.required'),
+        ]);
+
+        $this->get($response->headers->get('Location'))
+            ->assertOk()
+            ->assertSee(__('validation.custom.business_name.required'), false)
+            ->assertSee(__('validation.custom.region_id.required'), false);
     }
 }

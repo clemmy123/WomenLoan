@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Exports\UsersExport;
 use App\Http\Requests\Admin\ActivateUserRequest;
 use App\Http\Requests\Admin\DeactivateUserRequest;
+use App\Http\Requests\Admin\ResetUserPasswordRequest;
 use App\Http\Requests\Admin\StoreUserRequest;
 use App\Http\Requests\Admin\UpdateUserRequest;
 use App\Http\Requests\Admin\UpdateUserRolesRequest;
@@ -250,6 +251,33 @@ class UserController extends Controller
             ->with('success', __('messages.user_roles_updated'));
     }
 
+    public function resetPasswordForm(User $user)
+    {
+        $this->ensureCanResetPassword($user);
+
+        return view('admin.users.reset-password', compact('user'));
+    }
+
+    public function resetPassword(ResetUserPasswordRequest $request, User $user)
+    {
+        $this->ensureCanResetPassword($user);
+        $this->users->resetPassword($user, $request->validated('password'));
+
+        $user->refresh();
+
+        $redirect = redirect()
+            ->route('admin.users.show', $user)
+            ->with('success', __('messages.user_password_reset'));
+
+        if ($user->jumuishi_sync_status === 'failed') {
+            $redirect->with('warning', __('messages.jumuishi_sync_failed', [
+                'detail' => $user->jumuishi_sync_error,
+            ]));
+        }
+
+        return $redirect;
+    }
+
     public function update(UpdateUserRequest $request, User $user)
     {
         $this->ensureCanManage($user);
@@ -327,6 +355,13 @@ class UserController extends Controller
     protected function ensureCanManage(User $user): void
     {
         abort_unless(StaffAdminScope::canManage(auth()->user(), $user), 403);
+    }
+
+    protected function ensureCanResetPassword(User $user): void
+    {
+        $this->ensureCanManage($user);
+        abort_unless(auth()->user()?->can('reset user password'), 403);
+        abort_if($user->id === auth()->id(), 403);
     }
 
     /**

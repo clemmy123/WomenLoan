@@ -1,11 +1,11 @@
-<div class="page-header">
+<div class="app-page-header">
     <div>
-        <h1 class="page-title">{{ $title }}</h1>
+        <h1 class="app-page-title">{{ $title }}</h1>
         @isset($subtitle)
-            <p class="page-subtitle">{{ $subtitle }}</p>
+            <p class="app-page-subtitle">{{ $subtitle }}</p>
         @endisset
     </div>
     @isset($actions)
-        <div class="page-actions">{!! $actions !!}</div>
+        <div class="app-page-actions">{!! $actions !!}</div>
     @endisset
 </div>

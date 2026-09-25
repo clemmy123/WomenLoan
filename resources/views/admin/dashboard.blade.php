@@ -19,7 +19,7 @@
     $iconAuditToday = '<svg fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>';
     $iconAuditWeek = '<svg fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"/></svg>';
 @endphp
-<div class="page" x-data="{}">
+<div class="app-page">
     @include('partials.page-header', [
         'title' => __('nav.admin_dashboard'),
         'subtitle' => __('admin.dashboard_subtitle'),
@@ -57,7 +57,7 @@
         ],
     ])
 
-    <div class="grid gap-4 sm:grid-cols-2 {{ $canManageRoles || $canViewAudit ? 'xl:grid-cols-4' : 'xl:grid-cols-2' }}">
+    <div class="dashboard-stats-grid{{ ($canManageRoles || $canViewAudit) ? '' : ' dashboard-stats-grid--two' }}">
         @include('partials.dashboard-stat-card', [
             'url' => route('admin.users.index'),
             'gradient' => 'indigo',
@@ -110,10 +110,10 @@
         @endif
     </div>
 
-    <div class="grid gap-6 {{ $canViewAudit ? 'lg:grid-cols-2' : 'lg:grid-cols-1' }}">
+    <div class="dashboard-charts-grid{{ $canViewAudit ? '' : ' dashboard-charts-grid--single' }}">
         <div class="app-card overflow-hidden">
             <div class="app-card-header">
-                <h2 class="font-bold text-slate-900 dark:text-white">
+                <h2 class="app-card-title">
                     {{ $isScopedIct ? __('admin.dashboard_users_by_role_scoped') : __('admin.dashboard_users_by_role') }}
                 </h2>
                 @if($isScopedIct && $scopedZoneName)
@@ -138,12 +138,12 @@
 
         @if($canViewAudit)
             <div class="app-card overflow-hidden">
-                <div class="app-card-header flex items-center justify-between gap-3">
+                <div class="app-card-header">
                     <div>
-                        <h2 class="font-bold text-slate-900 dark:text-white">{{ __('admin.dashboard_recent_audit') }}</h2>
-                        <p class="text-xs text-slate-500 dark:text-zinc-400 mt-0.5">{{ __('admin.dashboard_audit_last_7_days') }}</p>
+                        <h2 class="app-card-title">{{ __('admin.dashboard_recent_audit') }}</h2>
+                        <p>{{ __('admin.dashboard_audit_last_7_days') }}</p>
                     </div>
-                    <a href="{{ route('admin.audit.index') }}" class="text-sm font-semibold text-indigo-600 dark:text-indigo-400 hover:underline">{{ __('common.view') }}</a>
+                    <a href="{{ route('admin.audit.index') }}" class="app-card-link">{{ __('common.view') }}</a>
                 </div>
                 <div class="app-card-padded">
                     <div class="h-64">
@@ -156,5 +156,5 @@
 </div>
 
 <script type="application/json" id="admin-dashboard-chart-data">@json($adminChartData)</script>
-@vite(['resources/js/pages/admin-dashboard.js'])
+@include('partials.chart-js', ['module' => 'js/pages/admin-dashboard.js'])
 @endsection

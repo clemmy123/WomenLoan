@@ -5,7 +5,6 @@ namespace App\Http\Controllers\Api\Jumuishi;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Schema;
 use Throwable;
 
 class HealthController extends Controller
@@ -26,8 +25,6 @@ class HealthController extends Controller
         return response()->json([
             'status' => 'success',
             'database' => $database,
-            'cache' => config('cache.default'),
-            'version' => config('app.version', '1.0.0'),
         ]);
     }
 }

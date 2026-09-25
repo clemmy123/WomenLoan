@@ -3,7 +3,7 @@
 @section('title', __('nav.roles'))
 
 @section('content')
-<div class="page">
+<div class="app-page">
     @include('partials.page-header', [
         'title' => __('nav.roles'),
         'subtitle' => __('admin.roles_index_subtitle'),

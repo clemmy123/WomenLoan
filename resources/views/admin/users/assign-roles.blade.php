@@ -3,7 +3,7 @@
 @section('title', __('admin.assign_roles'))
 
 @section('content')
-<div class="page">
+<div class="app-page">
     @include('partials.page-header', [
         'title' => __('admin.assign_roles'),
         'subtitle' => $user->name,

@@ -3,7 +3,7 @@
 @section('title', __('nav.track_loan'))
 
 @section('content')
-<div class="page page-medium">
+<div class="app-page app-page-medium">
     @include('partials.page-header', [
         'title' => __('nav.track_loan'),
         'subtitle' => $trackId ?? __('loans.track_search_hint'),
@@ -70,7 +70,7 @@
             @endif
         @endif
 
-        <a href="{{ route('loans.track') }}" class="app-btn app-btn-secondary app-btn-block">{{ __('loans.track_search_again') }}</a>
+        <a href="{{ route('loans.track') }}" class="app-btn app-btn-secondary app-btn-block">{{ __('common.cancel') }}</a>
     </div>
   @endif
 </div>
