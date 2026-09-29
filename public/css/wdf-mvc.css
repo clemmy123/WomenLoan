@@ -1045,11 +1045,12 @@ button.sidebar-link {
     color: #1f2937;
 }
 
+/* app.css forces white text on .sidebar-active from inside a cascade layer, which beats unlayered !important. */
 .app-sidebar .sidebar-link.sidebar-active,
 .app-offcanvas .sidebar-link.sidebar-active {
-    background: var(--sidebar-accent-soft);
-    box-shadow: none;
-    color: var(--sidebar-accent) !important;
+    background: var(--sidebar-accent);
+    box-shadow: 0 4px 12px rgba(2, 132, 199, 0.25);
+    color: #fff !important;
     font-weight: 600;
 }
 
@@ -1227,7 +1228,11 @@ button.sidebar-link {
 }
 
 .dark .app-sidebar .sidebar-link.sidebar-active,
-.dark .app-offcanvas .sidebar-link.sidebar-active,
+.dark .app-offcanvas .sidebar-link.sidebar-active {
+    background: var(--sidebar-accent);
+    color: #fff !important;
+}
+
 .dark .app-sidebar .sidebar-sublink-active,
 .dark .app-offcanvas .sidebar-sublink-active {
     background: rgba(14, 165, 233, 0.2);
