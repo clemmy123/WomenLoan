@@ -11,9 +11,10 @@
     .nida-wizard:not([data-ready]) .nida-panel[data-panel="account"]{display:none!important}
     /* Register-only shell — form only, no left panel */
     .jj-auth-page{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:1.5rem 1.25rem;background:radial-gradient(ellipse 80% 60% at 20% 10%,rgba(26,86,176,.08),transparent 55%),radial-gradient(ellipse 70% 50% at 90% 90%,rgba(13,148,136,.07),transparent 50%),linear-gradient(180deg,#f4f8fb 0%,#fafcfd 45%,#fff 100%);box-sizing:border-box}
-    .jj-auth-frame{width:min(520px,100%);margin:0 auto}
+    .jj-auth-frame{width:min(680px,100%);margin:0 auto}
     .jj-auth-shell,.jj-auth-shell--form-only{display:block;border-radius:28px;overflow:hidden;background:#fff;border:1px solid rgba(15,23,42,.06);box-shadow:0 8px 30px rgba(10,37,64,.06),0 28px 60px rgba(10,37,64,.08)}
-    .jj-auth-right{display:flex;flex-direction:column;padding:1.35rem 1.55rem 1.15rem;background:#fff}
+    .jj-auth-right{display:flex;flex-direction:column;padding:1.5rem 2rem 1.25rem;background:#fff}
+    @media (max-width:560px){.jj-auth-right{padding:1.25rem 1.15rem 1rem}}
     .jj-auth-card-toolbar{display:flex;align-items:center;justify-content:space-between;gap:.75rem;margin-bottom:1rem}
     .jj-auth-toolbar-actions{display:inline-flex;align-items:center;gap:.45rem}
     .jj-auth-copy{margin:1.15rem 0 0;text-align:center;font-size:.72rem;color:#94a3b8}
@@ -208,6 +209,18 @@
                 <h2 class="auth-split-form-title">{{ __('auth.register_title') }}</h2>
                 <p class="jj-auth-intro">{{ __('auth.register_subtitle') }}</p>
             </div>
+
+            <div class="auth-split-field">
+                <label class="auth-split-label" for="nin">{{ __('applicants.nin') }} @include('partials.required-mark')</label>
+                @include('partials.inputs.nin-input', [
+                    'name' => 'nin',
+                    'value' => old('nin', ''),
+                    'required' => true,
+                    'class' => 'auth-split-input auth-split-input--plain w-full',
+                ])
+                @error('nin') <p class="mt-1 text-xs font-medium text-red-600">{{ $message }}</p> @enderror
+            </div>
+
             <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
                 <div class="auth-split-field">
                     <label class="auth-split-label" for="first_name">{{ __('applicants.first_name') }} @include('partials.required-mark')</label>
@@ -215,7 +228,7 @@
                         <span class="auth-split-input-icon" aria-hidden="true">
                             <svg viewBox="0 0 24 24" fill="none"><circle cx="12" cy="8" r="3.5" stroke="currentColor" stroke-width="1.75"/><path d="M5 19c0-3.3 3.1-5 7-5s7 1.7 7 5" stroke="currentColor" stroke-width="1.75" stroke-linecap="round"/></svg>
                         </span>
-                        <input type="text" name="first_name" id="first_name" value="{{ old('first_name') }}" required autofocus class="auth-split-input" placeholder="{{ __('applicants.first_name') }}">
+                        <input type="text" name="first_name" id="first_name" value="{{ old('first_name') }}" required class="auth-split-input" placeholder="{{ __('applicants.first_name') }}">
                     </div>
                 </div>
                 <div class="auth-split-field">
@@ -235,6 +248,40 @@
                         </span>
                         <input type="text" name="last_name" id="last_name" value="{{ old('last_name') }}" required class="auth-split-input" placeholder="{{ __('applicants.last_name') }}">
                     </div>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                <div class="auth-split-field">
+                    <label class="auth-split-label" for="dob">{{ __('applicants.dob') }} @include('partials.required-mark')</label>
+                    <input
+                        type="date"
+                        name="dob"
+                        id="dob"
+                        value="{{ old('dob') }}"
+                        required
+                        max="{{ now()->subDay()->toDateString() }}"
+                        placeholder="{{ __('common.select_date') }}"
+                        data-age-display="register_dob_age"
+                        class="auth-split-input auth-split-input--plain"
+                    >
+                    <p
+                        id="register_dob_age"
+                        class="mt-1 text-xs font-medium text-indigo-600"
+                        data-age-template="{{ __('applicants.age_years', ['age' => ':age']) }}"
+                        data-age-empty=""
+                        hidden
+                    ></p>
+                    @error('dob') <p class="mt-1 text-xs font-medium text-red-600">{{ $message }}</p> @enderror
+                </div>
+                <div class="auth-split-field">
+                    <label class="auth-split-label" for="sex">{{ __('applicants.sex') }} @include('partials.required-mark')</label>
+                    @include('partials.inputs.female-sex-field', ['class' => 'auth-split-input auth-split-input--plain'])
+                </div>
+                <div class="auth-split-field">
+                    <label class="auth-split-label" for="nationality">{{ __('applicants.nationality') }}</label>
+                    <input type="text" name="nationality" id="nationality" value="{{ old('nationality', 'Tanzanian') }}" class="auth-split-input auth-split-input--plain" maxlength="255">
+                    @error('nationality') <p class="mt-1 text-xs font-medium text-red-600">{{ $message }}</p> @enderror
                 </div>
             </div>
         @endif

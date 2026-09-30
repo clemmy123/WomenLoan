@@ -7,6 +7,7 @@
     data-password-requirements
     data-password-target="{{ $targetId }}"
     aria-live="polite"
+    hidden
 >
     <p class="password-requirements-title">{{ __('auth.password_requirements_title') }}</p>
     <ul class="password-requirements-list">

@@ -40,7 +40,14 @@ class RegisterRequest extends FormRequest
                     'nationality' => $identity->nationality,
                 ]);
             }
+
+            return;
         }
+
+        $this->merge([
+            'sex' => 'Female',
+            'nationality' => filled($this->input('nationality')) ? trim((string) $this->input('nationality')) : 'Tanzanian',
+        ]);
     }
 
     public function rules(): array
@@ -52,14 +59,11 @@ class RegisterRequest extends FormRequest
             'email' => ['required', 'email', 'max:255', new UniqueEmail],
             'phone' => ['required', 'string', new TanzaniaPhone, new UniquePhone],
             'password' => ['required', 'confirmed', Password::defaults()],
+            'nin' => ['required', 'string', new TanzanianNin, new UniqueNin],
+            'dob' => ['required', 'date', 'before:today'],
+            'sex' => ['required', 'string', 'in:Female'],
+            'nationality' => ['nullable', 'string', 'max:255'],
         ];
-
-        if ((bool) config('services.nida.enabled')) {
-            $rules['nin'] = ['required', 'string', new TanzanianNin, new UniqueNin];
-            $rules['dob'] = ['required', 'date', 'before:today'];
-            $rules['sex'] = ['required', 'string', 'in:Female'];
-            $rules['nationality'] = ['nullable', 'string', 'max:255'];
-        }
 
         return $rules;
     }

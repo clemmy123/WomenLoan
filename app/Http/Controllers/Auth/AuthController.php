@@ -87,16 +87,16 @@ class AuthController extends Controller
             'email' => $validated['email'],
             'phone' => $validated['phone'],
             'password' => $validated['password'],
+            'nin' => $validated['nin'],
+            'dob' => $validated['dob'],
+            'sex' => 'Female',
+            'nationality' => $validated['nationality'] ?? 'Tanzanian',
         ];
 
-        if ((bool) config('services.nida.enabled') && ! empty($validated['nin'])) {
+        if ((bool) config('services.nida.enabled')) {
             $nida = app(\App\Services\Nida\NidaService::class);
             $identity = $nida->pullVerified($validated['nin']);
 
-            $userPayload['nin'] = $validated['nin'];
-            $userPayload['dob'] = $validated['dob'] ?? null;
-            $userPayload['sex'] = $validated['sex'] ?? 'Female';
-            $userPayload['nationality'] = $validated['nationality'] ?? 'Tanzanian';
             $userPayload['nida_verified_at'] = now();
 
             if ($identity?->photoBase64) {

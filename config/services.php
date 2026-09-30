@@ -36,7 +36,8 @@ return [
     ],
 
     'nida' => [
-        'enabled' => (bool) env('NIDA_ENABLED', true),
+        // Off until the real CIG client is wired; registration then takes NIN/DOB manually.
+        'enabled' => (bool) env('NIDA_ENABLED', false),
         'driver' => env('NIDA_DRIVER', 'fake'),
         'base_url' => env('NIDA_BASE_URL'),
         'user_id' => env('NIDA_USER_ID'),

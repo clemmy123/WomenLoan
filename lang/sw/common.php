@@ -45,6 +45,7 @@ return [
     'na' => 'Hakuna',
     'unspecified' => 'Haijabainishwa',
     'loading' => 'Inapakia…',
+    'select_date' => 'Chagua tarehe',
     'saving' => 'Inahifadhi…',
     'optional' => 'si lazima',
     'required' => 'lazima',

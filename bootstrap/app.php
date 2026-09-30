@@ -57,7 +57,12 @@ return Application::configure(basePath: dirname(__DIR__))
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         $exceptions->render(function (Throwable $e, Request $request) {
-            if ($e instanceof ValidationException || $e instanceof HttpResponseException) {
+            if ($e instanceof ValidationException
+                || $e instanceof HttpResponseException
+                || $e instanceof \Illuminate\Auth\AuthenticationException
+                || $e instanceof \Illuminate\Auth\Access\AuthorizationException
+                || $e instanceof \Illuminate\Database\Eloquent\ModelNotFoundException
+                || $e instanceof \Illuminate\Session\TokenMismatchException) {
                 return null;
             }
 

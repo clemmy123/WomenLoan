@@ -45,6 +45,7 @@ return [
     'na' => 'N/A',
     'unspecified' => 'Unspecified',
     'loading' => 'Loading…',
+    'select_date' => 'Select date',
     'saving' => 'Saving…',
     'optional' => 'optional',
     'required' => 'required',

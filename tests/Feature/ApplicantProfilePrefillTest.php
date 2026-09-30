@@ -23,8 +23,11 @@ class ApplicantProfilePrefillTest extends TestCase
     public function test_registration_redirects_to_dashboard(): void
     {
         $response = $this->post(route('register'), [
+            'nin' => '19920515-12345-67890-12',
             'first_name' => 'John',
             'last_name' => 'Doe',
+            'dob' => '1992-05-15',
+            'sex' => 'Male',
             'email' => 'john.doe@example.com',
             'phone' => '0712345678',
             'password' => $this->strongPassword(),
@@ -32,7 +35,53 @@ class ApplicantProfilePrefillTest extends TestCase
         ]);
 
         $response->assertRedirect(route('dashboard'));
-        $this->assertAuthenticatedAs(User::where('email', 'john.doe@example.com')->first());
+
+        $user = User::where('email', 'john.doe@example.com')->firstOrFail();
+        $this->assertAuthenticatedAs($user);
+        $this->assertSame('19920515123456789012', $user->nin);
+        $this->assertSame('1992-05-15', $user->dob->format('Y-m-d'));
+        $this->assertSame('Female', $user->sex);
+        $this->assertSame('Tanzanian', $user->nationality);
+        $this->assertNull($user->nida_verified_at);
+    }
+
+    public function test_manual_register_form_starts_with_nin_dob_sex_nationality(): void
+    {
+        $this->get(route('register'))
+            ->assertOk()
+            ->assertDontSee('data-nida-register-wizard', false)
+            ->assertSeeInOrder(['name="nin"', 'name="first_name"', 'name="dob"', 'name="sex"', 'name="nationality"', 'name="email"'], false)
+            ->assertSee('value="Female"', false)
+            ->assertSee('value="Tanzanian"', false);
+    }
+
+    public function test_registration_requires_nin_and_dob(): void
+    {
+        $this->post(route('register'), [
+            'first_name' => 'John',
+            'last_name' => 'Doe',
+            'email' => 'john.doe@example.com',
+            'phone' => '0712345678',
+            'password' => $this->strongPassword(),
+            'password_confirmation' => $this->strongPassword(),
+        ])->assertSessionHasErrors(['nin', 'dob']);
+
+        $this->assertGuest();
+    }
+
+    public function test_live_host_never_runs_nida_demo(): void
+    {
+        config([
+            'app.url' => 'http://41.59.229.51:8010',
+            'services.nida.enabled' => true,
+            'services.nida.driver' => 'fake',
+            'services.nida.base_url' => '',
+        ]);
+
+        $this->get('http://41.59.229.51:8010/register')
+            ->assertOk()
+            ->assertDontSee('data-nida-register-wizard', false)
+            ->assertSee('name="nin"', false);
     }
 
     public function test_split_full_name_handles_common_formats(): void
